@@ -1,15 +1,16 @@
-import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
-import Register from './components/Register';
-import Login from './components/Login';
-import ForgotPassword from './components/ForgotPassword';
-import Dashboard from './components/Dashboard';
+import React, { useState, useEffect } from "react";
+import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
+import Register from "./components/Register";
+import Login from "./components/Login";
+import ForgotPassword from "./components/ForgotPassword";
+import Dashboard from "./components/Dashboard";
+import VerifyEmail from "./pages/VerifyEmail";
 
 function App() {
   const [isAuthenticated, setAuth] = useState(false);
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem("token");
     if (token) {
       setAuth(true);
     }
@@ -24,12 +25,17 @@ function App() {
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route
             path="/dashboard"
-            element={isAuthenticated ? <Dashboard /> : <Login setAuth={setAuth} />}
+            element={
+              isAuthenticated ? <Dashboard /> : <Login setAuth={setAuth} />
+            }
           />
           <Route
             path="/"
-            element={isAuthenticated ? <Dashboard /> : <Login setAuth={setAuth} />}
+            element={
+              isAuthenticated ? <Dashboard /> : <Login setAuth={setAuth} />
+            }
           />
+          <Route path="/verify-email" element={<VerifyEmail />} />
         </Routes>
       </div>
     </Router>

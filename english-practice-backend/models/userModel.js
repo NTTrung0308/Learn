@@ -51,11 +51,24 @@ const User = {
       "UPDATE users SET password = ?, reset_password_token = NULL, reset_password_expires = NULL WHERE id = ?";
     db.execute(query, [password, userId], callback);
   },
-};
 
-findByVerificationToken: (token, callback) => {
-  const query = "SELECT * FROM users WHERE verification_token = ?";
-  db.execute(query, [token], callback);
+  // findByVerificationToken để hỗ trợ cả callback và promise 
+  findByVerificationToken: (token, callback) => {
+    const query = "SELECT * FROM users WHERE verification_token = ?";
+
+    // Nếu có callback, sử dụng callback
+    if (typeof callback === "function") {
+      return db.execute(query, [token], callback);
+    }
+
+    // Nếu không có callback, trả về promise
+    return new Promise((resolve, reject) => {
+      db.execute(query, [token], (err, results) => {
+        if (err) reject(err);
+        else resolve(results);
+      });
+    });
+  },
 };
 
 module.exports = User;
