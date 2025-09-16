@@ -18,16 +18,24 @@ const User = {
     });
   },
 
-  findByGoogleId: (googleId, callback) => {
-    const query = "SELECT * FROM users WHERE google_id = ?";
-    db.execute(query, [googleId], callback);
+  findByGoogleId: (googleId) => {
+    return new Promise((resolve, reject) => {
+      const query = "SELECT * FROM users WHERE google_id = ?";
+      db.execute(query, [googleId], (err, results) => {
+        if (err) reject(err);
+        else resolve(results);
+      });
+    });
   },
-
-  findByFacebookId: (facebookId, callback) => {
-    const query = "SELECT * FROM users WHERE facebook_id = ?";
-    db.execute(query, [facebookId], callback);
+  findByFacebookId: (facebookId) => {
+    return new Promise((resolve, reject) => {
+      const query = "SELECT * FROM users WHERE facebook_id = ?";
+      db.execute(query, [facebookId], (err, results) => {
+        if (err) reject(err);
+        else resolve(results);
+      });
+    });
   },
-
   updateVerificationStatus: (userId, callback) => {
     const query =
       "UPDATE users SET is_verified = TRUE, verification_token = NULL WHERE id = ?";
@@ -52,7 +60,7 @@ const User = {
     db.execute(query, [password, userId], callback);
   },
 
-  // findByVerificationToken để hỗ trợ cả callback và promise 
+  // findByVerificationToken để hỗ trợ cả callback và promise
   findByVerificationToken: (token, callback) => {
     const query = "SELECT * FROM users WHERE verification_token = ?";
 
@@ -71,13 +79,25 @@ const User = {
   },
 
   // Hàm tạo user với OAuth (Google/Facebook)
-   createWithProvider: (user, callback) => {
-    const { email, google_id, facebook_id, is_verified } = user;
+  createWithProvider: (user, callback) => {
+    const {
+      email,
+      google_id = null,
+      facebook_id = null,
+      display_name = null,
+      is_verified = true,
+    } = user;
+
     const query = `
-      INSERT INTO users (email, google_id, facebook_id, is_verified) 
-      VALUES (?, ?, ?, ?)
+      INSERT INTO users (email, google_id, facebook_id, display_name, is_verified) 
+      VALUES (?, ?, ?, ?, ?)
     `;
-    db.execute(query, [email, google_id, facebook_id, is_verified], callback);
+
+    // Đảm bảo không có giá trị undefined
+    const params = [email, google_id, facebook_id, display_name, is_verified];
+
+    console.log("Inserting user with params:", params);
+    db.execute(query, params, callback);
   },
 
   findById: (id) => {
@@ -88,8 +108,7 @@ const User = {
         else resolve(results);
       });
     });
-  }
-
+  },
 };
 
 module.exports = User;

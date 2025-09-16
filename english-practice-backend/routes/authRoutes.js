@@ -1,39 +1,77 @@
 const express = require('express');
-const {
-  register,
-  verifyEmail,
-  login,
-  forgotPassword,
-  resetPassword
-} = require('../controllers/authController');
 const passport = require('passport');
-
+const jwt = require('jsonwebtoken');
 const router = express.Router();
 
-router.post('/register', register);
-router.get('/verify-email', verifyEmail);
-router.post('/login', login);
-router.post('/forgot-password', forgotPassword);
-router.post('/reset-password', resetPassword);
+// Google OAuth routes
+router.get('/google', passport.authenticate('google', { 
+  scope: ['profile', 'email'],
+  accessType: 'offline',
+  prompt: 'consent'
+}));
 
-
-// Thêm các routes OAuth
-router.get('/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
 router.get('/google/callback', 
-  passport.authenticate('google', { failureRedirect: '/login' }),
+  passport.authenticate('google', { 
+    failureRedirect: process.env.FRONTEND_URL + '/login?error=auth_failed',
+    session: false 
+  }),
   (req, res) => {
-    // Tạo JWT token và redirect về frontend với token
-    const token = jwt.sign({ userId: req.user.id }, process.env.JWT_SECRET);
-    res.redirect(`http://localhost:3000/auth/success?token=${token}`);
+    try {
+      console.log('Google auth successful, user:', req.user);
+      
+      if (!req.user || !req.user.id) {
+        return res.redirect(process.env.FRONTEND_URL + '/login?error=no_user');
+      }
+
+      const token = jwt.sign({ 
+        userId: req.user.id,
+        email: req.user.email 
+      }, process.env.JWT_SECRET, {
+        expiresIn: '7d' // Tăng thời gian token
+      });
+      
+      console.log('Token generated successfully, redirecting to frontend');
+      res.redirect(`${process.env.FRONTEND_URL}/auth/success?token=${token}`);
+      
+    } catch (error) {
+      console.error('Token generation error:', error);
+      res.redirect(process.env.FRONTEND_URL + '/login?error=token_error');
+    }
   }
 );
 
-router.get('/facebook', passport.authenticate('facebook', { scope: ['email'] }));
+// Facebook OAuth routes
+router.get('/facebook', passport.authenticate('facebook', { 
+  scope: ['email'] 
+}));
+
 router.get('/facebook/callback',
-  passport.authenticate('facebook', { failureRedirect: '/login' }),
+  passport.authenticate('facebook', { 
+    failureRedirect: process.env.FRONTEND_URL + '/login?error=auth_failed',
+    session: false 
+  }),
   (req, res) => {
-    const token = jwt.sign({ userId: req.user.id }, process.env.JWT_SECRET);
-    res.redirect(`http://localhost:3000/auth/success?token=${token}`);
+    try {
+      console.log('Facebook auth successful, user:', req.user);
+      
+      if (!req.user || !req.user.id) {
+        return res.redirect(process.env.FRONTEND_URL + '/login?error=no_user');
+      }
+
+      const token = jwt.sign({ 
+        userId: req.user.id,
+        email: req.user.email 
+      }, process.env.JWT_SECRET, {
+        expiresIn: '7d'
+      });
+      
+      console.log('Facebook token generated successfully');
+      res.redirect(`${process.env.FRONTEND_URL}/auth/success?token=${token}`);
+      
+    } catch (error) {
+      console.error('Facebook token error:', error);
+      res.redirect(process.env.FRONTEND_URL + '/login?error=token_error');
+    }
   }
 );
 
