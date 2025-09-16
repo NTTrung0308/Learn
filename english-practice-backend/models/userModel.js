@@ -69,6 +69,27 @@ const User = {
       });
     });
   },
+
+  // Hàm tạo user với OAuth (Google/Facebook)
+   createWithProvider: (user, callback) => {
+    const { email, google_id, facebook_id, is_verified } = user;
+    const query = `
+      INSERT INTO users (email, google_id, facebook_id, is_verified) 
+      VALUES (?, ?, ?, ?)
+    `;
+    db.execute(query, [email, google_id, facebook_id, is_verified], callback);
+  },
+
+  findById: (id) => {
+    return new Promise((resolve, reject) => {
+      const query = "SELECT * FROM users WHERE id = ?";
+      db.execute(query, [id], (err, results) => {
+        if (err) reject(err);
+        else resolve(results);
+      });
+    });
+  }
+
 };
 
 module.exports = User;

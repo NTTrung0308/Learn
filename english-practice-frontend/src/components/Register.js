@@ -22,6 +22,14 @@ const Register = () => {
     }
   };
 
+  const handleGoogleRegister = () => {
+    window.location.href = 'http://localhost:5000/api/auth/google';
+  };
+
+  const handleFacebookRegister = () => {
+    window.location.href = 'http://localhost:5000/api/auth/facebook';
+  };
+
   return (
     <div>
       <h2>Register</h2>
@@ -51,6 +59,13 @@ const Register = () => {
         />
         <button type="submit">Register</button>
       </form>
+      <hr />
+      <button onClick={handleGoogleRegister} style={{ background: '#4285F4', color: '#fff', margin: '5px' }}>
+        Register with Google
+      </button>
+      <button onClick={handleFacebookRegister} style={{ background: '#4267B2', color: '#fff', margin: '5px' }}>
+        Register with Facebook
+      </button>
     </div>
   );
 };

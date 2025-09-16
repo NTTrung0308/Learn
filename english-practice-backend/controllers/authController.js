@@ -94,7 +94,13 @@ const verifyEmail = async (req, res) => {
 
     if (results.length === 0) {
       console.log("Không tìm thấy người dùng nào có mã thông báo này");
-      return res.status(400).json({ message: "Invalid token" });
+      return res.status(400).send(`
+    <div style="font-family: Arial; color: #c00; text-align: center; margin-top: 50px;">
+      <h2>Verification Failed</h2>
+      <p>Invalid or expired verification token.</p>
+      <a href="http://localhost:3000/login">Go to Login</a>
+    </div>
+  `);
     }
 
     const user = results[0];
@@ -104,16 +110,20 @@ const verifyEmail = async (req, res) => {
     await new Promise((resolve, reject) => {
       User.updateVerificationStatus(user.id, (err, updateResults) => {
         if (err) {
-          console.error("Lỗi khi cập nhật trạng thái xác minh:", err);
           reject(err);
         } else {
-          console.log("Xác minh email thành công cho người dùng:", user.id);
           resolve(updateResults);
         }
       });
     });
 
-    res.json({ message: "Email đã được xác minh thành công" });
+    return res.send(`
+  <div style="font-family: Arial; color: #090; text-align: center; margin-top: 50px;">
+    <h2>Email Verified Successfully!</h2>
+    <p>Your email has been verified. You can now log in and start learning English.</p>
+    <a href="http://localhost:3000/login">Go to Login</a>
+  </div>
+`);
   } catch (error) {
     console.error("Database error:", error);
     res.status(500).json({ message: "Database error", error });

@@ -5,6 +5,7 @@ import Login from "./components/Login";
 import ForgotPassword from "./components/ForgotPassword";
 import Dashboard from "./components/Dashboard";
 import VerifyEmail from "./pages/VerifyEmail";
+import AuthSuccess from "./pages/AuthSuccess";
 
 function App() {
   const [isAuthenticated, setAuth] = useState(false);
@@ -36,6 +37,7 @@ function App() {
             }
           />
           <Route path="/verify-email" element={<VerifyEmail />} />
+          <Route path="/auth/success" element={<AuthSuccess setAuth={setAuth} />} />
         </Routes>
       </div>
     </Router>
