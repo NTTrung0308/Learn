@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 
@@ -33,6 +33,18 @@ const Login = ({ setAuth }) => {
   const handleFacebookLogin = () => {
     window.location.href = 'http://localhost:5000/api/auth/facebook';
   };
+
+useEffect(() => {
+  const urlParams = new URLSearchParams(window.location.search);
+  const token = urlParams.get('token');
+  
+  if (token) {
+    localStorage.setItem('token', token);
+    setAuth(true);
+    alert('Login successful!');
+    navigate('/dashboard');
+  }
+}, [navigate, setAuth]);
 
   return (
     <div>
