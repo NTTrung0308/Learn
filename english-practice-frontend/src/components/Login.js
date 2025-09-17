@@ -2,6 +2,8 @@ import React, { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
+import { Link } from "react-router-dom";
+
 const Login = ({ setAuth, setUserRole, setUserId }) => {
   const [formData, setFormData] = useState({ email: "", password: "" });
   const navigate = useNavigate();
@@ -69,7 +71,6 @@ const Login = ({ setAuth, setUserRole, setUserId }) => {
 
   return (
     <div>
-  
       <h2>Login</h2>
       <form onSubmit={onSubmit}>
         <input
@@ -90,6 +91,10 @@ const Login = ({ setAuth, setUserRole, setUserId }) => {
         />
         <button type="submit">Login</button>
       </form>
+      <div style={{ marginTop: "10px", display:"flex"}}>
+        <Link to="/forgot-password">Quên mật khẩu?</Link>
+        <Link to="/register">Đăng ký</Link>
+      </div>
       <hr />
       <button
         onClick={handleGoogleLogin}

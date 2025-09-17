@@ -10,6 +10,7 @@ import VerifyEmail from "./pages/VerifyEmail";
 import AuthSuccess from "./pages/AuthSuccess";
 import Home from "./components/Home";
 import Navbar from "./components/Navbar";
+import ResetPassword from "./components/ResetPassword";
 
 function App() {
   const [isAuthenticated, setAuth] = useState(false);
@@ -85,6 +86,7 @@ function App() {
           <Route path="/register" element={<Register />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/verify-email" element={<VerifyEmail />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
           <Route
             path="/auth/success"
             element={

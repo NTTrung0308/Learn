@@ -4,7 +4,29 @@ const crypto = require("crypto");
 const User = require("../models/userModel");
 const sendEmail = require("../utils/sendEmail");
 
-// Đăng ký
+// Tạo queue cho email jobs
+const emailQueue = [];
+let isProcessing = false;
+
+// Hàm xử lý email queue
+const processEmailQueue = async () => {
+  if (isProcessing || emailQueue.length === 0) return;
+
+  isProcessing = true;
+
+  while (emailQueue.length > 0) {
+    const emailJob = emailQueue.shift();
+    try {
+      await sendEmail(emailJob.to, emailJob.subject, emailJob.html);
+      console.log(`Email sent to: ${emailJob.to}`);
+    } catch (error) {
+      console.error(`Failed to send email to: ${emailJob.to}`, error);
+    }
+  }
+
+  isProcessing = false;
+};
+
 // Đăng ký
 const register = async (req, res) => {
   const { email, phone, password } = req.body;
@@ -22,55 +44,50 @@ const register = async (req, res) => {
     // Tạo token xác thực
     const verificationToken = crypto.randomBytes(20).toString("hex");
 
-    // Lưu người dùng vào cơ sở dữ liệu - THÊM ROLE MẶC ĐỊNH
+    // Lưu người dùng vào cơ sở dữ liệu
     const newUser = {
       email,
       phone,
       password: hashedPassword,
       verification_token: verificationToken,
-      role: "user" // Thêm role mặc định
+      role: "user",
     };
 
-    User.create(newUser, (err, results) => {
-      if (err) {
-        return res
-          .status(500)
-          .json({ message: "Error creating user", error: err });
-      }
+    await User.create(newUser);
 
-      // Gửi email xác thực
-      const verificationUrl = `http://localhost:5000/api/auth/verify-email?token=${verificationToken}`;
-      const emailHtml = `
-  <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
-    <h2 style="color: #4CAF50;">Welcome to English Learning!</h2>
-    <p>Thank you for joining our platform. To start practicing and improving your English skills, please verify your email address.</p>
-    <p>
-      <a href="${verificationUrl}" 
-         style="display: inline-block; padding: 10px 20px; background-color: #4CAF50; 
-                color: #fff; text-decoration: none; border-radius: 5px;">
-        Verify My Email
-      </a>
-    </p>
-    <p>If the button above doesn’t work, copy and paste the following link into your browser:</p>
-    <p><a href="${verificationUrl}" style="color: #4CAF50;">${verificationUrl}</a></p>
-    <hr />
-    <p style="font-size: 12px; color: #777;">
-      Happy learning,<br/>
-      The English Learning Team
-    </p>
-  </div>
-`;
+    // Gửi email xác thực qua queue
+    const verificationUrl = `http://localhost:5000/api/auth/verify-email?token=${verificationToken}`;
+    const emailHtml = `
+      <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+        <h2 style="color: #4CAF50;">Welcome to English Learning!</h2>
+        <p>Thank you for joining our platform. To start practicing and improving your English skills, please verify your email address.</p>
+        <p>
+          <a href="${verificationUrl}" 
+             style="display: inline-block; padding: 10px 20px; background-color: #4CAF50; 
+                    color: #fff; text-decoration: none; border-radius: 5px;">
+            Verify My Email
+          </a>
+        </p>
+        <p>If the button above doesn’t work, copy and paste the following link into your browser:</p>
+        <p><a href="${verificationUrl}" style="color: #4CAF50;">${verificationUrl}</a></p>
+        <hr />
+        <p style="font-size: 12px; color: #777;">
+          Happy learning,<br/>
+          The English Learning Team
+        </p>
+      </div>
+    `;
 
-      sendEmail(email, "Verify your email", emailHtml)
-        .then(() => {
-          res.status(201).json({
-            message: "User registered. Please check your email to verify.",
-          });
-        })
-        .catch((error) => {
-          console.error("Error sending email:", error);
-          res.status(500).json({ message: "Error sending verification email" });
-        });
+    emailQueue.push({
+      to: email,
+      subject: "Verify your email",
+      html: emailHtml,
+    });
+    processEmailQueue();
+
+    // Trả về response NGAY LẬP TỨC
+    res.status(201).json({
+      message: "User registered. Please check your email to verify.",
     });
   } catch (error) {
     res.status(500).json({ message: "Server error", error });
@@ -84,48 +101,31 @@ const verifyEmail = async (req, res) => {
   console.log("Đã nhận được mã thông báo xác minh:", token);
 
   try {
-    // Sửa: Chuyển findByVerificationToken thành Promise để xử lý đúng
-    const results = await new Promise((resolve, reject) => {
-      User.findByVerificationToken(token, (err, results) => {
-        if (err) reject(err);
-        else resolve(results);
-      });
-    });
-
-    console.log("Database results:", results);
+    // Dùng async/await thay vì callback
+    const results = await User.findByVerificationToken(token);
 
     if (results.length === 0) {
-      console.log("Không tìm thấy người dùng nào có mã thông báo này");
       return res.status(400).send(`
-    <div style="font-family: Arial; color: #c00; text-align: center; margin-top: 50px;">
-      <h2>Verification Failed</h2>
-      <p>Invalid or expired verification token.</p>
-      <a href="http://localhost:3000/login">Go to Login</a>
-    </div>
-  `);
+        <div style="font-family: Arial; color: #c00; text-align: center; margin-top: 50px;">
+          <h2>Verification Failed</h2>
+          <p>Invalid or expired verification token.</p>
+          <a href="http://localhost:3000/login">Go to Login</a>
+        </div>
+      `);
     }
 
     const user = results[0];
-    console.log("Người dùng đã tìm thấy:", user);
 
     // Cập nhật trạng thái xác thực
-    await new Promise((resolve, reject) => {
-      User.updateVerificationStatus(user.id, (err, updateResults) => {
-        if (err) {
-          reject(err);
-        } else {
-          resolve(updateResults);
-        }
-      });
-    });
+    await User.updateVerificationStatus(user.id);
 
     return res.send(`
-  <div style="font-family: Arial; color: #090; text-align: center; margin-top: 50px;">
-    <h2>Email Verified Successfully!</h2>
-    <p>Your email has been verified. You can now log in and start learning English.</p>
-    <a href="http://localhost:3000/login">Go to Login</a>
-  </div>
-`);
+      <div style="font-family: Arial; color: #090; text-align: center; margin-top: 50px;">
+        <h2>Email Verified Successfully!</h2>
+        <p>Your email has been verified. You can now log in and start learning English.</p>
+        <a href="http://localhost:3000/login">Go to Login</a>
+      </div>
+    `);
   } catch (error) {
     console.error("Database error:", error);
     res.status(500).json({ message: "Database error", error });
@@ -175,84 +175,107 @@ const login = async (req, res) => {
   }
 };
 // Quên mật khẩu
-const forgotPassword = (req, res) => {
+// Quên mật khẩu - Tối ưu hóa
+const forgotPassword = async (req, res) => {
   const { email } = req.body;
 
-  // Tìm user bằng email
-  User.findByEmail(email, (err, results) => {
-    if (err) {
-      return res.status(500).json({ message: "Database error", error: err });
-    }
+  try {
+    console.time("findUserByEmail");
+    const results = await User.findByEmail(email);
+    console.timeEnd("findUserByEmail");
 
     if (results.length === 0) {
-      return res.status(400).json({ message: "User not found" });
+      // Trả về thành công ngay cả khi không tìm thấy email (bảo mật)
+      return res.json({
+        message: "If the email exists, a reset link has been sent",
+      });
     }
 
     const user = results[0];
 
-    // Tạo token reset mật khẩu
+    // Tạo token
     const token = crypto.randomBytes(20).toString("hex");
     const expires = new Date(Date.now() + 3600000); // 1 giờ
 
-    // Lưu token và thời gian hết hạn vào user
-    User.updateResetPasswordToken(user.id, token, expires, (err, results) => {
-      if (err) {
-        return res
-          .status(500)
-          .json({ message: "Error setting reset token", error: err });
-      }
+    console.time("updateResetToken");
+    await User.updateResetPasswordToken(user.id, token, expires);
+    console.timeEnd("updateResetToken");
 
-      // Gửi email reset mật khẩu
-      const resetUrl = `http://localhost:3000/reset-password?token=${token}`;
-      const emailHtml = `<p>Please click <a href="${resetUrl}">here</a> to reset your password.</p>`;
+    // Tạo email content
+    const resetUrl = `${process.env.FRONTEND_URL}/reset-password?token=${token}`;
+    const emailHtml = `
+      <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+        <h2 style="color: #4CAF50;">Password Reset Request</h2>
+        <p>You requested to reset your password. Click the button below to proceed:</p>
+        <p>
+          <a href="${resetUrl}" 
+             style="display: inline-block; padding: 10px 20px; background-color: #4CAF50; 
+                    color: #fff; text-decoration: none; border-radius: 5px;">
+            Reset Password
+          </a>
+        </p>
+        <p>If the button above doesn't work, copy and paste the following link into your browser:</p>
+        <p><a href="${resetUrl}" style="color: #4CAF50;">${resetUrl}</a></p>
+        <p>This link will expire in 1 hour.</p>
+        <hr />
+        <p style="font-size: 12px; color: #777;">
+          If you didn't request this reset, please ignore this email.<br/>
+          The English Learning Team
+        </p>
+      </div>
+    `;
 
-      sendEmail(email, "Reset your password", emailHtml)
-        .then(() => {
-          res.json({ message: "Password reset link sent to your email" });
-        })
-        .catch((error) => {
-          console.error("Error sending email:", error);
-          res.status(500).json({ message: "Error sending reset email" });
-        });
+    // Thêm email vào queue và phản hồi ngay lập tức
+    emailQueue.push({
+      to: email,
+      subject: "Reset your password",
+      html: emailHtml,
     });
-  });
+
+    // Khởi động xử lý queue
+    processEmailQueue();
+
+    res.json({ message: "If the email exists, a reset link has been sent" });
+  } catch (error) {
+    console.error("Error in forgotPassword:", error);
+    res.status(500).json({ message: "Server error", error });
+  }
 };
 
 // Reset mật khẩu
-const resetPassword = (req, res) => {
+const resetPassword = async (req, res) => {
   const { token, password } = req.body;
 
-  // Tìm user bằng token và kiểm tra thời gian hết hạn
-  User.findByResetPasswordToken(token, (err, results) => {
-    if (err) {
-      return res.status(500).json({ message: "Database error", error: err });
-    }
+  try {
+    // Tìm user bằng token (dùng async/await)
+    const results = await User.findByResetPasswordToken(token);
 
+    // Kiểm tra token hợp lệ
     if (results.length === 0) {
-      return res.status(400).json({ message: "Invalid or expired token" });
+      return res
+        .status(400)
+        .json({ message: "Mã thông báo không hợp lệ hoặc hết hạn" });
     }
 
     const user = results[0];
 
-    // Mã hóa mật khẩu mới
-    bcrypt.hash(password, 12, (err, hashedPassword) => {
-      if (err) {
-        return res
-          .status(500)
-          .json({ message: "Error hashing password", error: err });
-      }
+    // Xác thực mật khẩu (ví dụ: độ dài tối thiểu)
+    if (!password || password.length < 6) {
+      return res
+        .status(400)
+        .json({ message: "Mật khẩu phải từ 6 ký tự trở lên" });
+    }
 
-      // Cập nhật mật khẩu
-      User.updatePassword(user.id, hashedPassword, (err, results) => {
-        if (err) {
-          return res
-            .status(500)
-            .json({ message: "Error updating password", error: err });
-        }
-        res.json({ message: "Password reset successfully" });
-      });
-    });
-  });
+    const hashedPassword = await bcrypt.hash(password, 12);
+
+    // Cập nhật mật khẩu và xóa token (dùng async/await)
+    await User.updatePassword(user.id, hashedPassword);
+
+    res.json({ message: "Password reset successfully" });
+  } catch (error) {
+    console.error("Error in resetPassword:", error);
+    res.status(500).json({ message: "Server error", error });
+  }
 };
 
 module.exports = {

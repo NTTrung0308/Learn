@@ -1,7 +1,8 @@
 const db = require("../config/database");
+const pool = db.promise(); // Sử dụng promise-based API
 
 const User = {
-  create: (user, callback) => {
+  create: async (user) => {
     const query = `
       INSERT INTO users 
       (email, phone, password, verification_token, role) 
@@ -12,131 +13,102 @@ const User = {
       user.phone,
       user.password,
       user.verification_token,
-      user.role || 'user'
+      user.role || "user",
     ];
-    db.query(query, values, callback);
+    const [result] = await pool.execute(query, values);
+    return result;
   },
 
-  findByEmail: (email) => {
-    return new Promise((resolve, reject) => {
-      const query = "SELECT * FROM users WHERE email = ?";
-      db.execute(query, [email], (err, results) => {
-        if (err) reject(err);
-        else resolve(results);
-      });
-    });
+  findByEmail: async (email) => {
+    const query = "SELECT * FROM users WHERE email = ?";
+    const [results] = await pool.execute(query, [email]);
+    return results;
   },
 
-  findByGoogleId: (googleId) => {
-    return new Promise((resolve, reject) => {
-      const query = "SELECT * FROM users WHERE google_id = ?";
-      db.execute(query, [googleId], (err, results) => {
-        if (err) reject(err);
-        else resolve(results);
-      });
-    });
+  findByGoogleId: async (googleId) => {
+    const query = "SELECT * FROM users WHERE google_id = ?";
+    const [results] = await pool.execute(query, [googleId]);
+    return results;
   },
-  findByFacebookId: (facebookId) => {
-    return new Promise((resolve, reject) => {
-      const query = "SELECT * FROM users WHERE facebook_id = ?";
-      db.execute(query, [facebookId], (err, results) => {
-        if (err) reject(err);
-        else resolve(results);
-      });
-    });
+
+  findByFacebookId: async (facebookId) => {
+    const query = "SELECT * FROM users WHERE facebook_id = ?";
+    const [results] = await pool.execute(query, [facebookId]);
+    return results;
   },
-  updateVerificationStatus: (userId, callback) => {
+
+  updateVerificationStatus: async (userId) => {
     const query =
       "UPDATE users SET is_verified = TRUE, verification_token = NULL WHERE id = ?";
-    db.execute(query, [userId], callback);
+    const [result] = await pool.execute(query, [userId]);
+    return result;
   },
 
-  updateResetPasswordToken: (userId, token, expires, callback) => {
+  updateResetPasswordToken: async (userId, token, expires) => {
     const query =
       "UPDATE users SET reset_password_token = ?, reset_password_expires = ? WHERE id = ?";
-    db.execute(query, [token, expires, userId], callback);
+    const [result] = await pool.execute(query, [token, expires, userId]);
+    return result;
   },
 
-  findByResetPasswordToken: (token, callback) => {
+  findByResetPasswordToken: async (token) => {
     const query =
       "SELECT * FROM users WHERE reset_password_token = ? AND reset_password_expires > NOW()";
-    db.execute(query, [token], callback);
+    const [results] = await pool.execute(query, [token]);
+    return results;
   },
 
-  updatePassword: (userId, password, callback) => {
+  updatePassword: async (userId, password) => {
     const query =
       "UPDATE users SET password = ?, reset_password_token = NULL, reset_password_expires = NULL WHERE id = ?";
-    db.execute(query, [password, userId], callback);
+    const [result] = await pool.execute(query, [password, userId]);
+    return result;
   },
 
-  // findByVerificationToken để hỗ trợ cả callback và promise
-  findByVerificationToken: (token, callback) => {
+  findByVerificationToken: async (token) => {
     const query = "SELECT * FROM users WHERE verification_token = ?";
-
-    // Nếu có callback, sử dụng callback
-    if (typeof callback === "function") {
-      return db.execute(query, [token], callback);
-    }
-
-    // Nếu không có callback, trả về promise
-    return new Promise((resolve, reject) => {
-      db.execute(query, [token], (err, results) => {
-        if (err) reject(err);
-        else resolve(results);
-      });
-    });
+    const [results] = await pool.execute(query, [token]);
+    return results;
   },
 
-  // Hàm tạo user với OAuth (Google/Facebook)
-createWithProvider: (user, callback) => {
-  const {
-    email,
-    google_id = null,
-    facebook_id = null,
-    display_name = null,
-    is_verified = true,
-    role = "user" // Đảm bảo có role
-  } = user;
+  createWithProvider: async (user) => {
+    const {
+      email,
+      google_id = null,
+      facebook_id = null,
+      display_name = null,
+      is_verified = true,
+      role = "user",
+    } = user;
 
-  const query = `
-    INSERT INTO users 
-    (email, google_id, facebook_id, display_name, is_verified, role) 
-    VALUES (?, ?, ?, ?, ?, ?)
-  `;
+    const query = `
+      INSERT INTO users 
+      (email, google_id, facebook_id, display_name, is_verified, role) 
+      VALUES (?, ?, ?, ?, ?, ?)
+    `;
+    const params = [
+      email,
+      google_id,
+      facebook_id,
+      display_name,
+      is_verified,
+      role,
+    ];
+    const [result] = await pool.execute(query, params);
+    return result;
+  },
 
-  const params = [
-    email, 
-    google_id, 
-    facebook_id, 
-    display_name, 
-    is_verified,
-    role // Thêm role vào query
-  ];
+  findById: async (id) => {
+    const query = "SELECT * FROM users WHERE id = ?";
+    const [results] = await pool.execute(query, [id]);
+    return results;
+  },
 
-  console.log("Inserting user with params:", params);
-  db.execute(query, params, callback);
-},
-
-  findById: (id) => {
-    return new Promise((resolve, reject) => {
-      const query = "SELECT * FROM users WHERE id = ?";
-      db.execute(query, [id], (err, results) => {
-        if (err) reject(err);
-        else resolve(results);
-      });
-    });
+  updateGoogleId: async (userId, googleId) => {
+    const query = "UPDATE users SET google_id = ? WHERE id = ?";
+    const [result] = await pool.execute(query, [googleId, userId]);
+    return result;
   },
 };
-
-// Thêm vào userModel.js
-updateGoogleId: (userId, googleId) => {
-  return new Promise((resolve, reject) => {
-    const query = "UPDATE users SET google_id = ? WHERE id = ?";
-    db.execute(query, [googleId, userId], (err, results) => {
-      if (err) reject(err);
-      else resolve(results);
-    });
-  });
-},
 
 module.exports = User;
