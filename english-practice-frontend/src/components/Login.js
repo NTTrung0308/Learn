@@ -1,50 +1,62 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from "react";
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 const Login = ({ setAuth }) => {
   const [formData, setFormData] = useState({
-    email: '',
-    password: ''
+    email: "",
+    password: "",
   });
   const navigate = useNavigate();
 
   const { email, password } = formData;
 
-  const onChange = e => setFormData({ ...formData, [e.target.name]: e.target.value });
+  const onChange = (e) =>
+    setFormData({ ...formData, [e.target.name]: e.target.value });
 
-  const onSubmit = async e => {
+  const onSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await axios.post('http://localhost:5000/api/auth/login', formData);
-      localStorage.setItem('token', res.data.token);
+      const res = await axios.post(
+        "http://localhost:5000/api/auth/login",
+        formData
+      );
+      localStorage.setItem("token", res.data.token);
+      localStorage.setItem("userRole", res.data.user.role); // Thêm dòng này
       setAuth(true);
-      alert('Login successful!');
-      navigate('/dashboard');
+      alert("Login successful!");
+      if (
+        res.data.user.role === "admin" ||
+        res.data.user.role === "superadmin"
+      ) {
+        navigate("/dashboard");
+      } else {
+        navigate("/");
+      }
     } catch (err) {
-      alert(err.response?.data?.message || 'Login failed');
+      alert(err.response?.data?.message || "Login failed");
     }
   };
 
   const handleGoogleLogin = () => {
-    window.location.href = 'http://localhost:5000/api/auth/google';
+    window.location.href = "http://localhost:5000/api/auth/google";
   };
 
   const handleFacebookLogin = () => {
-    window.location.href = 'http://localhost:5000/api/auth/facebook';
+    window.location.href = "http://localhost:5000/api/auth/facebook";
   };
 
-useEffect(() => {
-  const urlParams = new URLSearchParams(window.location.search);
-  const token = urlParams.get('token');
-  
-  if (token) {
-    localStorage.setItem('token', token);
-    setAuth(true);
-    alert('Login successful!');
-    navigate('/dashboard');
-  }
-}, [navigate, setAuth]);
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const token = urlParams.get("token");
+
+    if (token) {
+      localStorage.setItem("token", token);
+      setAuth(true);
+      alert("Login successful!");
+      navigate("/dashboard");
+    }
+  }, [navigate, setAuth]);
 
   return (
     <div>
@@ -69,10 +81,16 @@ useEffect(() => {
         <button type="submit">Login</button>
       </form>
       <hr />
-      <button onClick={handleGoogleLogin} style={{ background: '#4285F4', color: '#fff', margin: '5px' }}>
+      <button
+        onClick={handleGoogleLogin}
+        style={{ background: "#4285F4", color: "#fff", margin: "5px" }}
+      >
         Login with Google
       </button>
-      <button onClick={handleFacebookLogin} style={{ background: '#4267B2', color: '#fff', margin: '5px' }}>
+      <button
+        onClick={handleFacebookLogin}
+        style={{ background: "#4267B2", color: "#fff", margin: "5px" }}
+      >
         Login with Facebook
       </button>
     </div>

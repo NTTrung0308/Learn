@@ -6,14 +6,19 @@ import ForgotPassword from "./components/ForgotPassword";
 import Dashboard from "./components/Dashboard";
 import VerifyEmail from "./pages/VerifyEmail";
 import AuthSuccess from "./pages/AuthSuccess";
+import Home from "./components/Home"; // Thêm component Home
 
 function App() {
   const [isAuthenticated, setAuth] = useState(false);
+  const [userRole, setUserRole] = useState(null);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
+    const role = localStorage.getItem("userRole");
+
     if (token) {
       setAuth(true);
+      setUserRole(role);
     }
   }, []);
 
@@ -21,23 +26,36 @@ function App() {
     <Router>
       <div className="App">
         <Routes>
+          <Route
+            path="/"
+            element={
+              <Home isAuthenticated={isAuthenticated} userRole={userRole} />
+            }
+          />
           <Route path="/register" element={<Register />} />
-          <Route path="/login" element={<Login setAuth={setAuth} />} />
+          <Route
+            path="/login"
+            element={<Login setAuth={setAuth} setUserRole={setUserRole} />}
+          />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route
             path="/dashboard"
             element={
-              isAuthenticated ? <Dashboard /> : <Login setAuth={setAuth} />
-            }
-          />
-          <Route
-            path="/"
-            element={
-              isAuthenticated ? <Dashboard /> : <Login setAuth={setAuth} />
+              isAuthenticated &&
+              (userRole === "superadmin" || userRole === "admin") ? (
+                <Dashboard />
+              ) : (
+                <Home isAuthenticated={isAuthenticated} userRole={userRole} />
+              )
             }
           />
           <Route path="/verify-email" element={<VerifyEmail />} />
-          <Route path="/auth/success" element={<AuthSuccess setAuth={setAuth} />} />
+          <Route
+            path="/auth/success"
+            element={
+              <AuthSuccess setAuth={setAuth} setUserRole={setUserRole} />
+            }
+          />
         </Routes>
       </div>
     </Router>

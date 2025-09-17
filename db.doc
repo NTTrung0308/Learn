@@ -1,0 +1,20 @@
+CREATE DATABASE english_practice;
+
+USE english_practice;
+
+CREATE TABLE users (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  email VARCHAR(255) NOT NULL UNIQUE,
+  password VARCHAR(255) NULL,
+  phone VARCHAR(20) NULL,
+  google_id VARCHAR(255) NULL,
+  facebook_id VARCHAR(255) NULL,
+  display_name VARCHAR(255) NULL,
+  role ENUM('superadmin', 'admin', 'teacher', 'student', 'user') NOT NULL DEFAULT 'user',
+  is_verified BOOLEAN DEFAULT FALSE,
+  verification_token VARCHAR(255) NULL,
+  reset_password_token VARCHAR(255) NULL,
+  reset_password_expires DATETIME NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);

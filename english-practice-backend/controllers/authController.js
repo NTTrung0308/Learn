@@ -131,6 +131,7 @@ const verifyEmail = async (req, res) => {
 };
 
 // Đăng nhập
+// Đăng nhập
 const login = async (req, res) => {
   const { email, password } = req.body;
 
@@ -158,7 +159,14 @@ const login = async (req, res) => {
       expiresIn: "1h",
     });
 
-    res.json({ token, user: { id: user.id, email: user.email } });
+    res.json({
+      token,
+      user: {
+        id: user.id,
+        email: user.email,
+        role: user.role, // Thêm role vào response
+      },
+    });
   } catch (error) {
     res.status(500).json({ message: "Server error", error });
   }
