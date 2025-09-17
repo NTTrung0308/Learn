@@ -5,6 +5,7 @@ const User = require("../models/userModel");
 const sendEmail = require("../utils/sendEmail");
 
 // Đăng ký
+// Đăng ký
 const register = async (req, res) => {
   const { email, phone, password } = req.body;
 
@@ -21,12 +22,13 @@ const register = async (req, res) => {
     // Tạo token xác thực
     const verificationToken = crypto.randomBytes(20).toString("hex");
 
-    // Lưu người dùng vào cơ sở dữ liệu
+    // Lưu người dùng vào cơ sở dữ liệu - THÊM ROLE MẶC ĐỊNH
     const newUser = {
       email,
       phone,
       password: hashedPassword,
       verification_token: verificationToken,
+      role: "user" // Thêm role mặc định
     };
 
     User.create(newUser, (err, results) => {
@@ -132,6 +134,7 @@ const verifyEmail = async (req, res) => {
 
 // Đăng nhập
 // Đăng nhập
+// Đăng nhập
 const login = async (req, res) => {
   const { email, password } = req.body;
 
@@ -164,14 +167,13 @@ const login = async (req, res) => {
       user: {
         id: user.id,
         email: user.email,
-        role: user.role, // Thêm role vào response
+        role: user.role, // Đảm bảo trả về role
       },
     });
   } catch (error) {
     res.status(500).json({ message: "Server error", error });
   }
 };
-
 // Quên mật khẩu
 const forgotPassword = (req, res) => {
   const { email } = req.body;

@@ -1,18 +1,37 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-
-const Login = ({ setAuth }) => {
-  const [formData, setFormData] = useState({
-    email: "",
-    password: "",
-  });
+import { toast } from "react-toastify";
+const Login = ({ setAuth, setUserRole, setUserId }) => {
+  const [formData, setFormData] = useState({ email: "", password: "" });
   const navigate = useNavigate();
 
   const { email, password } = formData;
 
   const onChange = (e) =>
     setFormData({ ...formData, [e.target.name]: e.target.value });
+
+  // ✅ gom xử lý login thành công vào 1 hàm
+  const handleLoginSuccess = useCallback(
+    (token, role, id) => {
+      localStorage.setItem("token", token);
+      localStorage.setItem("userRole", role);
+      localStorage.setItem("userId", id);
+
+      setAuth(true);
+      setUserRole(role);
+      if (typeof setUserId === "function") setUserId(id);
+
+      toast.success("Đăng nhập thành công!");
+
+      if (role === "superadmin" || role === "admin") {
+        navigate("/dashboard");
+      } else {
+        navigate("/");
+      }
+    },
+    [navigate, setAuth, setUserRole, setUserId]
+  );
 
   const onSubmit = async (e) => {
     e.preventDefault();
@@ -21,20 +40,10 @@ const Login = ({ setAuth }) => {
         "http://localhost:5000/api/auth/login",
         formData
       );
-      localStorage.setItem("token", res.data.token);
-      localStorage.setItem("userRole", res.data.user.role); // Thêm dòng này
-      setAuth(true);
-      alert("Login successful!");
-      if (
-        res.data.user.role === "admin" ||
-        res.data.user.role === "superadmin"
-      ) {
-        navigate("/dashboard");
-      } else {
-        navigate("/");
-      }
+
+      handleLoginSuccess(res.data.token, res.data.user.role, res.data.user.id);
     } catch (err) {
-      alert(err.response?.data?.message || "Login failed");
+      toast.error(err.response?.data?.message || "Đăng nhập thất bại");
     }
   };
 
@@ -49,17 +58,18 @@ const Login = ({ setAuth }) => {
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const token = urlParams.get("token");
+    const role = urlParams.get("role");
+    const id = urlParams.get("id");
 
-    if (token) {
-      localStorage.setItem("token", token);
-      setAuth(true);
-      alert("Login successful!");
-      navigate("/dashboard");
+    if (token && role && id) {
+      handleLoginSuccess(token, role, id);
     }
-  }, [navigate, setAuth]);
+  }, [navigate, setAuth, setUserRole, setUserId, handleLoginSuccess]);
+  // Đã thêm handleLoginSuccess vào dependency array
 
   return (
     <div>
+  
       <h2>Login</h2>
       <form onSubmit={onSubmit}>
         <input

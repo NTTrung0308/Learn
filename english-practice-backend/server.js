@@ -5,6 +5,8 @@ const session = require("express-session");
 require("dotenv").config();
 require("./config/passport"); // <-- Thêm dòng này
 
+
+
 const authRoutes = require("./routes/authRoutes");
 
 const app = express();

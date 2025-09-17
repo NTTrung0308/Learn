@@ -2,10 +2,19 @@ const db = require("../config/database");
 
 const User = {
   create: (user, callback) => {
-    const { email, phone, password, verification_token } = user;
-    const query =
-      "INSERT INTO users (email, phone, password, verification_token) VALUES (?, ?, ?, ?)";
-    db.execute(query, [email, phone, password, verification_token], callback);
+    const query = `
+      INSERT INTO users 
+      (email, phone, password, verification_token, role) 
+      VALUES (?, ?, ?, ?, ?)
+    `;
+    const values = [
+      user.email,
+      user.phone,
+      user.password,
+      user.verification_token,
+      user.role || 'user'
+    ];
+    db.query(query, values, callback);
   },
 
   findByEmail: (email) => {
@@ -79,26 +88,34 @@ const User = {
   },
 
   // Hàm tạo user với OAuth (Google/Facebook)
-  createWithProvider: (user, callback) => {
-    const {
-      email,
-      google_id = null,
-      facebook_id = null,
-      display_name = null,
-      is_verified = true,
-    } = user;
+createWithProvider: (user, callback) => {
+  const {
+    email,
+    google_id = null,
+    facebook_id = null,
+    display_name = null,
+    is_verified = true,
+    role = "user" // Đảm bảo có role
+  } = user;
 
-    const query = `
-      INSERT INTO users (email, google_id, facebook_id, display_name, is_verified) 
-      VALUES (?, ?, ?, ?, ?)
-    `;
+  const query = `
+    INSERT INTO users 
+    (email, google_id, facebook_id, display_name, is_verified, role) 
+    VALUES (?, ?, ?, ?, ?, ?)
+  `;
 
-    // Đảm bảo không có giá trị undefined
-    const params = [email, google_id, facebook_id, display_name, is_verified];
+  const params = [
+    email, 
+    google_id, 
+    facebook_id, 
+    display_name, 
+    is_verified,
+    role // Thêm role vào query
+  ];
 
-    console.log("Inserting user with params:", params);
-    db.execute(query, params, callback);
-  },
+  console.log("Inserting user with params:", params);
+  db.execute(query, params, callback);
+},
 
   findById: (id) => {
     return new Promise((resolve, reject) => {
@@ -110,5 +127,16 @@ const User = {
     });
   },
 };
+
+// Thêm vào userModel.js
+updateGoogleId: (userId, googleId) => {
+  return new Promise((resolve, reject) => {
+    const query = "UPDATE users SET google_id = ? WHERE id = ?";
+    db.execute(query, [googleId, userId], (err, results) => {
+      if (err) reject(err);
+      else resolve(results);
+    });
+  });
+},
 
 module.exports = User;
