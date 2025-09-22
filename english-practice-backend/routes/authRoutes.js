@@ -40,11 +40,11 @@ router.get(
       );
 
       console.log("Token generated successfully, redirecting to frontend");
-      
+
       // Đảm bảo có role và id
       const role = req.user.role || "user";
       const id = req.user.id;
-      
+
       res.redirect(
         `${process.env.FRONTEND_URL}/auth/success?token=${token}&role=${role}&id=${id}`
       );

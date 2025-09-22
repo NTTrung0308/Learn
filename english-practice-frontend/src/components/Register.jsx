@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import axios from "axios";
+import { toast } from "react-toastify";
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -19,11 +20,11 @@ const Register = () => {
         "http://localhost:5000/api/auth/register",
         formData
       );
-      alert(res.data.message);
+      toast(res.data.message);
     } catch (err) {
       // Log chi tiết lỗi để debug
-      console.error("Registration error:", err.response?.data);
-      alert(err.response?.data?.message || "Registration failed");
+      console.error("Lỗi khi đăng kí:", err.response?.data);
+      toast.error(err.response?.data?.message || "Đăng kí thất bại");
     }
   };
   const handleGoogleRegister = () => {

@@ -20,7 +20,7 @@ const ForgotPassword = () => {
         "Đã gửi email đặt lại mật khẩu. Vui lòng kiểm tra hộp thư!"
       );
     } catch (err) {
-      console.error("Forgot password error:", err);
+      console.error("Lỗi khi gửi email:", err);
       if (err.code === "ERR_NETWORK") {
         toast.error("Không thể kết nối đến server. Vui lòng thử lại sau.");
       } else {

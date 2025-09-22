@@ -18,9 +18,9 @@ const processEmailQueue = async () => {
     const emailJob = emailQueue.shift();
     try {
       await sendEmail(emailJob.to, emailJob.subject, emailJob.html);
-      console.log(`Email sent to: ${emailJob.to}`);
+      console.log(`Email đã gửi đến: ${emailJob.to}`);
     } catch (error) {
-      console.error(`Failed to send email to: ${emailJob.to}`, error);
+      console.error(`Không thể gửi email đến: ${emailJob.to}`, error);
     }
   }
 
@@ -31,11 +31,22 @@ const processEmailQueue = async () => {
 const register = async (req, res) => {
   const { email, phone, password } = req.body;
 
+  // Kiểm tra định dạng email
+  if (!isValidEmail(email)) {
+    return res.status(400).json({ message: "Email không đúng định dạng" });
+  }
+  // Kiểm tra định dạng số điện thoại nếu có nhập
+  if (!isValidPhone(phone)) {
+    return res
+      .status(400)
+      .json({ message: "Số điện thoại không đúng định dạng" });
+  }
+
   try {
     // Kiểm tra người dùng đã tồn tại chưa
     const [existingUser] = await User.findByEmail(email);
     if (existingUser) {
-      return res.status(400).json({ message: "User already exists" });
+      return res.status(400).json({ message: "Người dùng đã tồn tại" });
     }
 
     // Mã hóa mật khẩu
@@ -59,21 +70,21 @@ const register = async (req, res) => {
     const verificationUrl = `http://localhost:5000/api/auth/verify-email?token=${verificationToken}`;
     const emailHtml = `
       <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
-        <h2 style="color: #4CAF50;">Welcome to English Learning!</h2>
-        <p>Thank you for joining our platform. To start practicing and improving your English skills, please verify your email address.</p>
+        <h2 style="color: #4CAF50;">Chào mừng đến với English Learning!</h2>
+        <p>Cảm ơn bạn đã tham gia nền tảng của chúng tôi. Để bắt đầu luyện tập và cải thiện kỹ năng tiếng Anh, vui lòng xác minh địa chỉ email của bạn.</p>
         <p>
           <a href="${verificationUrl}" 
              style="display: inline-block; padding: 10px 20px; background-color: #4CAF50; 
                     color: #fff; text-decoration: none; border-radius: 5px;">
-            Verify My Email
+            Xác minh Email của tôi
           </a>
         </p>
-        <p>If the button above doesn’t work, copy and paste the following link into your browser:</p>
+        <p>Nếu nút ở trên không hoạt động, hãy sao chép và dán liên kết sau vào trình duyệt của bạn:</p>
         <p><a href="${verificationUrl}" style="color: #4CAF50;">${verificationUrl}</a></p>
         <hr />
         <p style="font-size: 12px; color: #777;">
-          Happy learning,<br/>
-          The English Learning Team
+          Chúc bạn học tập vui vẻ,<br/>
+Đội ngũ Học tiếng Anh
         </p>
       </div>
     `;
@@ -87,15 +98,28 @@ const register = async (req, res) => {
 
     // Trả về response NGAY LẬP TỨC
     res.status(201).json({
-      message: "User registered. Please check your email to verify.",
+      message:
+        "Đăng ký thành công. Vui lòng kiểm tra email của bạn để xác minh.",
     });
   } catch (error) {
-    res.status(500).json({ message: "Server error", error });
+    res.status(500).json({ message: "Lỗi máy chủ", error });
   }
 };
 
-// Xác thực email
+// Hàm kiểm tra định dạng email
+function isValidEmail(email) {
+  // Regex đơn giản cho email
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+}
 
+// Hàm kiểm tra định dạng số điện thoại (Việt Nam hoặc quốc tế, tối thiểu 9 số)
+function isValidPhone(phone) {
+  if (!phone) return true; // Cho phép bỏ trống
+  // Chỉ nhận số, có thể bắt đầu bằng +, 0, hoặc không
+  return /^(\+?\d{9,15})$/.test(phone);
+}
+
+// Xác thực email
 const verifyEmail = async (req, res) => {
   const { token } = req.query;
   console.log("Đã nhận được mã thông báo xác minh:", token);
@@ -107,9 +131,9 @@ const verifyEmail = async (req, res) => {
     if (results.length === 0) {
       return res.status(400).send(`
         <div style="font-family: Arial; color: #c00; text-align: center; margin-top: 50px;">
-          <h2>Verification Failed</h2>
-          <p>Invalid or expired verification token.</p>
-          <a href="http://localhost:3000/login">Go to Login</a>
+          <h2>Xác minh không thành công</h2>
+          <p>Mã xác minh không hợp lệ hoặc đã hết hạn.</p>
+          <a href="http://localhost:3000/login"></a>
         </div>
       `);
     }
@@ -121,19 +145,17 @@ const verifyEmail = async (req, res) => {
 
     return res.send(`
       <div style="font-family: Arial; color: #090; text-align: center; margin-top: 50px;">
-        <h2>Email Verified Successfully!</h2>
-        <p>Your email has been verified. You can now log in and start learning English.</p>
-        <a href="http://localhost:3000/login">Go to Login</a>
+        <h2>Email đã được xác minh thành công!</h2>
+        <p>Email của bạn đã được xác minh. Bây giờ bạn có thể đăng nhập và bắt đầu học tiếng Anh.</p>
+        <a href="http://localhost:3000/login">Đi đến Đăng nhập</a>
       </div>
     `);
   } catch (error) {
-    console.error("Database error:", error);
-    res.status(500).json({ message: "Database error", error });
+    console.error("Lỗi cơ sở dữ liệu:", error);
+    res.status(500).json({ message: "Lỗi cơ sở dữ liệu", error });
   }
 };
 
-// Đăng nhập
-// Đăng nhập
 // Đăng nhập
 const login = async (req, res) => {
   const { email, password } = req.body;
@@ -141,20 +163,22 @@ const login = async (req, res) => {
   try {
     const [user] = await User.findByEmail(email);
     if (!user) {
-      return res.status(400).json({ message: "Invalid credentials" });
+      return res
+        .status(400)
+        .json({ message: "Thông tin đăng nhập không hợp lệ" });
     }
 
     // Kiểm tra mật khẩu
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
-      return res.status(400).json({ message: "Invalid credentials" });
+      return res.status(400).json({ message: "Mật khẩu hợp lệ" });
     }
 
     // Kiểm tra email đã xác thực chưa
     if (!user.is_verified) {
       return res
         .status(400)
-        .json({ message: "Please verify your email first" });
+        .json({ message: "Vui lòng xác minh email của bạn trước" });
     }
 
     // Tạo JWT
@@ -171,7 +195,7 @@ const login = async (req, res) => {
       },
     });
   } catch (error) {
-    res.status(500).json({ message: "Server error", error });
+    res.status(500).json({ message: "Lỗi máy chủ", error });
   }
 };
 // Quên mật khẩu
@@ -187,7 +211,7 @@ const forgotPassword = async (req, res) => {
     if (results.length === 0) {
       // Trả về thành công ngay cả khi không tìm thấy email (bảo mật)
       return res.json({
-        message: "If the email exists, a reset link has been sent",
+        message: "Nếu email tồn tại, liên kết đặt lại đã được gửi",
       });
     }
 
@@ -205,8 +229,8 @@ const forgotPassword = async (req, res) => {
     const resetUrl = `${process.env.FRONTEND_URL}/reset-password?token=${token}`;
     const emailHtml = `
       <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
-        <h2 style="color: #4CAF50;">Password Reset Request</h2>
-        <p>You requested to reset your password. Click the button below to proceed:</p>
+        <h2 style="color: #4CAF50;">Yêu cầu đặt lại mật khẩu</h2>
+        <p>Bạn đã yêu cầu đặt lại mật khẩu. Nhấp vào nút bên dưới để tiếp tục:</p>
         <p>
           <a href="${resetUrl}" 
              style="display: inline-block; padding: 10px 20px; background-color: #4CAF50; 
@@ -214,13 +238,13 @@ const forgotPassword = async (req, res) => {
             Reset Password
           </a>
         </p>
-        <p>If the button above doesn't work, copy and paste the following link into your browser:</p>
+        <p>Nếu nút trên không hoạt động, hãy sao chép và dán liên kết sau vào trình duyệt của bạn:</p>
         <p><a href="${resetUrl}" style="color: #4CAF50;">${resetUrl}</a></p>
-        <p>This link will expire in 1 hour.</p>
+        <p>Liên kết này sẽ hết hạn sau 1 giờ.</p>
         <hr />
         <p style="font-size: 12px; color: #777;">
-          If you didn't request this reset, please ignore this email.<br/>
-          The English Learning Team
+          Nếu bạn không yêu cầu thiết lập lại này, vui lòng bỏ qua email này.<br/>
+          Nhóm học tiếng Anh
         </p>
       </div>
     `;
@@ -228,17 +252,17 @@ const forgotPassword = async (req, res) => {
     // Thêm email vào queue và phản hồi ngay lập tức
     emailQueue.push({
       to: email,
-      subject: "Reset your password",
+      subject: "Đặt lại mật khẩu của bạn",
       html: emailHtml,
     });
 
     // Khởi động xử lý queue
     processEmailQueue();
 
-    res.json({ message: "If the email exists, a reset link has been sent" });
+    res.json({ message: "Nếu email tồn tại, liên kết đặt lại đã được gửi" });
   } catch (error) {
-    console.error("Error in forgotPassword:", error);
-    res.status(500).json({ message: "Server error", error });
+    console.error("Lỗi trong forgetPassword:", error);
+    res.status(500).json({ message: "Lỗi máy chủ", error });
   }
 };
 
@@ -271,10 +295,10 @@ const resetPassword = async (req, res) => {
     // Cập nhật mật khẩu và xóa token (dùng async/await)
     await User.updatePassword(user.id, hashedPassword);
 
-    res.json({ message: "Password reset successfully" });
+    res.json({ message: "Mật khất đã được đặt lại thành công!" });
   } catch (error) {
-    console.error("Error in resetPassword:", error);
-    res.status(500).json({ message: "Server error", error });
+    console.error("Lỗi trong resetPassword:", error);
+    res.status(500).json({ message: "Lỗi máy chủ", error });
   }
 };
 

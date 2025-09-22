@@ -1,23 +1,59 @@
 import React, { useState, useEffect } from "react";
-import { BrowserRouter as Router, Route, Routes, Navigate } from "react-router-dom";
-import "react-toastify/dist/ReactToastify.css";
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
-import Register from "./components/Register";
-import Login from "./components/Login";
-import ForgotPassword from "./components/ForgotPassword";
-import Dashboard from "./components/Dashboard";
-import VerifyEmail from "./pages/VerifyEmail";
-import AuthSuccess from "./pages/AuthSuccess";
-import Home from "./components/Home";
+import "react-toastify/dist/ReactToastify.css";
+
 import Navbar from "./components/Navbar";
-import ResetPassword from "./components/ResetPassword";
+import AdminRoutes from "./routers/AdminRoutes";
+import UserRoutes from "./routers/UserRoutes";
+import AppRoutes from "./routers/AppRoutes";
+
+function AppContent({
+  isAuthenticated,
+  userRole,
+  userId,
+  handleLogout,
+  setAuth,
+  setUserRole,
+  setUserId,
+}) {
+  const location = useLocation();
+
+  // Các route không hiển thị navbar
+  const hideNavbarPaths = [
+    "/login",
+    "/register",
+    "/forgot-password",
+    "/reset-password",
+  ];
+
+   return (
+    <>
+      {!hideNavbarPaths.includes(location.pathname) && (
+        <Navbar
+          isAuthenticated={isAuthenticated}
+          userRole={userRole}
+          onLogout={handleLogout}
+        />
+      )}
+
+      <AppRoutes
+        isAuthenticated={isAuthenticated}
+        userRole={userRole}
+        userId={userId}
+        setAuth={setAuth}
+        setUserRole={setUserRole}
+        setUserId={setUserId}
+      />
+    </>
+  );
+}
 
 function App() {
   const [isAuthenticated, setAuth] = useState(false);
   const [userRole, setUserRole] = useState(null);
   const [userId, setUserId] = useState(null);
 
-  // Hàm cập nhật state từ localStorage
   const syncAuthState = () => {
     const token = localStorage.getItem("token");
     const role = localStorage.getItem("userRole");
@@ -44,58 +80,18 @@ function App() {
 
   return (
     <>
-    <ToastContainer position="top-right" autoClose={5000} hideProgressBar={false} newestOnTop={false} closeOnClick rtl={false} pauseOnFocusLoss draggable pauseOnHover />
-    <Router>
-      <div className="App">
-        {/* Thêm Navbar để hiển thị trạng thái đăng nhập */}
-        <Navbar 
-          isAuthenticated={isAuthenticated} 
-          userRole={userRole} 
-          onLogout={handleLogout} 
+      <ToastContainer position="top-right" autoClose={5000} />
+      <Router>
+        <AppContent
+          isAuthenticated={isAuthenticated}
+          userRole={userRole}
+          userId={userId}
+          handleLogout={handleLogout}
+          setAuth={setAuth}
+          setUserRole={setUserRole}
+          setUserId={setUserId}
         />
-        
-        <Routes>
-          <Route
-            path="/"
-            element={
-              <Home 
-                isAuthenticated={isAuthenticated} 
-                userRole={userRole} 
-                userId={userId} 
-              />
-            }
-          />
-          <Route 
-            path="/login" 
-            element={
-              isAuthenticated ? 
-                (userRole === "superadmin" || userRole === "admin" ? 
-                  <Navigate to="/dashboard" /> : 
-                  <Navigate to="/" />) : 
-                <Login setAuth={setAuth} setUserRole={setUserRole} setUserId={setUserId} />
-            } 
-          />
-          <Route 
-            path="/dashboard" 
-            element={
-              isAuthenticated && (userRole === "superadmin" || userRole === "admin") ? 
-                <Dashboard /> : 
-                <Navigate to="/" />
-            } 
-          />
-          <Route path="/register" element={<Register />} />
-          <Route path="/forgot-password" element={<ForgotPassword />} />
-          <Route path="/verify-email" element={<VerifyEmail />} />
-          <Route path="/reset-password" element={<ResetPassword />} />
-          <Route
-            path="/auth/success"
-            element={
-              <AuthSuccess setAuth={setAuth} setUserRole={setUserRole} setUserId={setUserId} />
-            }
-          />
-        </Routes>
-      </div>
-    </Router>
+      </Router>
     </>
   );
 }

@@ -109,6 +109,24 @@ const User = {
     const [result] = await pool.execute(query, [googleId, userId]);
     return result;
   },
+
+  // Cập nhật thông tin profile (async/await)
+  updateProfile: async (id, data) => {
+    // Xây dựng query động dựa trên các trường có trong data
+    const fields = [];
+    const values = [];
+    for (const key in data) {
+      if (data[key] !== undefined) {
+        fields.push(`${key} = ?`);
+        values.push(data[key]);
+      }
+    }
+    if (fields.length === 0) return { affectedRows: 0 };
+    values.push(id);
+    const query = `UPDATE users SET ${fields.join(", ")} WHERE id = ?`;
+    const [result] = await pool.execute(query, values);
+    return result;
+  },
 };
 
 module.exports = User;

@@ -2,6 +2,7 @@ CREATE DATABASE english_practice;
 
 USE english_practice;
 
+-- Bảng người dùng
 CREATE TABLE users (
   id INT AUTO_INCREMENT PRIMARY KEY,
   email VARCHAR(255) NOT NULL UNIQUE,
@@ -11,6 +12,8 @@ CREATE TABLE users (
   facebook_id VARCHAR(255) NULL,
   display_name VARCHAR(255) NULL,
   role ENUM('superadmin', 'admin', 'teacher', 'student', 'user') NOT NULL DEFAULT 'user',
+  avatar VARCHAR(255) NULL,
+  learning_goal TEXT NULL, 
   is_verified BOOLEAN DEFAULT FALSE,
   verification_token VARCHAR(255) NULL,
   reset_password_token VARCHAR(255) NULL,
@@ -18,4 +21,61 @@ CREATE TABLE users (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
-  
+
+
+-- Bảng đề thi
+CREATE TABLE exams (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    title VARCHAR(255) NOT NULL,
+    description TEXT,
+    exam_type ENUM('listening', 'reading', 'writing', 'speaking', 'full_test') NOT NULL,
+    duration INT, -- Thời gian làm bài (phút)
+    total_questions INT DEFAULT 0,
+    created_by INT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL
+);
+
+-- Bảng câu hỏi
+CREATE TABLE questions (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    exam_id INT NOT NULL,
+    question_type ENUM('multiple_choice', 'matching', 'fill_blanks', 'essay', 'short_answer') NOT NULL,
+    question_text TEXT NOT NULL,
+    question_order INT NOT NULL,
+    audio_url VARCHAR(255), -- Cho phần Listening
+    image_url VARCHAR(255), -- Cho hình ảnh minh họa
+    options JSON, -- Lưu các lựa chọn dưới dạng JSON
+    correct_answer JSON, -- Lưu đáp án đúng
+    points INT DEFAULT 1, -- Điểm số cho câu hỏi
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (exam_id) REFERENCES exams(id) ON DELETE CASCADE
+);
+
+-- Bảng bài nộp của người dùng
+CREATE TABLE user_exam_attempts (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    exam_id INT NOT NULL,
+    score DECIMAL(5,2),
+    time_spent INT, -- Thời gian làm bài (giây)
+    completed_at TIMESTAMP NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (exam_id) REFERENCES exams(id) ON DELETE CASCADE
+);
+
+-- Bảng câu trả lời của người dùng
+CREATE TABLE user_answers (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    attempt_id INT NOT NULL,
+    question_id INT NOT NULL,
+    user_answer JSON,
+    is_correct BOOLEAN,
+    points_earned DECIMAL(5,2),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (attempt_id) REFERENCES user_exam_attempts(id) ON DELETE CASCADE,
+    FOREIGN KEY (question_id) REFERENCES questions(id) ON DELETE CASCADE
+);
