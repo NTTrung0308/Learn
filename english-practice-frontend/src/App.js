@@ -16,6 +16,7 @@ function AppContent({
   setAuth,
   setUserRole,
   setUserId,
+  isLoading
 }) {
   const location = useLocation();
 
@@ -27,7 +28,12 @@ function AppContent({
     "/reset-password",
   ];
 
-   return (
+  // Hiển thị loading trong khi kiểm tra auth
+  if (isLoading) {
+    return <div>Loading...</div>; // Hoặc component loading của bạn
+  }
+
+  return (
     <>
       {!hideNavbarPaths.includes(location.pathname) && (
         <Navbar
@@ -53,6 +59,7 @@ function App() {
   const [isAuthenticated, setAuth] = useState(false);
   const [userRole, setUserRole] = useState(null);
   const [userId, setUserId] = useState(null);
+  const [isLoading, setIsLoading] = useState(true); // Thêm trạng thái loading
 
   const syncAuthState = () => {
     const token = localStorage.getItem("token");
@@ -61,6 +68,7 @@ function App() {
     setAuth(!!token);
     setUserRole(role);
     setUserId(id);
+    setIsLoading(false); // Kết thúc loading sau khi lấy dữ liệu
   };
 
   useEffect(() => {
@@ -90,6 +98,7 @@ function App() {
           setAuth={setAuth}
           setUserRole={setUserRole}
           setUserId={setUserId}
+          isLoading={isLoading}
         />
       </Router>
     </>
