@@ -1,8 +1,8 @@
 const express = require("express");
 const multer = require("multer");
 const path = require("path");
-const auth = require("../middleware/auth");
-const adminCheck = require("../middleware/adminCheck");
+const auth = require("../middleware/authMiddleware");
+const { isAdmin } = require("../middleware/roleMiddleware");
 const {
   createExam,
   getAllExams,
@@ -58,23 +58,23 @@ const upload = multer({
 });
 
 // Routes cho đề thi
-router.post("/", auth, adminCheck, createExam);
+router.post("/", auth, createExam);
 router.get("/", getAllExams);
 router.get("/:id", getExamDetail);
-router.put("/:id", auth, adminCheck, updateExam);
-router.delete("/:id", auth, adminCheck, deleteExam);
+router.put("/:id", auth, updateExam);
+router.delete("/:id", auth, deleteExam);
 
 // Routes cho câu hỏi
-router.post("/:examId/questions", auth, adminCheck, upload.fields([
+router.post("/:examId/questions", auth, upload.fields([
   { name: "audio", maxCount: 1 },
   { name: "image", maxCount: 1 }
 ]), addQuestion);
 
-router.put("/questions/:id", auth, adminCheck, upload.fields([
+router.put("/questions/:id", auth, upload.fields([
   { name: "audio", maxCount: 1 },
   { name: "image", maxCount: 1 }
 ]), updateQuestion);
 
-router.delete("/questions/:id", auth, adminCheck, deleteQuestion);
+router.delete("/questions/:id", auth, deleteQuestion);
 
 module.exports = router;
