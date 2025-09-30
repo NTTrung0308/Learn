@@ -6,8 +6,9 @@ require("dotenv").config();
 require("./config/passport"); // Đảm bảo đường dẫn đúng
 
 const authRoutes = require("./routes/authRoutes");
-const userRoutes = require('./routes/userRoutes');
-const examRoutes = require('./routes/examRoutes');
+const userRoutes = require("./routes/userRoutes");
+const examRoutes = require("./routes/examRoutes");
+const grammarRoutes = require("./routes/grammarRoutes");
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -42,8 +43,9 @@ app.use(passport.session());
 
 // Routes
 app.use("/api/auth", authRoutes);
-app.use('/api/user', userRoutes);
-app.use('/api/exams', examRoutes);
+app.use("/api/user", userRoutes);
+app.use("/api/exams", examRoutes);
+app.use("/api/grammar", grammarRoutes);
 
 // Health check endpoint
 app.get("/api/health", (req, res) => {

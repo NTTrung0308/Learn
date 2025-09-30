@@ -79,3 +79,60 @@ CREATE TABLE user_answers (
     FOREIGN KEY (attempt_id) REFERENCES user_exam_attempts(id) ON DELETE CASCADE,
     FOREIGN KEY (question_id) REFERENCES questions(id) ON DELETE CASCADE
 );
+
+-- (1) Bảng chủ đề ngữ pháp
+CREATE TABLE `grammar_topics` (
+  `id` INT AUTO_INCREMENT PRIMARY KEY,
+  `title` VARCHAR(255) NOT NULL,
+  `description` TEXT,
+  `level` ENUM('beginner','intermediate','advanced') NOT NULL,
+  `display_order` INT DEFAULT 0,
+  `created_by` INT NULL DEFAULT NULL,
+  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  CONSTRAINT `fk_grammar_topics_created_by` FOREIGN KEY (`created_by`)
+    REFERENCES `users`(`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- (2) Bảng bài học ngữ pháp (lưu ý: `structure` và `usage` được quote bằng backticks)
+CREATE TABLE `grammar_lessons` (
+  `id` INT AUTO_INCREMENT PRIMARY KEY,
+  `topic_id` INT NOT NULL,
+  `title` VARCHAR(255) NOT NULL,
+  `explanation` TEXT NOT NULL,
+  `structure` TEXT,
+  `usage` TEXT,
+  `pronunciation_audio` VARCHAR(255),
+  `example_sentence` TEXT,
+  `example_image` VARCHAR(255),
+  `meaning` TEXT,
+  `tags` JSON, -- nếu server không hỗ trợ JSON: thay bằng TEXT
+  `difficulty_level` ENUM('easy','medium','hard') DEFAULT 'medium',
+  `display_order` INT DEFAULT 0,
+  `is_active` TINYINT(1) DEFAULT 1,
+  `created_by` INT NULL DEFAULT NULL,
+  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  CONSTRAINT `fk_grammar_lessons_topic` FOREIGN KEY (`topic_id`)
+    REFERENCES `grammar_topics`(`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_grammar_lessons_created_by` FOREIGN KEY (`created_by`)
+    REFERENCES `users`(`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- (3) Bảng bài tập ngữ pháp
+CREATE TABLE `grammar_exercises` (
+  `id` INT AUTO_INCREMENT PRIMARY KEY,
+  `lesson_id` INT NOT NULL,
+  `question_type` ENUM('multiple_choice','fill_blank','sentence_correction','matching') NOT NULL,
+  `question_text` TEXT NOT NULL,
+  `options` JSON,         -- nếu không có JSON: dùng TEXT
+  `correct_answer` JSON,  -- nếu không có JSON: dùng TEXT
+  `explanation` TEXT,
+  `points` INT DEFAULT 1,
+  `display_order` INT DEFAULT 0,
+  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  CONSTRAINT `fk_grammar_exercises_lesson` FOREIGN KEY (`lesson_id`)
+    REFERENCES `grammar_lessons`(`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+

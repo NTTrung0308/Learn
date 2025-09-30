@@ -1,5 +1,4 @@
-const db = require("../config/database");
-const pool = db.promise(); // Sử dụng promise-based API
+const pool = require("../config/database");
 
 const User = {
   create: async (user) => {

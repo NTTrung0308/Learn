@@ -10,6 +10,7 @@ import AuthSuccess from "../pages/AuthSuccess";
 import Profile from "../components/Profile";
 import Dashboard from "../components/Dashboard";
 import ExamManagement from "../components/ExamManagement";
+import GrammarManagement from "../components/GrammarManagement";
 
 function AppRoutes({
   isAuthenticated,
@@ -36,7 +37,7 @@ function AppRoutes({
       {/* Admin Routes */}
       <Route path="/dashboard" element={isAuthenticated && (userRole === "superadmin" || userRole === "admin") ? <Dashboard /> : <Navigate to="/" />} />
       <Route path="/exam-management" element={isAuthenticated && (userRole === "superadmin" || userRole === "admin") ? <ExamManagement /> : <Navigate to="/" />} />
-
+      <Route path="/grammar-management" element={isAuthenticated && (userRole === "superadmin" || userRole === "admin") ? <GrammarManagement /> : <Navigate to="/" />} />
       {/* Catch all route */}
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
