@@ -1,8 +1,8 @@
 import React from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
-import Dashboard from "../components/Dashboard";
-import ExamManagement from "../components/ExamManagement";
-import GrammarManagement from "../components/GrammarManagement";
+import Dashboard from "../components/admin/Dashboard";
+import ExamManagement from "../components/admin/ExamManagement";
+import GrammarManagement from "../components/admin/GrammarManagement";
 
 function AdminRoutes({ isAuthenticated, userRole }) {
   return (
@@ -10,7 +10,7 @@ function AdminRoutes({ isAuthenticated, userRole }) {
       <Route path="/" element={<Navigate to="dashboard" replace />} />
       <Route path="dashboard" element={<Dashboard />} />
       <Route path="exam-management" element={<ExamManagement />} />
-       <Route path="grammar-management" element={<GrammarManagement />} />
+      <Route path="grammar-management" element={<GrammarManagement />} />
     </Routes>
   );
 }

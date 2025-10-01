@@ -1,9 +1,6 @@
 const db = require("../config/database");
-const util = require("util");
 
-// Chuyển query thành async
-const query = util.promisify(db.query).bind(db);
-
+// Bảng đề thi
 const Exam = {
   // Tạo đề thi mới
   create: async (examData) => {
@@ -11,7 +8,7 @@ const Exam = {
       INSERT INTO exams (title, description, exam_type, duration, created_by) 
       VALUES (?, ?, ?, ?, ?)
     `;
-    return await query(sql, [
+    return await db.execute(sql, [
       examData.title,
       examData.description,
       examData.exam_type,
@@ -28,7 +25,7 @@ const Exam = {
       LEFT JOIN users u ON e.created_by = u.id 
       ORDER BY e.created_at DESC
     `;
-    return await query(sql);
+    return await db.execute(sql);
   },
 
   // Tìm đề thi theo ID
@@ -39,7 +36,7 @@ const Exam = {
       LEFT JOIN users u ON e.created_by = u.id 
       WHERE e.id = ?
     `;
-    return await query(sql, [id]);
+    return await db.execute(sql, [id]);
   },
 
   // Cập nhật đề thi
@@ -49,7 +46,7 @@ const Exam = {
       SET title = ?, description = ?, exam_type = ?, duration = ?, updated_at = CURRENT_TIMESTAMP 
       WHERE id = ?
     `;
-    return await query(sql, [
+    return await db.execute(sql, [
       examData.title,
       examData.description,
       examData.exam_type,
@@ -61,7 +58,7 @@ const Exam = {
   // Xóa đề thi
   delete: async (id) => {
     const sql = "DELETE FROM exams WHERE id = ?";
-    return await query(sql, [id]);
+    return await db.execute(sql, [id]);
   },
 
   // Cập nhật tổng số câu hỏi
@@ -73,10 +70,11 @@ const Exam = {
       )
       WHERE e.id = ?
     `;
-    return await query(sql, [examId, examId]);
+    return await db.execute(sql, [examId, examId]);
   },
 };
 
+// Bảng câu hỏi
 const Question = {
   // Tạo câu hỏi mới
   create: async (questionData) => {
@@ -84,7 +82,7 @@ const Question = {
       INSERT INTO questions (exam_id, question_type, question_text, question_order, audio_url, image_url, options, correct_answer, points) 
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
-    return await query(sql, [
+    return await db.execute(sql, [
       questionData.exam_id,
       questionData.question_type,
       questionData.question_text,
@@ -101,13 +99,13 @@ const Question = {
   findByExamId: async (examId) => {
     const sql =
       "SELECT * FROM questions WHERE exam_id = ? ORDER BY question_order ASC";
-    return await query(sql, [examId]);
+    return await db.execute(sql, [examId]);
   },
 
   // Tìm câu hỏi theo ID
   findById: async (id) => {
     const sql = "SELECT * FROM questions WHERE id = ?";
-    return await query(sql, [id]);
+    return await db.execute(sql, [id]);
   },
 
   // Cập nhật câu hỏi
@@ -117,7 +115,7 @@ const Question = {
       SET question_type = ?, question_text = ?, question_order = ?, audio_url = ?, image_url = ?, options = ?, correct_answer = ?, points = ?, updated_at = CURRENT_TIMESTAMP 
       WHERE id = ?
     `;
-    return await query(sql, [
+    return await db.execute(sql, [
       questionData.question_type,
       questionData.question_text,
       questionData.question_order,
@@ -133,7 +131,7 @@ const Question = {
   // Xóa câu hỏi
   delete: async (id) => {
     const sql = "DELETE FROM questions WHERE id = ?";
-    return await query(sql, [id]);
+    return await db.execute(sql, [id]);
   },
 
   // Cập nhật thứ tự câu hỏi
@@ -148,7 +146,7 @@ const Question = {
       SET q1.question_order = q2.new_order
       WHERE q1.exam_id = ?
     `;
-    return await query(sql, [examId, examId]);
+    return await db.execute(sql, [examId, examId]);
   },
 };
 

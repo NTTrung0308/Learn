@@ -3,6 +3,9 @@ const {
   GrammarLesson,
   GrammarExercise,
   GrammarCSV,
+  GrammarExample,
+  GrammarPractice,
+  UserGrammarPractice,
 } = require("../models/grammarModel");
 const csv = require("csv-parser");
 const fs = require("fs");
@@ -307,6 +310,23 @@ exports.addExercise = async (req, res) => {
   }
 };
 
+exports.deleteExercise = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const results = await GrammarExercise.delete(id);
+
+    if (results.affectedRows === 0) {
+      return res.status(404).json({ message: "Bài tập không tồn tại" });
+    }
+
+    res.json({ message: "Bài tập đã được xóa" });
+  } catch (err) {
+    console.error("Error deleting grammar exercise:", err);
+    res.status(500).json({ message: "Lỗi server", error: err.message });
+  }
+};
+
 // Import/Export CSV
 exports.exportLessonsCSV = async (req, res) => {
   try {
@@ -437,3 +457,310 @@ exports.getWordDefinition = async (req, res) => {
     });
   }
 };
+
+// Ví dụ minh họa
+exports.addExample = async (req, res) => {
+  const { lesson_id, example_sentence, meaning, notes, display_order } =
+    req.body;
+
+  try {
+    // Xử lý file upload
+    const pronunciation_audio =
+      req.files && req.files.audio
+        ? `/uploads/grammar/examples/audio/${req.files.audio[0].filename}`
+        : null;
+
+    const example_image =
+      req.files && req.files.image
+        ? `/uploads/grammar/examples/images/${req.files.image[0].filename}`
+        : null;
+
+    const results = await GrammarExample.create({
+      lesson_id,
+      example_sentence,
+      meaning,
+      pronunciation_audio,
+      example_image,
+      notes,
+      display_order,
+    });
+
+    res.status(201).json({
+      message: "Ví dụ đã được thêm",
+      exampleId: results.insertId,
+    });
+  } catch (err) {
+    console.error("Error adding grammar example:", err);
+    res.status(500).json({ message: "Lỗi server", error: err.message });
+  }
+};
+
+exports.getExamples = async (req, res) => {
+  const { lesson_id } = req.query;
+
+  try {
+    if (!lesson_id) {
+      return res.status(400).json({ message: "Thiếu lesson_id" });
+    }
+
+    const results = await GrammarExample.findByLessonId(lesson_id);
+    res.json(results);
+  } catch (err) {
+    console.error("Error fetching grammar examples:", err);
+    res.status(500).json({ message: "Lỗi server", error: err.message });
+  }
+};
+
+exports.updateExample = async (req, res) => {
+  const { id } = req.params;
+  const { example_sentence, meaning, notes, display_order } = req.body;
+
+  try {
+    const currentExample = await GrammarExample.findById(id);
+    if (currentExample.length === 0) {
+      return res.status(404).json({ message: "Ví dụ không tồn tại" });
+    }
+
+    // Xử lý file upload
+    const pronunciation_audio =
+      req.files && req.files.audio
+        ? `/uploads/grammar/examples/audio/${req.files.audio[0].filename}`
+        : currentExample[0].pronunciation_audio;
+
+    const example_image =
+      req.files && req.files.image
+        ? `/uploads/grammar/examples/images/${req.files.image[0].filename}`
+        : currentExample[0].example_image;
+
+    const results = await GrammarExample.update(id, {
+      example_sentence,
+      meaning,
+      pronunciation_audio,
+      example_image,
+      notes,
+      display_order,
+    });
+
+    if (results.affectedRows === 0) {
+      return res.status(404).json({ message: "Ví dụ không tồn tại" });
+    }
+
+    res.json({ message: "Ví dụ đã được cập nhật" });
+  } catch (err) {
+    console.error("Error updating grammar example:", err);
+    res.status(500).json({ message: "Lỗi server", error: err.message });
+  }
+};
+
+exports.deleteExample = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const results = await GrammarExample.delete(id);
+
+    if (results.affectedRows === 0) {
+      return res.status(404).json({ message: "Ví dụ không tồn tại" });
+    }
+
+    res.json({ message: "Ví dụ đã được xóa" });
+  } catch (err) {
+    console.error("Error deleting grammar example:", err);
+    res.status(500).json({ message: "Lỗi server", error: err.message });
+  }
+};
+
+// Bài tập thực hành
+exports.addPractice = async (req, res) => {
+  const {
+    lesson_id,
+    title,
+    instructions,
+    content,
+    practice_type,
+    difficulty_level,
+    time_limit,
+    points,
+    display_order,
+  } = req.body;
+
+  try {
+    let parsedContent = content;
+    if (typeof content === "string") {
+      try {
+        parsedContent = JSON.parse(content);
+      } catch {
+        parsedContent = {};
+      }
+    }
+
+    const results = await GrammarPractice.create({
+      lesson_id,
+      title,
+      instructions,
+      content: parsedContent,
+      practice_type,
+      difficulty_level,
+      time_limit,
+      points,
+      display_order,
+    });
+
+    res.status(201).json({
+      message: "Bài thực hành đã được thêm",
+      practiceId: results.insertId,
+    });
+  } catch (err) {
+    console.error("Error adding grammar practice:", err);
+    res.status(500).json({ message: "Lỗi server", error: err.message });
+  }
+};
+
+exports.getPractices = async (req, res) => {
+  const { lesson_id } = req.query;
+
+  try {
+    if (!lesson_id) {
+      return res.status(400).json({ message: "Thiếu lesson_id" });
+    }
+
+    const results = await GrammarPractice.findByLessonId(lesson_id);
+
+    // Parse JSON content
+    const practices = results.map((practice) => ({
+      ...practice,
+      content: practice.content ? JSON.parse(practice.content) : {},
+    }));
+
+    res.json(practices);
+  } catch (err) {
+    console.error("Error fetching grammar practices:", err);
+    res.status(500).json({ message: "Lỗi server", error: err.message });
+  }
+};
+
+exports.getPracticeDetail = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    console.log(`Fetching practice with id: ${id}`);
+    const results = await GrammarPractice.findById(id);
+    console.log(`Found practice:`, results);
+    if (results.length === 0) {
+      return res.status(404).json({ message: "Bài thực hành không tồn tại" });
+    }
+
+    const practice = {
+      ...results[0],
+      content: results[0].content ? JSON.parse(results[0].content) : {},
+    };
+
+    res.json(practice);
+  } catch (err) {
+    console.error("Error fetching grammar practice details:", err);
+    res.status(500).json({ message: "Lỗi server", error: err.message });
+  }
+};
+
+exports.updatePractice = async (req, res) => {
+  const { id } = req.params;
+  const { title, instructions, content, practice_type, difficulty_level, time_limit, points, display_order } = req.body;
+
+  try {
+    const results = await GrammarPractice.update(id, {
+      title,
+      instructions,
+      content,
+      practice_type,
+      difficulty_level,
+      time_limit,
+      points,
+      display_order,
+    });
+
+    if (results.affectedRows === 0) {
+      return res.status(404).json({ message: "Bài thực hành không tồn tại" });
+    }
+
+    res.json({ message: "Bài thực hành đã được cập nhật" });
+  } catch (err) {
+    console.error("Error updating grammar practice:", err);
+    res.status(500).json({ message: "Lỗi server", error: err.message });
+  }
+};
+
+// Nộp bài thực hành
+exports.submitPractice = async (req, res) => {
+  const { practice_id, answers, time_spent } = req.body;
+  const user_id = req.user.userId;
+
+  try {
+    // Tính điểm (đơn giản - có thể phức tạp hơn tùy loại bài tập)
+    const practice = await GrammarPractice.findById(practice_id);
+    if (practice.length === 0) {
+      return res.status(404).json({ message: "Bài thực hành không tồn tại" });
+    }
+
+    // TODO: Thêm logic tính điểm phức tạp hơn
+    const score = calculatePracticeScore(
+      answers,
+      JSON.parse(practice[0].content)
+    );
+
+    const result = await UserGrammarPractice.saveResult({
+      user_id,
+      practice_id,
+      answers,
+      score,
+      time_spent,
+    });
+
+    res.json({
+      message: "Bài thực hành đã được nộp",
+      score,
+      resultId: result.insertId,
+    });
+  } catch (err) {
+    console.error("Error submitting grammar practice:", err);
+    res.status(500).json({ message: "Lỗi server", error: err.message });
+  }
+};
+
+// Lấy lịch sử thực hành
+exports.getPracticeHistory = async (req, res) => {
+  const user_id = req.user.userId;
+  const { lesson_id } = req.query;
+
+  try {
+    const results = await UserGrammarPractice.findByUser(user_id, lesson_id);
+
+    const history = results.map((item) => ({
+      ...item,
+      answers: item.answers ? JSON.parse(item.answers) : {},
+    }));
+
+    res.json(history);
+  } catch (err) {
+    console.error("Error fetching practice history:", err);
+    res.status(500).json({ message: "Lỗi server", error: err.message });
+  }
+};
+
+// Hàm tính điểm (ví dụ đơn giản)
+function calculatePracticeScore(answers, practiceContent) {
+  // Logic tính điểm dựa trên loại bài tập
+  // Trong thực tế, cần implement chi tiết cho từng practice_type
+  let score = 0;
+  let total = 0;
+
+  // Ví dụ đơn giản: đếm số câu đúng
+  if (practiceContent.questions && Array.isArray(practiceContent.questions)) {
+    total = practiceContent.questions.length;
+    practiceContent.questions.forEach((question, index) => {
+      if (answers[index] === question.correctAnswer) {
+        score++;
+      }
+    });
+  }
+
+  return total > 0 ? (score / total) * 100 : 0;
+}

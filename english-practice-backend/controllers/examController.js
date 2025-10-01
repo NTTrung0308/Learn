@@ -6,7 +6,7 @@ exports.createExam = async (req, res) => {
   const created_by = req.user.userId;
 
   try {
-    const results = await Exam.create({
+    const [results] = await Exam.create({
       title,
       description,
       exam_type,
@@ -25,7 +25,7 @@ exports.createExam = async (req, res) => {
 // Lấy tất cả đề thi
 exports.getAllExams = async (req, res) => {
   try {
-    const results = await Exam.findAll();
+    const [results] = await Exam.findAll();
     res.json(results);
   } catch (err) {
     console.error("Error fetching exams:", err);
@@ -38,13 +38,13 @@ exports.getExamDetail = async (req, res) => {
   const { id } = req.params;
 
   try {
-    const examResults = await Exam.findById(id);
+    const [examResults] = await Exam.findById(id);
 
     if (examResults.length === 0) {
       return res.status(404).json({ message: "Đề thi không tồn tại" });
     }
 
-    const questionResults = await Question.findByExamId(id);
+    const [questionResults] = await Question.findByExamId(id);
 
     // Parse JSON fields
     const questions = questionResults.map((q) => ({
@@ -69,7 +69,7 @@ exports.updateExam = async (req, res) => {
   const { title, description, exam_type, duration } = req.body;
 
   try {
-    const results = await Exam.update(id, {
+    const [results] = await Exam.update(id, {
       title,
       description,
       exam_type,
@@ -92,7 +92,7 @@ exports.deleteExam = async (req, res) => {
   const { id } = req.params;
 
   try {
-    const results = await Exam.delete(id);
+    const [results] = await Exam.delete(id);
 
     if (results.affectedRows === 0) {
       return res.status(404).json({ message: "Đề thi không tồn tại" });
@@ -128,7 +128,7 @@ exports.addQuestion = async (req, res) => {
       : null;
 
   try {
-    const results = await Question.create({
+    const [results] = await Question.create({
       exam_id,
       question_type,
       question_text,
@@ -176,7 +176,7 @@ exports.updateQuestion = async (req, res) => {
       : undefined;
 
   try {
-    const results = await Question.findById(id);
+    const [results] = await Question.findById(id);
 
     if (results.length === 0) {
       return res.status(404).json({ message: "Câu hỏi không tồn tại" });
@@ -207,7 +207,7 @@ exports.deleteQuestion = async (req, res) => {
   const { id } = req.params;
 
   try {
-    const results = await Question.findById(id);
+    const [results] = await Question.findById(id);
 
     if (results.length === 0) {
       return res.status(404).json({ message: "Câu hỏi không tồn tại" });

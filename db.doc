@@ -136,3 +136,130 @@ CREATE TABLE `grammar_exercises` (
     REFERENCES `grammar_lessons`(`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- Bảng ví dụ minh họa cho bài học
+CREATE TABLE `grammar_examples` (
+  `id` INT AUTO_INCREMENT PRIMARY KEY,
+  `lesson_id` INT NOT NULL,
+  `example_sentence` TEXT NOT NULL,
+  `meaning` TEXT,
+  `pronunciation_audio` VARCHAR(255),
+  `example_image` VARCHAR(255),
+  `notes` TEXT,
+  `display_order` INT DEFAULT 0,
+  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  CONSTRAINT `fk_grammar_examples_lesson` FOREIGN KEY (`lesson_id`)
+  REFERENCES `grammar_lessons`(`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Bảng bài tập thực hành
+CREATE TABLE `grammar_practices` (
+  `id` INT AUTO_INCREMENT PRIMARY KEY,
+  `lesson_id` INT NOT NULL,
+  `title` VARCHAR(255) NOT NULL,
+  `instructions` TEXT NOT NULL,
+  `content` JSON,
+  `practice_type` ENUM('sentence_building', 'translation', 'fill_blank', 'conversation') NOT NULL,
+  `difficulty_level` ENUM('easy','medium','hard') DEFAULT 'medium',
+  `time_limit` INT, -- Thời gian giới hạn (phút)
+  `points` INT DEFAULT 10,
+  `display_order` INT DEFAULT 0,
+  `is_active` TINYINT(1) DEFAULT 1,
+  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  CONSTRAINT `fk_grammar_practices_lesson` FOREIGN KEY (`lesson_id`)
+  REFERENCES `grammar_lessons`(`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Bảng kết quả thực hành của người dùng
+CREATE TABLE `user_grammar_practice` (
+  `id` INT AUTO_INCREMENT PRIMARY KEY,
+  `user_id` INT NOT NULL,
+  `practice_id` INT NOT NULL,
+  `answers` JSON,
+  `score` DECIMAL(5,2),
+  `time_spent` INT, -- Thời gian làm bài (giây)
+  `completed_at` TIMESTAMP NULL,
+  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE,
+  FOREIGN KEY (`practice_id`) REFERENCES `grammar_practices`(`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+
+-- Bảng bộ từ vựng (flashcard collections)
+CREATE TABLE `vocabulary_collections` (
+  `id` INT AUTO_INCREMENT PRIMARY KEY,
+  `title` VARCHAR(255) NOT NULL,
+  `description` TEXT,
+  `level` ENUM('beginner', 'intermediate', 'advanced') NOT NULL,
+  `category` VARCHAR(100),
+  `tags` JSON,
+  `is_public` BOOLEAN DEFAULT TRUE,
+  `display_order` INT DEFAULT 0,
+  `created_by` INT NULL DEFAULT NULL,
+  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  CONSTRAINT `fk_vocab_collections_created_by` FOREIGN KEY (`created_by`)
+  REFERENCES `users`(`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Bảng từ vựng (flashcards)
+CREATE TABLE `vocabulary_flashcards` (
+  `id` INT AUTO_INCREMENT PRIMARY KEY,
+  `collection_id` INT NOT NULL,
+  `word` VARCHAR(255) NOT NULL,
+  `meaning` TEXT NOT NULL,
+  `pronunciation` VARCHAR(255),
+  `pronunciation_audio` VARCHAR(255),
+  `example_sentence` TEXT,
+  `example_meaning` TEXT,
+  `example_image` VARCHAR(255),
+  `part_of_speech` ENUM('noun', 'verb', 'adjective', 'adverb', 'preposition', 'conjunction', 'interjection') NOT NULL,
+  `synonyms` JSON,
+  `antonyms` JSON,
+  `tags` JSON,
+  `difficulty_level` ENUM('easy', 'medium', 'hard') DEFAULT 'medium',
+  `is_active` TINYINT(1) DEFAULT 1,
+  `display_order` INT DEFAULT 0,
+  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  CONSTRAINT `fk_vocab_flashcards_collection` FOREIGN KEY (`collection_id`)
+  REFERENCES `vocabulary_collections`(`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Bảng học từ vựng của người dùng
+CREATE TABLE `user_vocabulary_learning` (
+  `id` INT AUTO_INCREMENT PRIMARY KEY,
+  `user_id` INT NOT NULL,
+  `flashcard_id` INT NOT NULL,
+  `collection_id` INT NOT NULL,
+  `status` ENUM('new', 'learning', 'review', 'mastered') DEFAULT 'new',
+  `confidence_level` INT DEFAULT 0, -- 0-100
+  `next_review_date` DATE,
+  `review_count` INT DEFAULT 0,
+  `last_reviewed_at` TIMESTAMP NULL,
+  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE,
+  FOREIGN KEY (`flashcard_id`) REFERENCES `vocabulary_flashcards`(`id`) ON DELETE CASCADE,
+  FOREIGN KEY (`collection_id`) REFERENCES `vocabulary_collections`(`id`) ON DELETE CASCADE,
+  UNIQUE KEY `unique_user_flashcard` (`user_id`, `flashcard_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Bảng kết quả học tập từ vựng
+CREATE TABLE `user_vocabulary_progress` (
+  `id` INT AUTO_INCREMENT PRIMARY KEY,
+  `user_id` INT NOT NULL,
+  `collection_id` INT NOT NULL,
+  `total_cards` INT DEFAULT 0,
+  `learned_cards` INT DEFAULT 0,
+  `mastered_cards` INT DEFAULT 0,
+  `total_reviews` INT DEFAULT 0,
+  `average_confidence` DECIMAL(5,2) DEFAULT 0,
+  `last_studied_at` TIMESTAMP NULL,
+  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE,
+  FOREIGN KEY (`collection_id`) REFERENCES `vocabulary_collections`(`id`) ON DELETE CASCADE,
+  UNIQUE KEY `unique_user_collection` (`user_id`, `collection_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

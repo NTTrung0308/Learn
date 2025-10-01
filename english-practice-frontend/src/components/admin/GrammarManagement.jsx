@@ -13,6 +13,7 @@ import {
   Badge,
 } from "react-bootstrap";
 import { toast } from "react-toastify";
+import GrammarExamplesAndPractices from "./GrammarExamplesAndPractices";
 
 const GrammarManagement = () => {
   const [topics, setTopics] = useState([]);
@@ -343,7 +344,6 @@ const GrammarManagement = () => {
           </Button>
         </div>
       </div>
-
       <Tabs
         activeKey={activeTab}
         onSelect={(tab) => setActiveTab(tab)}
@@ -532,8 +532,13 @@ const GrammarManagement = () => {
             </div>
           )}
         </Tab>
+        <Tab eventKey="examples-practices" title="Ví dụ & Bài tập">
+          <GrammarExamplesAndPractices
+            lessonId={currentTopic?.id}
+            lessonTitle={currentTopic?.title}
+          />
+        </Tab>
       </Tabs>
-
       {/* Modal chủ đề */}
       <Modal show={showTopicModal} onHide={() => setShowTopicModal(false)}>
         <Modal.Header closeButton>
@@ -608,7 +613,6 @@ const GrammarManagement = () => {
           </Modal.Footer>
         </Form>
       </Modal>
-
       {/* Modal bài học */}
       <Modal
         show={showLessonModal}
