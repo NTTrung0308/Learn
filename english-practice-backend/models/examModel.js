@@ -17,15 +17,16 @@ const Exam = {
     ]);
   },
 
-  // Lấy tất cả đề thi
-  findAll: async () => {
+  // Lấy tất cả đề thi với phân trang
+  findAll: async ({ limit, offset }) => {
     const sql = `
       SELECT e.*, u.display_name as creator_name 
       FROM exams e 
       LEFT JOIN users u ON e.created_by = u.id 
       ORDER BY e.created_at DESC
+      LIMIT ? OFFSET ?
     `;
-    return await db.execute(sql);
+    return await db.execute(sql, [limit, offset]);
   },
 
   // Tìm đề thi theo ID
@@ -71,6 +72,13 @@ const Exam = {
       WHERE e.id = ?
     `;
     return await db.execute(sql, [examId, examId]);
+  },
+
+  // Đếm tổng số đề thi
+  countAll: async () => {
+    const sql = "SELECT COUNT(*) as count FROM exams";
+    const [rows] = await db.execute(sql);
+    return rows[0].count;
   },
 };
 

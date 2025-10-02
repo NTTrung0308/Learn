@@ -35,9 +35,20 @@ exports.createTopic = async (req, res) => {
 };
 
 exports.getAllTopics = async (req, res) => {
+  const page = parseInt(req.query.page) || 1;
+  const limit = parseInt(req.query.limit) || 10;
+  const offset = (page - 1) * limit;
+
   try {
-    const results = await GrammarTopic.findAll();
-    res.json(results);
+    const topics = await GrammarTopic.findAll({ limit, offset });
+    const totalTopics = await GrammarTopic.countAll();
+
+    res.json({
+      topics,
+      totalTopics,
+      totalPages: Math.ceil(totalTopics / limit),
+      currentPage: page,
+    });
   } catch (err) {
     console.error("Error fetching grammar topics:", err);
     res.status(500).json({ message: "Lỗi server", error: err.message });
@@ -150,7 +161,8 @@ exports.createLesson = async (req, res) => {
 };
 
 exports.getLessons = async (req, res) => {
-  const { topic_id, level, difficulty } = req.query;
+  const { topic_id, level, difficulty, page = 1, limit = 10 } = req.query;
+  const offset = (parseInt(page) - 1) * parseInt(limit);
 
   try {
     const filters = {};
@@ -158,8 +170,15 @@ exports.getLessons = async (req, res) => {
     if (level) filters.level = level;
     if (difficulty) filters.difficulty = difficulty;
 
-    const results = await GrammarLesson.findAll(filters);
-    res.json(results);
+    const lessons = await GrammarLesson.findAll({ ...filters, limit: parseInt(limit), offset });
+    const totalLessons = await GrammarLesson.countAll(filters);
+
+    res.json({
+      lessons,
+      totalLessons,
+      totalPages: Math.ceil(totalLessons / limit),
+      currentPage: parseInt(page),
+    });
   } catch (err) {
     console.error("Error fetching grammar lessons:", err);
     res.status(500).json({ message: "Lỗi server", error: err.message });

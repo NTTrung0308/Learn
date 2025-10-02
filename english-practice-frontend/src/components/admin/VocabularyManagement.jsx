@@ -14,6 +14,7 @@ import {
   InputGroup,
 } from "react-bootstrap";
 import { toast } from "react-toastify";
+import Layout from "../layout/admin/Layout";
 
 const VocabularyManagement = () => {
   const [collections, setCollections] = useState([]);
@@ -396,7 +397,8 @@ const VocabularyManagement = () => {
   };
 
   return (
-    <div style={{ padding: "20px" }}>
+    <Layout>
+    <div className="container mt-5">
       <div className="d-flex justify-content-between align-items-center mb-4">
         <h2>Quản lý Từ vựng</h2>
         <div>
@@ -461,8 +463,9 @@ const VocabularyManagement = () => {
                     )}
                   </Card.Body>
                   <Card.Footer>
-                    <div className="d-flex justify-content-between">
+                    <div className="d-flex justify-content-end">
                       <Button
+                        className="me-2"
                         variant="outline-info"
                         size="sm"
                         onClick={() => openCollectionModal(collection)}
@@ -477,6 +480,7 @@ const VocabularyManagement = () => {
                         Xem Flashcards
                       </Button>
                       <Button
+                        className="ms-2"
                         variant="outline-danger"
                         size="sm"
                         onClick={() => deleteCollection(collection.id)}
@@ -944,6 +948,7 @@ const VocabularyManagement = () => {
         </Form>
       </Modal>
     </div>
+    </Layout>
   );
 };
 

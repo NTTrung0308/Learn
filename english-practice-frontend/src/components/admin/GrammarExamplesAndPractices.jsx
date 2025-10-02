@@ -14,6 +14,7 @@ import {
   Tabs,
 } from "react-bootstrap";
 import { toast } from "react-toastify";
+import Layout from "../layout/admin/Layout";
 
 const GrammarExamplesAndPractices = ({ lessonId, lessonTitle }) => {
   const [examples, setExamples] = useState([]);
@@ -247,7 +248,7 @@ const GrammarExamplesAndPractices = ({ lessonId, lessonTitle }) => {
   }
 
   return (
-    <div>
+    <div className="container">
       <div className="d-flex justify-content-between align-items-center mb-4">
         <h4>Quản lý Ví dụ & Bài tập - {lessonTitle}</h4>
         <div>

@@ -22,11 +22,22 @@ exports.createExam = async (req, res) => {
   }
 };
 
-// Lấy tất cả đề thi
+// Lấy tất cả đề thi với phân trang
 exports.getAllExams = async (req, res) => {
+  const page = parseInt(req.query.page) || 1;
+  const limit = parseInt(req.query.limit) || 10;
+  const offset = (page - 1) * limit;
+
   try {
-    const [results] = await Exam.findAll();
-    res.json(results);
+    const [exams] = await Exam.findAll({ limit, offset });
+    const totalExams = await Exam.countAll();
+
+    res.json({
+      exams,
+      totalExams,
+      totalPages: Math.ceil(totalExams / limit),
+      currentPage: page,
+    });
   } catch (err) {
     console.error("Error fetching exams:", err);
     res.status(500).json({ message: "Lỗi server", error: err });

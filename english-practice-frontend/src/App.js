@@ -1,7 +1,17 @@
 import React, { useState, useEffect } from "react";
-import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from "react-router-dom";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+  useLocation,
+} from "react-router-dom";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import "./components/styles/global.js";
+
+// Import jQuery và khởi tạo
+import './components/styles/jquery-init.js';
 
 import Navbar from "./components/Navbar";
 import AdminRoutes from "./routers/AdminRoutes";
@@ -16,7 +26,7 @@ function AppContent({
   setAuth,
   setUserRole,
   setUserId,
-  isLoading
+  isLoading,
 }) {
   const location = useLocation();
 
@@ -28,9 +38,25 @@ function AppContent({
     "/reset-password",
   ];
 
+  // Khởi tạo các plugin jQuery sau khi component mount
+  useEffect(() => {
+    // Đảm bảo DOM đã sẵn sàng
+    if (typeof window !== 'undefined' && window.$) {
+      // Khởi tạo lại các plugin nếu cần
+      try {
+        // Gọi các hàm khởi tạo từ kaiadmin.js nếu cần
+        if (window.initKaiAdmin) {
+          window.initKaiAdmin();
+        }
+      } catch (error) {
+        console.warn('Lỗi khởi tạo plugin:', error);
+      }
+    }
+  }, [location.pathname]);
+
   // Hiển thị loading trong khi kiểm tra auth
   if (isLoading) {
-    return <div>Loading...</div>; // Hoặc component loading của bạn
+    return <div>Loading...</div>;
   }
 
   return (
@@ -59,7 +85,7 @@ function App() {
   const [isAuthenticated, setAuth] = useState(false);
   const [userRole, setUserRole] = useState(null);
   const [userId, setUserId] = useState(null);
-  const [isLoading, setIsLoading] = useState(true); // Thêm trạng thái loading
+  const [isLoading, setIsLoading] = useState(true);
 
   const syncAuthState = () => {
     const token = localStorage.getItem("token");
@@ -68,7 +94,7 @@ function App() {
     setAuth(!!token);
     setUserRole(role);
     setUserId(id);
-    setIsLoading(false); // Kết thúc loading sau khi lấy dữ liệu
+    setIsLoading(false);
   };
 
   useEffect(() => {

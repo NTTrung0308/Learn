@@ -17,15 +17,16 @@ const GrammarTopic = {
     return result;
   },
 
-  // Lấy tất cả chủ đề
-  findAll: async () => {
+  // Lấy tất cả chủ đề với phân trang
+  findAll: async ({ limit, offset }) => {
     const sql = `
       SELECT gt.*, u.display_name as creator_name 
       FROM grammar_topics gt 
       LEFT JOIN users u ON gt.created_by = u.id 
       ORDER BY gt.display_order ASC, gt.created_at DESC
+      LIMIT ? OFFSET ?
     `;
-    const [rows] = await pool.execute(sql);
+    const [rows] = await pool.execute(sql, [limit, offset]);
     return rows;
   },
 
@@ -63,6 +64,13 @@ const GrammarTopic = {
     const sql = "DELETE FROM grammar_topics WHERE id = ?";
     const [result] = await pool.execute(sql, [id]);
     return result;
+  },
+
+  // Đếm tổng số chủ đề
+  countAll: async () => {
+    const sql = "SELECT COUNT(*) as count FROM grammar_topics";
+    const [rows] = await pool.execute(sql);
+    return rows[0].count;
   },
 };
 
@@ -133,6 +141,12 @@ const GrammarLesson = {
     }
 
     sql += ` ORDER BY gl.display_order ASC, gl.created_at DESC`;
+
+    if (filters.limit && filters.offset) {
+      sql += ` LIMIT ? OFFSET ?`;
+      params.push(filters.limit, filters.offset);
+    }
+
     const [rows] = await pool.execute(sql, params);
     return rows;
   },
@@ -209,6 +223,20 @@ const GrammarLesson = {
 
     const [result] = await pool.execute(sql, [values]);
     return result;
+  },
+
+  // Đếm tổng số bài học
+  countAll: async (filters = {}) => {
+    let sql = `SELECT COUNT(*) as count FROM grammar_lessons gl`;
+    const params = [];
+
+    if (filters.topic_id) {
+      sql += ` WHERE gl.topic_id = ?`;
+      params.push(filters.topic_id);
+    }
+
+    const [rows] = await pool.execute(sql, params);
+    return rows[0].count;
   },
 };
 
