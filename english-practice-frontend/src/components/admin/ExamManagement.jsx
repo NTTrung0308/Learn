@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { Modal, Button, Form, Table, Tabs, Tab } from "react-bootstrap";
+import { Modal, Button, Form, Table, Tabs, Tab, Row, Col } from "react-bootstrap";
 import { toast } from "react-toastify";
 import Swal from "sweetalert2";
 import withReactContent from "sweetalert2-react-content";
@@ -8,8 +8,7 @@ import Layout from "../layout/admin/Layout";
 
 const MySwal = withReactContent(Swal);
 
-
-const ExamManagement = () => {
+const ExamManagement = ({ handleLogout }) => {
   const [exams, setExams] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [editingExam, setEditingExam] = useState(null);
@@ -21,6 +20,8 @@ const ExamManagement = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [examsPerPage] = useState(10);
   const [totalExams, setTotalExams] = useState(0);
+  const [search, setSearch] = useState("");
+  const [examType, setExamType] = useState("");
 
   const [examForm, setExamForm] = useState({
     title: "",
@@ -40,14 +41,19 @@ const ExamManagement = () => {
 
   useEffect(() => {
     fetchExams();
-  }, [currentPage]);
+  }, [currentPage, search, examType]);
 
   const fetchExams = async () => {
     try {
       const token = localStorage.getItem("token");
       const response = await axios.get("http://localhost:5000/api/exams", {
         headers: { Authorization: `Bearer ${token}` },
-        params: { page: currentPage, limit: examsPerPage },
+        params: {
+          page: currentPage,
+          limit: examsPerPage,
+          search: search,
+          exam_type: examType,
+        },
       });
       setExams(response.data.exams);
       setTotalExams(response.data.totalExams);
@@ -296,7 +302,7 @@ const ExamManagement = () => {
   };
 
   return (
-    <Layout>
+    <Layout handleLogout={handleLogout}>
       <div className="container mt-5">
         <div className="d-flex justify-content-between align-items-center mb-4">
           <h2>Quản lý Đề thi IELTS</h2>
@@ -306,11 +312,31 @@ const ExamManagement = () => {
         </div>
 
         <Tabs
-        activeKey={activeTab}
-        onSelect={(k) => setActiveTab(k)}
-        id="exam-management-tabs"
-      >
+          activeKey={activeTab}
+          onSelect={(k) => setActiveTab(k)}
+          id="exam-management-tabs"
+        >
           <Tab eventKey="exams" title="Danh sách Đề thi">
+            <Row className="mb-3 mt-3">
+              <Col md={4}>
+                <Form.Control
+                  type="text"
+                  placeholder="Tìm kiếm..."
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                />
+              </Col>
+              <Col md={3}>
+                <Form.Select value={examType} onChange={(e) => setExamType(e.target.value)}>
+                  <option value="">Tất cả các loại</option>
+                  <option value="listening">Listening</option>
+                  <option value="reading">Reading</option>
+                  <option value="writing">Writing</option>
+                  <option value="speaking">Speaking</option>
+                  <option value="full_test">Full Test</option>
+                </Form.Select>
+              </Col>
+            </Row>
             <Table striped bordered hover>
               <thead>
                 <tr>
@@ -336,35 +362,36 @@ const ExamManagement = () => {
                     <td>{exam.duration} phút</td>
                     <td>{exam.total_questions}</td>
                     <td>{exam.creator_name}</td>
-                                                        <td>
-                                                          <Button
-                                                            variant="outline-primary"
-                                                            size="sm"
-                                                            className="me-2"
-                                                            onClick={() => {
-                                                              setCurrentExam(exam);
-                                                              setActiveTab("questions");
-                                                              fetchExamQuestions(exam.id);
-                                                            }}
-                                                          >
-                                                            Xem Câu hỏi
-                                                          </Button>
-                                                          <Button
-                                                            variant="outline-primary"
-                                                            size="sm"
-                                                            className="me-2"
-                                                            onClick={() => openQuestionModal(exam)}
-                                                          >
-                                                            Thêm Câu hỏi
-                                                          </Button>
-                                                          <Button
-                                                            variant="outline-danger"
-                                                            size="sm"
-                                                            onClick={() => deleteExam(exam.id)}
-                                                          >
-                                                            Xóa
-                                                          </Button>
-                                                        </td>                  </tr>
+                    <td>
+                      <Button
+                        variant="outline-primary"
+                        size="sm"
+                        className="me-2"
+                        onClick={() => {
+                          setCurrentExam(exam);
+                          setActiveTab("questions");
+                          fetchExamQuestions(exam.id);
+                        }}
+                      >
+                        Xem Câu hỏi
+                      </Button>
+                      <Button
+                        variant="outline-primary"
+                        size="sm"
+                        className="me-2"
+                        onClick={() => openQuestionModal(exam)}
+                      >
+                        Thêm Câu hỏi
+                      </Button>
+                      <Button
+                        variant="outline-danger"
+                        size="sm"
+                        onClick={() => deleteExam(exam.id)}
+                      >
+                        Xóa
+                      </Button>
+                    </td>{" "}
+                  </tr>
                 ))}
               </tbody>
             </Table>

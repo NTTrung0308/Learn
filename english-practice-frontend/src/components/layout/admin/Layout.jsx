@@ -4,7 +4,7 @@ import Sidebar from "../Sidebar";
 import Header from "./Header";
 import Footer from "./Footer";
 
-const Layout = ({ children }) => {
+const Layout = ({ children, handleLogout }) => {
   const [isSidebarMinimized, setSidebarMinimized] = useState(false);
   const location = useLocation();
 
@@ -32,7 +32,7 @@ const Layout = ({ children }) => {
     <div className={`wrapper ${isSidebarMinimized ? "sidebar_minimize" : ""}`}>
       <Sidebar toggleSidebar={toggleSidebar} />
       <div className="main-panel">
-        <Header toggleSidebar={toggleSidebar} />
+        <Header toggleSidebar={toggleSidebar} handleLogout={handleLogout} />
         <div className="container">{children}</div>
         <Footer />
       </div>

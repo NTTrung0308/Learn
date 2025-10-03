@@ -27,10 +27,15 @@ exports.getAllExams = async (req, res) => {
   const page = parseInt(req.query.page) || 1;
   const limit = parseInt(req.query.limit) || 10;
   const offset = (page - 1) * limit;
+  const { search, exam_type } = req.query;
 
   try {
-    const [exams] = await Exam.findAll({ limit, offset });
-    const totalExams = await Exam.countAll();
+    const { exams, totalExams } = await Exam.findAll({
+      limit,
+      offset,
+      search,
+      exam_type,
+    });
 
     res.json({
       exams,

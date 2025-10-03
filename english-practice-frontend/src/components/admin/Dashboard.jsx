@@ -2,7 +2,7 @@ import React, { useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Layout from "../layout/admin/Layout";
 
-const Dashboard = () => {
+const Dashboard = ({ handleLogout }) => {
   const navigate = useNavigate();
   const userRole = localStorage.getItem("userRole");
 
@@ -18,7 +18,7 @@ const Dashboard = () => {
   }
 
   return (
-    <Layout>
+    <Layout handleLogout={handleLogout}>
       <div className="page-inner">
         <div className="d-flex align-items-left align-items-md-center flex-column flex-md-row pt-2 pb-4">
           <div>

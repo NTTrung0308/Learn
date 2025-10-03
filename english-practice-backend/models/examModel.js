@@ -18,15 +18,39 @@ const Exam = {
   },
 
   // Lấy tất cả đề thi với phân trang
-  findAll: async ({ limit, offset }) => {
+  findAll: async ({ limit, offset, search = '', exam_type = '' }) => {
+    let whereClauses = [];
+    let params = [];
+
+    if (search) {
+      whereClauses.push("e.title LIKE ?");
+      params.push(`%${search}%`);
+    }
+
+    if (exam_type) {
+      whereClauses.push("e.exam_type = ?");
+      params.push(exam_type);
+    }
+
+    const whereSql = whereClauses.length > 0 ? `WHERE ${whereClauses.join(' AND ')}` : '';
+
     const sql = `
       SELECT e.*, u.display_name as creator_name 
       FROM exams e 
       LEFT JOIN users u ON e.created_by = u.id 
+      ${whereSql}
       ORDER BY e.created_at DESC
       LIMIT ? OFFSET ?
     `;
-    return await db.execute(sql, [limit, offset]);
+    
+    const countSql = `SELECT COUNT(*) as count FROM exams e ${whereSql}`;
+
+    const queryParams = [...params, limit, offset];
+    
+    const [exams] = await db.execute(sql, queryParams);
+    const [countResult] = await db.execute(countSql, params);
+    
+    return { exams, totalExams: countResult[0].count };
   },
 
   // Tìm đề thi theo ID
@@ -72,13 +96,6 @@ const Exam = {
       WHERE e.id = ?
     `;
     return await db.execute(sql, [examId, examId]);
-  },
-
-  // Đếm tổng số đề thi
-  countAll: async () => {
-    const sql = "SELECT COUNT(*) as count FROM exams";
-    const [rows] = await db.execute(sql);
-    return rows[0].count;
   },
 };
 

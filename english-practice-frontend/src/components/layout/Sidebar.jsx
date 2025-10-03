@@ -1,5 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import logo from "../assets/img/logo/logo.png";
 const Sidebar = ({ toggleSidebar }) => {
   return (
     <>
@@ -8,10 +9,10 @@ const Sidebar = ({ toggleSidebar }) => {
           <div className="logo-header" data-background-color="dark">
             <a href="index.html" className="logo">
               <img
-                src="/assets/img/kaiadmin/logo_light.svg"
+                src={logo}
                 alt="navbar brand"
                 className="navbar-brand"
-                height="20"
+                height="50"
               />
             </a>
             <div className="nav-toggle">
@@ -77,14 +78,19 @@ const Sidebar = ({ toggleSidebar }) => {
                       </Link>
                     </li>
                     <li>
-                      <a href="/grammar-management">
+                      <Link to="/grammar-management">
                         <span className="sub-item">Quản lý ngữ pháp</span>
-                      </a>
+                      </Link>
                     </li>
                     <li>
-                      <a href="/vocabulary-management">
+                      <Link to="/vocabulary-management">
                         <span className="sub-item">Quản lý từ vựng</span>
-                      </a>
+                      </Link>
+                    </li>
+                    <li>
+                      <Link to="/user-management">
+                        <span className="sub-item">Quản lý người dùng</span>
+                      </Link>
                     </li>
                   </ul>
                 </div>

@@ -12,6 +12,7 @@ import Dashboard from "../components/admin/Dashboard";
 import ExamManagement from "../components/admin/ExamManagement";
 import GrammarManagement from "../components/admin/GrammarManagement";
 import VocabularyManagement from "../components/admin/VocabularyManagement";
+import UserManagement from "../components/admin/UserManagement";
 
 function AppRoutes({
   isAuthenticated,
@@ -20,6 +21,7 @@ function AppRoutes({
   setAuth,
   setUserRole,
   setUserId,
+  handleLogout,
 }) {
   return (
     <Routes>
@@ -79,7 +81,7 @@ function AppRoutes({
         element={
           isAuthenticated &&
           (userRole === "superadmin" || userRole === "admin") ? (
-            <Dashboard />
+            <Dashboard handleLogout={handleLogout} />
           ) : (
             <Navigate to="/" />
           )
@@ -90,7 +92,7 @@ function AppRoutes({
         element={
           isAuthenticated &&
           (userRole === "superadmin" || userRole === "admin") ? (
-            <ExamManagement />
+            <ExamManagement handleLogout={handleLogout} />
           ) : (
             <Navigate to="/" />
           )
@@ -101,7 +103,7 @@ function AppRoutes({
         element={
           isAuthenticated &&
           (userRole === "superadmin" || userRole === "admin") ? (
-            <GrammarManagement />
+            <GrammarManagement handleLogout={handleLogout} />
           ) : (
             <Navigate to="/" />
           )
@@ -112,7 +114,18 @@ function AppRoutes({
         element={
           isAuthenticated &&
           (userRole === "superadmin" || userRole === "admin") ? (
-            <VocabularyManagement />
+            <VocabularyManagement handleLogout={handleLogout} />
+          ) : (
+            <Navigate to="/" />
+          )
+        }
+      />
+      <Route
+        path="/user-management"
+        element={
+          isAuthenticated &&
+          (userRole === "superadmin" || userRole === "admin") ? (
+            <UserManagement handleLogout={handleLogout} />
           ) : (
             <Navigate to="/" />
           )

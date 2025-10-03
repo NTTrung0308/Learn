@@ -16,7 +16,7 @@ import {
 import { toast } from "react-toastify";
 import Layout from "../layout/admin/Layout";
 
-const VocabularyManagement = () => {
+const VocabularyManagement = ({ handleLogout }) => {
   const [collections, setCollections] = useState([]);
   const [flashcards, setFlashcards] = useState([]);
   const [showCollectionModal, setShowCollectionModal] = useState(false);
@@ -94,7 +94,9 @@ const VocabularyManagement = () => {
     try {
       const token = localStorage.getItem("token");
       const response = await axios.get(
-        `http://localhost:5000/api/vocabulary/search?q=${encodeURIComponent(term)}`,
+        `http://localhost:5000/api/vocabulary/search?q=${encodeURIComponent(
+          term
+        )}`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
@@ -235,9 +237,12 @@ const VocabularyManagement = () => {
 
     try {
       const token = localStorage.getItem("token");
-      await axios.delete(`http://localhost:5000/api/vocabulary/collections/${id}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      await axios.delete(
+        `http://localhost:5000/api/vocabulary/collections/${id}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
       toast.success("Bộ từ vựng đã được xóa");
       fetchCollections();
     } catch (error) {
@@ -250,9 +255,12 @@ const VocabularyManagement = () => {
 
     try {
       const token = localStorage.getItem("token");
-      await axios.delete(`http://localhost:5000/api/vocabulary/flashcards/${id}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      await axios.delete(
+        `http://localhost:5000/api/vocabulary/flashcards/${id}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
       toast.success("Flashcard đã được xóa");
       if (currentCollection) {
         fetchFlashcards(currentCollection.id);
@@ -270,7 +278,9 @@ const VocabularyManagement = () => {
         description: collection.description,
         level: collection.level,
         category: collection.category || "",
-        tags: Array.isArray(collection.tags) ? collection.tags.join(", ") : collection.tags || "",
+        tags: Array.isArray(collection.tags)
+          ? collection.tags.join(", ")
+          : collection.tags || "",
         is_public: collection.is_public,
         display_order: collection.display_order,
       });
@@ -299,9 +309,15 @@ const VocabularyManagement = () => {
         example_sentence: flashcard.example_sentence || "",
         example_meaning: flashcard.example_meaning || "",
         part_of_speech: flashcard.part_of_speech,
-        synonyms: Array.isArray(flashcard.synonyms) ? flashcard.synonyms.join(", ") : flashcard.synonyms || "",
-        antonyms: Array.isArray(flashcard.antonyms) ? flashcard.antonyms.join(", ") : flashcard.antonyms || "",
-        tags: Array.isArray(flashcard.tags) ? flashcard.tags.join(", ") : flashcard.tags || "",
+        synonyms: Array.isArray(flashcard.synonyms)
+          ? flashcard.synonyms.join(", ")
+          : flashcard.synonyms || "",
+        antonyms: Array.isArray(flashcard.antonyms)
+          ? flashcard.antonyms.join(", ")
+          : flashcard.antonyms || "",
+        tags: Array.isArray(flashcard.tags)
+          ? flashcard.tags.join(", ")
+          : flashcard.tags || "",
         difficulty_level: flashcard.difficulty_level,
         display_order: flashcard.display_order,
       });
@@ -376,15 +392,18 @@ const VocabularyManagement = () => {
         `http://localhost:5000/api/vocabulary/export/csv?collection_id=${currentCollection.id}`,
         {
           headers: { Authorization: `Bearer ${token}` },
-          responseType: 'blob',
+          responseType: "blob",
         }
       );
 
       // Tạo URL tải xuống
       const url = window.URL.createObjectURL(new Blob([response.data]));
-      const link = document.createElement('a');
+      const link = document.createElement("a");
       link.href = url;
-      link.setAttribute('download', `vocabulary-${currentCollection.title}.csv`);
+      link.setAttribute(
+        "download",
+        `vocabulary-${currentCollection.title}.csv`
+      );
       document.body.appendChild(link);
       link.click();
       link.remove();
@@ -397,557 +416,646 @@ const VocabularyManagement = () => {
   };
 
   return (
-    <Layout>
-    <div className="container mt-5">
-      <div className="d-flex justify-content-between align-items-center mb-4">
-        <h2>Quản lý Từ vựng</h2>
-        <div>
-          <Button
-            variant="outline-primary"
-            className="me-2"
-            onClick={() => openCollectionModal()}
-          >
-            Tạo Bộ Từ vựng
-          </Button>
-          <Button
-            variant="primary"
-            onClick={() => openFlashcardModal()}
-            disabled={!currentCollection}
-          >
-            Thêm Flashcard
-          </Button>
+    <Layout handleLogout={handleLogout}>
+      <div className="container mt-5">
+        <div className="d-flex justify-content-between align-items-center mb-4">
+          <h2>Quản lý Từ vựng</h2>
+          <div>
+            <Button
+              variant="outline-primary"
+              className="me-2"
+              onClick={() => openCollectionModal()}
+            >
+              Tạo Bộ Từ vựng
+            </Button>
+            <Button
+              variant="primary"
+              onClick={() => openFlashcardModal()}
+              disabled={!currentCollection}
+            >
+              Thêm Flashcard
+            </Button>
+          </div>
         </div>
-      </div>
 
-      <Tabs
-        activeKey={activeTab}
-        onSelect={(tab) => setActiveTab(tab)}
-        className="mb-4"
-      >
-        <Tab eventKey="collections" title="Bộ Từ vựng">
-          <Row>
-            {collections.map((collection) => (
-              <Col md={6} lg={4} key={collection.id} className="mb-4">
-                <Card className="h-100">
-                  <Card.Body>
-                    <div className="d-flex justify-content-between align-items-start mb-2">
-                      <Card.Title className="h6">{collection.title}</Card.Title>
-                      <Badge bg={getLevelBadgeVariant(collection.level)}>
-                        {collection.level}
-                      </Badge>
-                    </div>
-
-                    <Card.Text className="text-muted small mb-2">
-                      {collection.description}
-                    </Card.Text>
-
-                    <div className="mb-2">
-                      <Badge bg="info" className="me-1">
-                        {collection.total_cards} từ
-                      </Badge>
-                      {collection.category && (
-                        <Badge bg="secondary" className="me-1">
-                          {collection.category}
+        <Tabs
+          activeKey={activeTab}
+          onSelect={(tab) => setActiveTab(tab)}
+          className="mb-4"
+        >
+          <Tab eventKey="collections" title="Bộ Từ vựng">
+            <Row>
+              {collections.map((collection) => (
+                <Col md={6} lg={4} key={collection.id} className="mb-4">
+                  <Card className="h-100">
+                    <Card.Body>
+                      <div className="d-flex justify-content-between align-items-start mb-2">
+                        <Card.Title className="h6">
+                          {collection.title}
+                        </Card.Title>
+                        <Badge bg={getLevelBadgeVariant(collection.level)}>
+                          {collection.level}
                         </Badge>
-                      )}
-                    </div>
-
-                    {collection.tags && JSON.parse(collection.tags).length > 0 && (
-                      <div className="mb-2">
-                        {JSON.parse(collection.tags).slice(0, 3).map((tag, index) => (
-                          <Badge key={index} bg="light" text="dark" className="me-1 small">
-                            {tag}
-                          </Badge>
-                        ))}
                       </div>
-                    )}
-                  </Card.Body>
-                  <Card.Footer>
-                    <div className="d-flex justify-content-end">
-                      <Button
-                        className="me-2"
-                        variant="outline-info"
-                        size="sm"
-                        onClick={() => openCollectionModal(collection)}
-                      >
-                        Sửa
-                      </Button>
-                      <Button
-                        variant="outline-primary"
-                        size="sm"
-                        onClick={() => handleCollectionSelect(collection)}
-                      >
-                        Xem Flashcards
-                      </Button>
-                      <Button
-                        className="ms-2"
-                        variant="outline-danger"
-                        size="sm"
-                        onClick={() => deleteCollection(collection.id)}
-                      >
-                        Xóa
-                      </Button>
-                    </div>
-                  </Card.Footer>
-                </Card>
-              </Col>
-            ))}
-          </Row>
 
-          {collections.length === 0 && (
-            <div className="text-center py-5">
-              <p>Chưa có bộ từ vựng nào.</p>
-              <Button variant="primary" onClick={() => openCollectionModal()}>
-                Tạo Bộ Từ vựng Đầu tiên
-              </Button>
-            </div>
-          )}
-        </Tab>
+                      <Card.Text className="text-muted small mb-2">
+                        {collection.description}
+                      </Card.Text>
 
-        <Tab eventKey="flashcards" title="Flashcards">
-          <div className="mb-3">
-            {currentCollection && (
-              <div className="d-flex justify-content-between align-items-center mb-3">
-                <h5>Flashcards trong: {currentCollection.title}</h5>
-                <div>
-                  <Button variant="outline-success" size="sm" className="me-2" onClick={exportCSV}>
-                    Export CSV
-                  </Button>
-                  <Button
-                    variant="outline-secondary"
-                    size="sm"
-                    onClick={() => setCurrentCollection(null)}
-                  >
-                    Xem tất cả bộ từ vựng
-                  </Button>
-                </div>
+                      <div className="mb-2">
+                        <Badge bg="info" className="me-1">
+                          {collection.total_cards} từ
+                        </Badge>
+                        {collection.category && (
+                          <Badge bg="secondary" className="me-1">
+                            {collection.category}
+                          </Badge>
+                        )}
+                      </div>
+
+                      {collection.tags &&
+                        JSON.parse(collection.tags).length > 0 && (
+                          <div className="mb-2">
+                            {JSON.parse(collection.tags)
+                              .slice(0, 3)
+                              .map((tag, index) => (
+                                <Badge
+                                  key={index}
+                                  bg="light"
+                                  text="dark"
+                                  className="me-1 small"
+                                >
+                                  {tag}
+                                </Badge>
+                              ))}
+                          </div>
+                        )}
+                    </Card.Body>
+                    <Card.Footer>
+                      <div className="d-flex justify-content-end">
+                        <Button
+                          className="me-2"
+                          variant="outline-info"
+                          size="sm"
+                          onClick={() => openCollectionModal(collection)}
+                        >
+                          Sửa
+                        </Button>
+                        <Button
+                          variant="outline-primary"
+                          size="sm"
+                          onClick={() => handleCollectionSelect(collection)}
+                        >
+                          Xem Flashcards
+                        </Button>
+                        <Button
+                          className="ms-2"
+                          variant="outline-danger"
+                          size="sm"
+                          onClick={() => deleteCollection(collection.id)}
+                        >
+                          Xóa
+                        </Button>
+                      </div>
+                    </Card.Footer>
+                  </Card>
+                </Col>
+              ))}
+            </Row>
+
+            {collections.length === 0 && (
+              <div className="text-center py-5">
+                <p>Chưa có bộ từ vựng nào.</p>
+                <Button variant="primary" onClick={() => openCollectionModal()}>
+                  Tạo Bộ Từ vựng Đầu tiên
+                </Button>
               </div>
             )}
+          </Tab>
 
-            <Form onSubmit={handleSearch}>
-              <InputGroup className="mb-3">
+          <Tab eventKey="flashcards" title="Flashcards">
+            <div className="mb-3">
+              {currentCollection && (
+                <div className="d-flex justify-content-between align-items-center mb-3">
+                  <h5>Flashcards trong: {currentCollection.title}</h5>
+                  <div>
+                    <Button
+                      variant="outline-success"
+                      size="sm"
+                      className="me-2"
+                      onClick={exportCSV}
+                    >
+                      Export CSV
+                    </Button>
+                    <Button
+                      variant="outline-secondary"
+                      size="sm"
+                      onClick={() => setCurrentCollection(null)}
+                    >
+                      Xem tất cả bộ từ vựng
+                    </Button>
+                  </div>
+                </div>
+              )}
+
+              <Form onSubmit={handleSearch}>
+                <InputGroup className="mb-3">
+                  <Form.Control
+                    type="text"
+                    placeholder="Tìm kiếm từ vựng..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                  />
+                  <Button variant="outline-primary" type="submit">
+                    Tìm kiếm
+                  </Button>
+                </InputGroup>
+              </Form>
+            </div>
+
+            <Row>
+              {flashcards.map((flashcard) => (
+                <Col md={6} lg={4} key={flashcard.id} className="mb-4">
+                  <Card className="h-100 flashcard">
+                    <Card.Body>
+                      <div className="d-flex justify-content-between align-items-start mb-2">
+                        <Card.Title className="h5 text-primary">
+                          {flashcard.word}
+                        </Card.Title>
+                        <Badge
+                          bg={getPartOfSpeechBadge(flashcard.part_of_speech)}
+                        >
+                          {flashcard.part_of_speech}
+                        </Badge>
+                      </div>
+
+                      <Card.Text className="mb-2">
+                        <strong>Nghĩa:</strong> {flashcard.meaning}
+                      </Card.Text>
+
+                      {flashcard.pronunciation && (
+                        <Card.Text className="text-muted small mb-2">
+                          <strong>Phát âm:</strong> /{flashcard.pronunciation}/
+                        </Card.Text>
+                      )}
+
+                      {flashcard.example_sentence && (
+                        <Card.Text className="mb-2">
+                          <strong>Ví dụ:</strong> {flashcard.example_sentence}
+                        </Card.Text>
+                      )}
+
+                      {flashcard.example_meaning && (
+                        <Card.Text className="text-muted small mb-2">
+                          {flashcard.example_meaning}
+                        </Card.Text>
+                      )}
+
+                      {(flashcard.synonyms.length > 0 ||
+                        flashcard.antonyms.length > 0) && (
+                        <div className="mb-2">
+                          {flashcard.synonyms.length > 0 && (
+                            <div>
+                              <strong>Đồng nghĩa:</strong>{" "}
+                              {flashcard.synonyms.join(", ")}
+                            </div>
+                          )}
+                          {flashcard.antonyms.length > 0 && (
+                            <div>
+                              <strong>Trái nghĩa:</strong>{" "}
+                              {flashcard.antonyms.join(", ")}
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      {flashcard.tags.length > 0 && (
+                        <div className="mb-2">
+                          {flashcard.tags.map((tag, index) => (
+                            <Badge
+                              key={index}
+                              bg="light"
+                              text="dark"
+                              className="me-1 small"
+                            >
+                              {tag}
+                            </Badge>
+                          ))}
+                        </div>
+                      )}
+                    </Card.Body>
+                    <Card.Footer>
+                      <div className="d-flex justify-content-between">
+                        <Button
+                          variant="outline-info"
+                          size="sm"
+                          onClick={() => openFlashcardModal(flashcard)}
+                        >
+                          Sửa
+                        </Button>
+                        <Button
+                          variant="outline-danger"
+                          size="sm"
+                          onClick={() => deleteFlashcard(flashcard.id)}
+                        >
+                          Xóa
+                        </Button>
+                      </div>
+                    </Card.Footer>
+                  </Card>
+                </Col>
+              ))}
+            </Row>
+
+            {flashcards.length === 0 && (
+              <div className="text-center py-5">
+                <p>Chưa có flashcard nào.</p>
+                <Button
+                  variant="primary"
+                  onClick={() => openFlashcardModal()}
+                  disabled={!currentCollection}
+                >
+                  Thêm Flashcard Đầu tiên
+                </Button>
+              </div>
+            )}
+          </Tab>
+        </Tabs>
+
+        {/* Modal bộ từ vựng */}
+        <Modal
+          show={showCollectionModal}
+          onHide={() => setShowCollectionModal(false)}
+        >
+          <Modal.Header closeButton>
+            <Modal.Title>
+              {editingCollection ? "Sửa Bộ Từ vựng" : "Tạo Bộ Từ vựng Mới"}
+            </Modal.Title>
+          </Modal.Header>
+          <Form onSubmit={handleCollectionSubmit}>
+            <Modal.Body>
+              <Form.Group className="mb-3">
+                <Form.Label>Tiêu đề</Form.Label>
                 <Form.Control
                   type="text"
-                  placeholder="Tìm kiếm từ vựng..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
+                  value={collectionForm.title}
+                  onChange={(e) =>
+                    setCollectionForm({
+                      ...collectionForm,
+                      title: e.target.value,
+                    })
+                  }
+                  required
                 />
-                <Button variant="outline-primary" type="submit">
-                  Tìm kiếm
-                </Button>
-              </InputGroup>
-            </Form>
-          </div>
+              </Form.Group>
 
-          <Row>
-            {flashcards.map((flashcard) => (
-              <Col md={6} lg={4} key={flashcard.id} className="mb-4">
-                <Card className="h-100 flashcard">
-                  <Card.Body>
-                    <div className="d-flex justify-content-between align-items-start mb-2">
-                      <Card.Title className="h5 text-primary">{flashcard.word}</Card.Title>
-                      <Badge bg={getPartOfSpeechBadge(flashcard.part_of_speech)}>
-                        {flashcard.part_of_speech}
-                      </Badge>
-                    </div>
+              <Form.Group className="mb-3">
+                <Form.Label>Mô tả</Form.Label>
+                <Form.Control
+                  as="textarea"
+                  rows={3}
+                  value={collectionForm.description}
+                  onChange={(e) =>
+                    setCollectionForm({
+                      ...collectionForm,
+                      description: e.target.value,
+                    })
+                  }
+                />
+              </Form.Group>
 
-                    <Card.Text className="mb-2">
-                      <strong>Nghĩa:</strong> {flashcard.meaning}
-                    </Card.Text>
+              <Row>
+                <Col md={6}>
+                  <Form.Group className="mb-3">
+                    <Form.Label>Level</Form.Label>
+                    <Form.Select
+                      value={collectionForm.level}
+                      onChange={(e) =>
+                        setCollectionForm({
+                          ...collectionForm,
+                          level: e.target.value,
+                        })
+                      }
+                    >
+                      <option value="beginner">Beginner</option>
+                      <option value="intermediate">Intermediate</option>
+                      <option value="advanced">Advanced</option>
+                    </Form.Select>
+                  </Form.Group>
+                </Col>
+                <Col md={6}>
+                  <Form.Group className="mb-3">
+                    <Form.Label>Chuyên mục</Form.Label>
+                    <Form.Control
+                      type="text"
+                      value={collectionForm.category}
+                      onChange={(e) =>
+                        setCollectionForm({
+                          ...collectionForm,
+                          category: e.target.value,
+                        })
+                      }
+                      placeholder="Ví dụ: TOEIC, IELTS, Business..."
+                    />
+                  </Form.Group>
+                </Col>
+              </Row>
 
-                    {flashcard.pronunciation && (
-                      <Card.Text className="text-muted small mb-2">
-                        <strong>Phát âm:</strong> /{flashcard.pronunciation}/
-                      </Card.Text>
-                    )}
+              <Form.Group className="mb-3">
+                <Form.Label>Tags (phân cách bằng dấu phẩy)</Form.Label>
+                <Form.Control
+                  type="text"
+                  value={collectionForm.tags}
+                  onChange={(e) =>
+                    setCollectionForm({
+                      ...collectionForm,
+                      tags: e.target.value,
+                    })
+                  }
+                  placeholder="business, travel, food..."
+                />
+              </Form.Group>
 
-                    {flashcard.example_sentence && (
-                      <Card.Text className="mb-2">
-                        <strong>Ví dụ:</strong> {flashcard.example_sentence}
-                      </Card.Text>
-                    )}
-
-                    {flashcard.example_meaning && (
-                      <Card.Text className="text-muted small mb-2">
-                        {flashcard.example_meaning}
-                      </Card.Text>
-                    )}
-
-                    {(flashcard.synonyms.length > 0 || flashcard.antonyms.length > 0) && (
-                      <div className="mb-2">
-                        {flashcard.synonyms.length > 0 && (
-                          <div>
-                            <strong>Đồng nghĩa:</strong> {flashcard.synonyms.join(", ")}
-                          </div>
-                        )}
-                        {flashcard.antonyms.length > 0 && (
-                          <div>
-                            <strong>Trái nghĩa:</strong> {flashcard.antonyms.join(", ")}
-                          </div>
-                        )}
-                      </div>
-                    )}
-
-                    {flashcard.tags.length > 0 && (
-                      <div className="mb-2">
-                        {flashcard.tags.map((tag, index) => (
-                          <Badge key={index} bg="light" text="dark" className="me-1 small">
-                            {tag}
-                          </Badge>
-                        ))}
-                      </div>
-                    )}
-                  </Card.Body>
-                  <Card.Footer>
-                    <div className="d-flex justify-content-between">
-                      <Button
-                        variant="outline-info"
-                        size="sm"
-                        onClick={() => openFlashcardModal(flashcard)}
-                      >
-                        Sửa
-                      </Button>
-                      <Button
-                        variant="outline-danger"
-                        size="sm"
-                        onClick={() => deleteFlashcard(flashcard.id)}
-                      >
-                        Xóa
-                      </Button>
-                    </div>
-                  </Card.Footer>
-                </Card>
-              </Col>
-            ))}
-          </Row>
-
-          {flashcards.length === 0 && (
-            <div className="text-center py-5">
-              <p>Chưa có flashcard nào.</p>
+              <Row>
+                <Col md={6}>
+                  <Form.Group className="mb-3">
+                    <Form.Check
+                      type="checkbox"
+                      label="Công khai"
+                      checked={collectionForm.is_public}
+                      onChange={(e) =>
+                        setCollectionForm({
+                          ...collectionForm,
+                          is_public: e.target.checked,
+                        })
+                      }
+                    />
+                  </Form.Group>
+                </Col>
+                <Col md={6}>
+                  <Form.Group className="mb-3">
+                    <Form.Label>Thứ tự hiển thị</Form.Label>
+                    <Form.Control
+                      type="number"
+                      value={collectionForm.display_order}
+                      onChange={(e) =>
+                        setCollectionForm({
+                          ...collectionForm,
+                          display_order: parseInt(e.target.value),
+                        })
+                      }
+                    />
+                  </Form.Group>
+                </Col>
+              </Row>
+            </Modal.Body>
+            <Modal.Footer>
               <Button
-                variant="primary"
-                onClick={() => openFlashcardModal()}
-                disabled={!currentCollection}
+                variant="secondary"
+                onClick={() => setShowCollectionModal(false)}
               >
-                Thêm Flashcard Đầu tiên
+                Hủy
               </Button>
-            </div>
-          )}
-        </Tab>
-      </Tabs>
+              <Button variant="primary" type="submit">
+                {editingCollection ? "Cập nhật" : "Tạo"}
+              </Button>
+            </Modal.Footer>
+          </Form>
+        </Modal>
 
-      {/* Modal bộ từ vựng */}
-      <Modal show={showCollectionModal} onHide={() => setShowCollectionModal(false)}>
-        <Modal.Header closeButton>
-          <Modal.Title>
-            {editingCollection ? "Sửa Bộ Từ vựng" : "Tạo Bộ Từ vựng Mới"}
-          </Modal.Title>
-        </Modal.Header>
-        <Form onSubmit={handleCollectionSubmit}>
-          <Modal.Body>
-            <Form.Group className="mb-3">
-              <Form.Label>Tiêu đề</Form.Label>
-              <Form.Control
-                type="text"
-                value={collectionForm.title}
-                onChange={(e) =>
-                  setCollectionForm({ ...collectionForm, title: e.target.value })
-                }
-                required
-              />
-            </Form.Group>
+        {/* Modal flashcard */}
+        <Modal
+          show={showFlashcardModal}
+          onHide={() => setShowFlashcardModal(false)}
+          size="lg"
+        >
+          <Modal.Header closeButton>
+            <Modal.Title>
+              {editingFlashcard ? "Sửa Flashcard" : "Thêm Flashcard Mới"}
+            </Modal.Title>
+          </Modal.Header>
+          <Form onSubmit={handleFlashcardSubmit}>
+            <Modal.Body>
+              <Row>
+                <Col md={6}>
+                  <Form.Group className="mb-3">
+                    <Form.Label>Từ *</Form.Label>
+                    <Form.Control
+                      type="text"
+                      value={flashcardForm.word}
+                      onChange={(e) =>
+                        setFlashcardForm({
+                          ...flashcardForm,
+                          word: e.target.value,
+                        })
+                      }
+                      required
+                    />
+                  </Form.Group>
+                </Col>
+                <Col md={6}>
+                  <Form.Group className="mb-3">
+                    <Form.Label>Loại từ *</Form.Label>
+                    <Form.Select
+                      value={flashcardForm.part_of_speech}
+                      onChange={(e) =>
+                        setFlashcardForm({
+                          ...flashcardForm,
+                          part_of_speech: e.target.value,
+                        })
+                      }
+                    >
+                      <option value="noun">Danh từ</option>
+                      <option value="verb">Động từ</option>
+                      <option value="adjective">Tính từ</option>
+                      <option value="adverb">Trạng từ</option>
+                      <option value="preposition">Giới từ</option>
+                      <option value="conjunction">Liên từ</option>
+                      <option value="interjection">Thán từ</option>
+                    </Form.Select>
+                  </Form.Group>
+                </Col>
+              </Row>
 
-            <Form.Group className="mb-3">
-              <Form.Label>Mô tả</Form.Label>
-              <Form.Control
-                as="textarea"
-                rows={3}
-                value={collectionForm.description}
-                onChange={(e) =>
-                  setCollectionForm({ ...collectionForm, description: e.target.value })
-                }
-              />
-            </Form.Group>
+              <Form.Group className="mb-3">
+                <Form.Label>Nghĩa *</Form.Label>
+                <Form.Control
+                  as="textarea"
+                  rows={2}
+                  value={flashcardForm.meaning}
+                  onChange={(e) =>
+                    setFlashcardForm({
+                      ...flashcardForm,
+                      meaning: e.target.value,
+                    })
+                  }
+                  required
+                />
+              </Form.Group>
 
-            <Row>
-              <Col md={6}>
-                <Form.Group className="mb-3">
-                  <Form.Label>Level</Form.Label>
-                  <Form.Select
-                    value={collectionForm.level}
-                    onChange={(e) =>
-                      setCollectionForm({ ...collectionForm, level: e.target.value })
-                    }
-                  >
-                    <option value="beginner">Beginner</option>
-                    <option value="intermediate">Intermediate</option>
-                    <option value="advanced">Advanced</option>
-                  </Form.Select>
-                </Form.Group>
-              </Col>
-              <Col md={6}>
-                <Form.Group className="mb-3">
-                  <Form.Label>Chuyên mục</Form.Label>
-                  <Form.Control
-                    type="text"
-                    value={collectionForm.category}
-                    onChange={(e) =>
-                      setCollectionForm({ ...collectionForm, category: e.target.value })
-                    }
-                    placeholder="Ví dụ: TOEIC, IELTS, Business..."
-                  />
-                </Form.Group>
-              </Col>
-            </Row>
+              <Form.Group className="mb-3">
+                <Form.Label>Phát âm (IPA)</Form.Label>
+                <Form.Control
+                  type="text"
+                  value={flashcardForm.pronunciation}
+                  onChange={(e) =>
+                    setFlashcardForm({
+                      ...flashcardForm,
+                      pronunciation: e.target.value,
+                    })
+                  }
+                  placeholder="/prəˌnʌn.siˈeɪ.ʃən/"
+                />
+              </Form.Group>
 
-            <Form.Group className="mb-3">
-              <Form.Label>Tags (phân cách bằng dấu phẩy)</Form.Label>
-              <Form.Control
-                type="text"
-                value={collectionForm.tags}
-                onChange={(e) =>
-                  setCollectionForm({ ...collectionForm, tags: e.target.value })
-                }
-                placeholder="business, travel, food..."
-              />
-            </Form.Group>
+              <Form.Group className="mb-3">
+                <Form.Label>Câu ví dụ</Form.Label>
+                <Form.Control
+                  as="textarea"
+                  rows={2}
+                  value={flashcardForm.example_sentence}
+                  onChange={(e) =>
+                    setFlashcardForm({
+                      ...flashcardForm,
+                      example_sentence: e.target.value,
+                    })
+                  }
+                  placeholder="She speaks English fluently."
+                />
+              </Form.Group>
 
-            <Row>
-              <Col md={6}>
-                <Form.Group className="mb-3">
-                  <Form.Check
-                    type="checkbox"
-                    label="Công khai"
-                    checked={collectionForm.is_public}
-                    onChange={(e) =>
-                      setCollectionForm({ ...collectionForm, is_public: e.target.checked })
-                    }
-                  />
-                </Form.Group>
-              </Col>
-              <Col md={6}>
-                <Form.Group className="mb-3">
-                  <Form.Label>Thứ tự hiển thị</Form.Label>
-                  <Form.Control
-                    type="number"
-                    value={collectionForm.display_order}
-                    onChange={(e) =>
-                      setCollectionForm({
-                        ...collectionForm,
-                        display_order: parseInt(e.target.value),
-                      })
-                    }
-                  />
-                </Form.Group>
-              </Col>
-            </Row>
-          </Modal.Body>
-          <Modal.Footer>
-            <Button variant="secondary" onClick={() => setShowCollectionModal(false)}>
-              Hủy
-            </Button>
-            <Button variant="primary" type="submit">
-              {editingCollection ? "Cập nhật" : "Tạo"}
-            </Button>
-          </Modal.Footer>
-        </Form>
-      </Modal>
+              <Form.Group className="mb-3">
+                <Form.Label>Nghĩa câu ví dụ</Form.Label>
+                <Form.Control
+                  as="textarea"
+                  rows={2}
+                  value={flashcardForm.example_meaning}
+                  onChange={(e) =>
+                    setFlashcardForm({
+                      ...flashcardForm,
+                      example_meaning: e.target.value,
+                    })
+                  }
+                  placeholder="Cô ấy nói tiếng Anh trôi chảy."
+                />
+              </Form.Group>
 
-      {/* Modal flashcard */}
-      <Modal show={showFlashcardModal} onHide={() => setShowFlashcardModal(false)} size="lg">
-        <Modal.Header closeButton>
-          <Modal.Title>
-            {editingFlashcard ? "Sửa Flashcard" : "Thêm Flashcard Mới"}
-          </Modal.Title>
-        </Modal.Header>
-        <Form onSubmit={handleFlashcardSubmit}>
-          <Modal.Body>
-            <Row>
-              <Col md={6}>
-                <Form.Group className="mb-3">
-                  <Form.Label>Từ *</Form.Label>
-                  <Form.Control
-                    type="text"
-                    value={flashcardForm.word}
-                    onChange={(e) =>
-                      setFlashcardForm({ ...flashcardForm, word: e.target.value })
-                    }
-                    required
-                  />
-                </Form.Group>
-              </Col>
-              <Col md={6}>
-                <Form.Group className="mb-3">
-                  <Form.Label>Loại từ *</Form.Label>
-                  <Form.Select
-                    value={flashcardForm.part_of_speech}
-                    onChange={(e) =>
-                      setFlashcardForm({ ...flashcardForm, part_of_speech: e.target.value })
-                    }
-                  >
-                    <option value="noun">Danh từ</option>
-                    <option value="verb">Động từ</option>
-                    <option value="adjective">Tính từ</option>
-                    <option value="adverb">Trạng từ</option>
-                    <option value="preposition">Giới từ</option>
-                    <option value="conjunction">Liên từ</option>
-                    <option value="interjection">Thán từ</option>
-                  </Form.Select>
-                </Form.Group>
-              </Col>
-            </Row>
+              <Row>
+                <Col md={6}>
+                  <Form.Group className="mb-3">
+                    <Form.Label>
+                      Từ đồng nghĩa (phân cách bằng dấu phẩy)
+                    </Form.Label>
+                    <Form.Control
+                      type="text"
+                      value={flashcardForm.synonyms}
+                      onChange={(e) =>
+                        setFlashcardForm({
+                          ...flashcardForm,
+                          synonyms: e.target.value,
+                        })
+                      }
+                      placeholder="happy, joyful, delighted"
+                    />
+                  </Form.Group>
+                </Col>
+                <Col md={6}>
+                  <Form.Group className="mb-3">
+                    <Form.Label>
+                      Từ trái nghĩa (phân cách bằng dấu phẩy)
+                    </Form.Label>
+                    <Form.Control
+                      type="text"
+                      value={flashcardForm.antonyms}
+                      onChange={(e) =>
+                        setFlashcardForm({
+                          ...flashcardForm,
+                          antonyms: e.target.value,
+                        })
+                      }
+                      placeholder="sad, unhappy, miserable"
+                    />
+                  </Form.Group>
+                </Col>
+              </Row>
 
-            <Form.Group className="mb-3">
-              <Form.Label>Nghĩa *</Form.Label>
-              <Form.Control
-                as="textarea"
-                rows={2}
-                value={flashcardForm.meaning}
-                onChange={(e) =>
-                  setFlashcardForm({ ...flashcardForm, meaning: e.target.value })
-                }
-                required
-              />
-            </Form.Group>
+              <Form.Group className="mb-3">
+                <Form.Label>Tags (phân cách bằng dấu phẩy)</Form.Label>
+                <Form.Control
+                  type="text"
+                  value={flashcardForm.tags}
+                  onChange={(e) =>
+                    setFlashcardForm({ ...flashcardForm, tags: e.target.value })
+                  }
+                  placeholder="common, formal, informal"
+                />
+              </Form.Group>
 
-            <Form.Group className="mb-3">
-              <Form.Label>Phát âm (IPA)</Form.Label>
-              <Form.Control
-                type="text"
-                value={flashcardForm.pronunciation}
-                onChange={(e) =>
-                  setFlashcardForm({ ...flashcardForm, pronunciation: e.target.value })
-                }
-                placeholder="/prəˌnʌn.siˈeɪ.ʃən/"
-              />
-            </Form.Group>
+              <Row>
+                <Col md={6}>
+                  <Form.Group className="mb-3">
+                    <Form.Label>Độ khó</Form.Label>
+                    <Form.Select
+                      value={flashcardForm.difficulty_level}
+                      onChange={(e) =>
+                        setFlashcardForm({
+                          ...flashcardForm,
+                          difficulty_level: e.target.value,
+                        })
+                      }
+                    >
+                      <option value="easy">Dễ</option>
+                      <option value="medium">Trung bình</option>
+                      <option value="hard">Khó</option>
+                    </Form.Select>
+                  </Form.Group>
+                </Col>
+                <Col md={6}>
+                  <Form.Group className="mb-3">
+                    <Form.Label>Thứ tự hiển thị</Form.Label>
+                    <Form.Control
+                      type="number"
+                      value={flashcardForm.display_order}
+                      onChange={(e) =>
+                        setFlashcardForm({
+                          ...flashcardForm,
+                          display_order: parseInt(e.target.value),
+                        })
+                      }
+                    />
+                  </Form.Group>
+                </Col>
+              </Row>
 
-            <Form.Group className="mb-3">
-              <Form.Label>Câu ví dụ</Form.Label>
-              <Form.Control
-                as="textarea"
-                rows={2}
-                value={flashcardForm.example_sentence}
-                onChange={(e) =>
-                  setFlashcardForm({ ...flashcardForm, example_sentence: e.target.value })
-                }
-                placeholder="She speaks English fluently."
-              />
-            </Form.Group>
-
-            <Form.Group className="mb-3">
-              <Form.Label>Nghĩa câu ví dụ</Form.Label>
-              <Form.Control
-                as="textarea"
-                rows={2}
-                value={flashcardForm.example_meaning}
-                onChange={(e) =>
-                  setFlashcardForm({ ...flashcardForm, example_meaning: e.target.value })
-                }
-                placeholder="Cô ấy nói tiếng Anh trôi chảy."
-              />
-            </Form.Group>
-
-            <Row>
-              <Col md={6}>
-                <Form.Group className="mb-3">
-                  <Form.Label>Từ đồng nghĩa (phân cách bằng dấu phẩy)</Form.Label>
-                  <Form.Control
-                    type="text"
-                    value={flashcardForm.synonyms}
-                    onChange={(e) =>
-                      setFlashcardForm({ ...flashcardForm, synonyms: e.target.value })
-                    }
-                    placeholder="happy, joyful, delighted"
-                  />
-                </Form.Group>
-              </Col>
-              <Col md={6}>
-                <Form.Group className="mb-3">
-                  <Form.Label>Từ trái nghĩa (phân cách bằng dấu phẩy)</Form.Label>
-                  <Form.Control
-                    type="text"
-                    value={flashcardForm.antonyms}
-                    onChange={(e) =>
-                      setFlashcardForm({ ...flashcardForm, antonyms: e.target.value })
-                    }
-                    placeholder="sad, unhappy, miserable"
-                  />
-                </Form.Group>
-              </Col>
-            </Row>
-
-            <Form.Group className="mb-3">
-              <Form.Label>Tags (phân cách bằng dấu phẩy)</Form.Label>
-              <Form.Control
-                type="text"
-                value={flashcardForm.tags}
-                onChange={(e) =>
-                  setFlashcardForm({ ...flashcardForm, tags: e.target.value })
-                }
-                placeholder="common, formal, informal"
-              />
-            </Form.Group>
-
-            <Row>
-              <Col md={6}>
-                <Form.Group className="mb-3">
-                  <Form.Label>Độ khó</Form.Label>
-                  <Form.Select
-                    value={flashcardForm.difficulty_level}
-                    onChange={(e) =>
-                      setFlashcardForm({ ...flashcardForm, difficulty_level: e.target.value })
-                    }
-                  >
-                    <option value="easy">Dễ</option>
-                    <option value="medium">Trung bình</option>
-                    <option value="hard">Khó</option>
-                  </Form.Select>
-                </Form.Group>
-              </Col>
-              <Col md={6}>
-                <Form.Group className="mb-3">
-                  <Form.Label>Thứ tự hiển thị</Form.Label>
-                  <Form.Control
-                    type="number"
-                    value={flashcardForm.display_order}
-                    onChange={(e) =>
-                      setFlashcardForm({
-                        ...flashcardForm,
-                        display_order: parseInt(e.target.value),
-                      })
-                    }
-                  />
-                </Form.Group>
-              </Col>
-            </Row>
-
-            <Row>
-              <Col md={6}>
-                <Form.Group className="mb-3">
-                  <Form.Label>File phát âm (audio)</Form.Label>
-                  <Form.Control type="file" accept="audio/*" name="audio" />
-                </Form.Group>
-              </Col>
-              <Col md={6}>
-                <Form.Group className="mb-3">
-                  <Form.Label>Hình ảnh minh họa</Form.Label>
-                  <Form.Control type="file" accept="image/*" name="image" />
-                </Form.Group>
-              </Col>
-            </Row>
-          </Modal.Body>
-          <Modal.Footer>
-            <Button variant="secondary" onClick={() => setShowFlashcardModal(false)}>
-              Hủy
-            </Button>
-            <Button variant="primary" type="submit">
-              {editingFlashcard ? "Cập nhật" : "Thêm"}
-            </Button>
-          </Modal.Footer>
-        </Form>
-      </Modal>
-    </div>
+              <Row>
+                <Col md={6}>
+                  <Form.Group className="mb-3">
+                    <Form.Label>File phát âm (audio)</Form.Label>
+                    <Form.Control type="file" accept="audio/*" name="audio" />
+                  </Form.Group>
+                </Col>
+                <Col md={6}>
+                  <Form.Group className="mb-3">
+                    <Form.Label>Hình ảnh minh họa</Form.Label>
+                    <Form.Control type="file" accept="image/*" name="image" />
+                  </Form.Group>
+                </Col>
+              </Row>
+            </Modal.Body>
+            <Modal.Footer>
+              <Button
+                variant="secondary"
+                onClick={() => setShowFlashcardModal(false)}
+              >
+                Hủy
+              </Button>
+              <Button variant="primary" type="submit">
+                {editingFlashcard ? "Cập nhật" : "Thêm"}
+              </Button>
+            </Modal.Footer>
+          </Form>
+        </Modal>
+      </div>
     </Layout>
   );
 };

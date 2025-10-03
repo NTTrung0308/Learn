@@ -87,7 +87,7 @@ const GrammarExamplesAndPractices = ({ lessonId, lessonTitle }) => {
       const formData = new FormData();
 
       formData.append("lesson_id", lessonId);
-      Object.keys(exampleForm).forEach(key => {
+      Object.keys(exampleForm).forEach((key) => {
         formData.append(key, exampleForm[key]);
       });
 
@@ -143,10 +143,10 @@ const GrammarExamplesAndPractices = ({ lessonId, lessonTitle }) => {
           questions: [
             {
               question: "Sample question",
-              correctAnswer: "sample answer"
-            }
-          ]
-        })
+              correctAnswer: "sample answer",
+            },
+          ],
+        }),
       };
 
       if (editingPractice) {
@@ -259,10 +259,7 @@ const GrammarExamplesAndPractices = ({ lessonId, lessonTitle }) => {
           >
             Thêm Ví dụ
           </Button>
-          <Button
-            variant="primary"
-            onClick={() => openPracticeModal()}
-          >
+          <Button variant="primary" onClick={() => openPracticeModal()}>
             Thêm Bài tập
           </Button>
         </div>
@@ -310,10 +307,7 @@ const GrammarExamplesAndPractices = ({ lessonId, lessonTitle }) => {
           {examples.length === 0 && (
             <div className="text-center py-5">
               <p>Chưa có ví dụ nào cho bài học này.</p>
-              <Button
-                variant="primary"
-                onClick={() => openExampleModal()}
-              >
+              <Button variant="primary" onClick={() => openExampleModal()}>
                 Thêm Ví dụ Đầu tiên
               </Button>
             </div>
@@ -354,7 +348,9 @@ const GrammarExamplesAndPractices = ({ lessonId, lessonTitle }) => {
                       <Button
                         variant="outline-primary"
                         size="sm"
-                        onClick={() => {/* Xem chi tiết */}}
+                        onClick={() => {
+                          /* Xem chi tiết */
+                        }}
                       >
                         Xem
                       </Button>
@@ -368,10 +364,7 @@ const GrammarExamplesAndPractices = ({ lessonId, lessonTitle }) => {
           {practices.length === 0 && (
             <div className="text-center py-5">
               <p>Chưa có bài thực hành nào cho bài học này.</p>
-              <Button
-                variant="primary"
-                onClick={() => openPracticeModal()}
-              >
+              <Button variant="primary" onClick={() => openPracticeModal()}>
                 Thêm Bài tập Đầu tiên
               </Button>
             </div>
@@ -462,7 +455,11 @@ const GrammarExamplesAndPractices = ({ lessonId, lessonTitle }) => {
       </Modal>
 
       {/* Modal bài thực hành */}
-      <Modal show={showPracticeModal} onHide={() => setShowPracticeModal(false)} size="lg">
+      <Modal
+        show={showPracticeModal}
+        onHide={() => setShowPracticeModal(false)}
+        size="lg"
+      >
         <Modal.Header closeButton>
           <Modal.Title>
             {editingPractice ? "Sửa Bài thực hành" : "Thêm Bài thực hành Mới"}

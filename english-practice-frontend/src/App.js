@@ -76,6 +76,7 @@ function AppContent({
         setAuth={setAuth}
         setUserRole={setUserRole}
         setUserId={setUserId}
+        handleLogout={handleLogout}
       />
     </>
   );

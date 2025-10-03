@@ -4,8 +4,8 @@ const User = {
   create: async (user) => {
     const query = `
       INSERT INTO users 
-      (email, phone, password, verification_token, role) 
-      VALUES (?, ?, ?, ?, ?)
+      (email, phone, password, verification_token, role, is_premium) 
+      VALUES (?, ?, ?, ?, ?, ?)
     `;
     const values = [
       user.email,
@@ -13,6 +13,7 @@ const User = {
       user.password,
       user.verification_token,
       user.role || "user",
+      user.is_premium || false,
     ];
     const [result] = await pool.execute(query, values);
     return result;
@@ -78,12 +79,13 @@ const User = {
       display_name = null,
       is_verified = true,
       role = "user",
+      is_premium = false,
     } = user;
 
     const query = `
       INSERT INTO users 
-      (email, google_id, facebook_id, display_name, is_verified, role) 
-      VALUES (?, ?, ?, ?, ?, ?)
+      (email, google_id, facebook_id, display_name, is_verified, role, is_premium) 
+      VALUES (?, ?, ?, ?, ?, ?, ?)
     `;
     const params = [
       email,
@@ -92,6 +94,7 @@ const User = {
       display_name,
       is_verified,
       role,
+      is_premium,
     ];
     const [result] = await pool.execute(query, params);
     return result;
@@ -125,6 +128,68 @@ const User = {
     const query = `UPDATE users SET ${fields.join(", ")} WHERE id = ?`;
     const [result] = await pool.execute(query, values);
     return result;
+  },
+
+  updatePremiumStatus: async (userId, isPremium) => {
+    const query = "UPDATE users SET is_premium = ? WHERE id = ?";
+    const [result] = await pool.execute(query, [isPremium, userId]);
+    return result;
+  },
+
+  getAllUsers: async (
+    page = 1,
+    limit = 10,
+    search = "",
+    role = "",
+    is_verified = ""
+  ) => {
+    const offset = (page - 1) * limit;
+
+    let conditions = [];
+    let params = [];
+
+    if (search) {
+      conditions.push("(email LIKE ? OR display_name LIKE ? OR phone LIKE ?)");
+      params.push(`%${search}%`, `%${search}%`, `%${search}%`);
+    }
+
+    if (role) {
+      conditions.push("role = ?");
+      params.push(role);
+    }
+
+    if (is_verified !== "") {
+      conditions.push("is_verified = ?");
+      params.push(is_verified === "true");
+    }
+
+    const whereClause =
+      conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
+
+    // Count query
+    const countQuery = `SELECT COUNT(*) as total FROM users ${whereClause}`;
+    const [countResult] = await pool.execute(countQuery, params);
+
+    // Data query
+    const dataQuery = `
+    SELECT id, email, phone, display_name, role, avatar, 
+           is_verified, created_at, updated_at, is_premium 
+    FROM users 
+    ${whereClause}
+    ORDER BY created_at DESC 
+    LIMIT ? OFFSET ?
+  `;
+
+    const dataParams = [...params, parseInt(limit), offset];
+    const [users] = await pool.execute(dataQuery, dataParams);
+
+    return {
+      users,
+      total: countResult[0].total,
+      page: parseInt(page),
+      limit: parseInt(limit),
+      totalPages: Math.ceil(countResult[0].total / limit),
+    };
   },
 };
 
