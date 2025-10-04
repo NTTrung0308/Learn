@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import axios from "axios";
+import api from "../../api";
 
 const ExamTaking = () => {
   const { id } = useParams();
@@ -22,7 +22,7 @@ const ExamTaking = () => {
 
   const fetchExam = async () => {
     try {
-      const response = await axios.get(`http://localhost:5000/api/exams/${id}`);
+      const response = await api.get(`/exams/${id}`);
       console.log('Exam data:', response.data);
       
       // Parse options nếu nó là string
@@ -118,7 +118,7 @@ const ExamTaking = () => {
 
   const submitExam = async () => {
     try {
-      const response = await axios.post(`http://localhost:5000/api/exams/${id}/submit`, {
+      const response = await api.post(`/exams/${id}/submit`, {
         answers,
         time_spent: exam.duration * 60 - timeLeft,
       });
@@ -126,7 +126,7 @@ const ExamTaking = () => {
       // Lưu kết quả vào localStorage để hiển thị ở trang kết quả
       localStorage.setItem(`exam_result_${id}`, JSON.stringify(response.data));
       
-      navigate(`/exam/${id}/result`);
+      navigate(`/exams/${id}/result`);
     } catch (error) {
       console.error("Error submitting exam:", error);
       toast.error("Lỗi khi nộp bài");
