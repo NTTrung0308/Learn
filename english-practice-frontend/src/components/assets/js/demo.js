@@ -1,3 +1,4 @@
+/* global $, Swal, Chart, legendClickCallback */
 "use strict";
 
 const modalShowcase = `

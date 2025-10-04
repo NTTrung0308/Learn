@@ -36,6 +36,11 @@ function AppContent({
     "/register",
     "/forgot-password",
     "/reset-password",
+    "/dashboard",
+    "/exam-management",
+    "/grammar-management",
+    "/vocabulary-management",
+    "/user-management",
   ];
 
   // Khởi tạo các plugin jQuery sau khi component mount

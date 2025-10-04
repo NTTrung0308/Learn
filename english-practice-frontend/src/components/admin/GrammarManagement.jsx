@@ -13,6 +13,7 @@ import {
   Badge,
 } from "react-bootstrap";
 import { toast } from "react-toastify";
+import Swal from "sweetalert2";
 import GrammarExamplesAndPractices from "./GrammarExamplesAndPractices";
 import Layout from "../layout/admin/Layout";
 
@@ -225,34 +226,56 @@ const GrammarManagement = ({ handleLogout }) => {
     }
   };
 
-  const deleteTopic = async (id) => {
-    if (!window.confirm("Bạn có chắc chắn muốn xóa chủ đề này?")) return;
-
-    try {
-      const token = localStorage.getItem("token");
-      await axios.delete(`http://localhost:5000/api/grammar/topics/${id}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      toast.success("Chủ đề đã được xóa");
-      fetchTopics();
-    } catch (error) {
-      toast.error("Lỗi khi xóa chủ đề");
-    }
+  const deleteTopic = (id) => {
+    Swal.fire({
+      title: "Bạn có chắc chắn?",
+      text: "Bạn sẽ không thể khôi phục lại chủ đề này!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Vâng, xóa nó đi!",
+      cancelButtonText: "Hủy",
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        try {
+          const token = localStorage.getItem("token");
+          await axios.delete(`http://localhost:5000/api/grammar/topics/${id}`, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          Swal.fire("Đã xóa!", "Chủ đề của bạn đã được xóa.", "success");
+          fetchTopics();
+        } catch (error) {
+          Swal.fire("Lỗi!", "Có lỗi xảy ra khi xóa chủ đề.", "error");
+        }
+      }
+    });
   };
 
-  const deleteLesson = async (id) => {
-    if (!window.confirm("Bạn có chắc chắn muốn xóa bài học này?")) return;
-
-    try {
-      const token = localStorage.getItem("token");
-      await axios.delete(`http://localhost:5000/api/grammar/lessons/${id}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      toast.success("Bài học đã được xóa");
-      fetchLessons();
-    } catch (error) {
-      toast.error("Lỗi khi xóa bài học");
-    }
+  const deleteLesson = (id) => {
+    Swal.fire({
+      title: "Bạn có chắc chắn?",
+      text: "Bạn sẽ không thể khôi phục lại bài học này!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Vâng, xóa nó đi!",
+      cancelButtonText: "Hủy",
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        try {
+          const token = localStorage.getItem("token");
+          await axios.delete(`http://localhost:5000/api/grammar/lessons/${id}`, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          Swal.fire("Đã xóa!", "Bài học của bạn đã được xóa.", "success");
+          fetchLessons();
+        } catch (error) {
+          Swal.fire("Lỗi!", "Có lỗi xảy ra khi xóa bài học.", "error");
+        }
+      }
+    });
   };
 
   const openTopicModal = (topic = null) => {
@@ -407,48 +430,56 @@ const GrammarManagement = ({ handleLogout }) => {
                     </tr>
                   </thead>
                   <tbody>
-                    {topics.map((topic) => (
-                      <tr key={topic.id}>
-                        <td>
-                          <strong>{topic.title}</strong>
-                        </td>
-                        <td>
-                          <Badge bg={getLevelBadgeVariant(topic.level)}>
-                            {topic.level}
-                          </Badge>
-                        </td>
-                        <td>{topic.description}</td>
-                        <td>{topic.display_order}</td>
-                        <td>
-                          <Button
-                            variant="outline-info"
-                            size="sm"
-                            className="me-2"
-                            onClick={() => openTopicModal(topic)}
-                          >
-                            Sửa
-                          </Button>
-                          <Button
-                            variant="outline-primary"
-                            size="sm"
-                            className="me-2"
-                            onClick={() => {
-                              handleTopicFilter(topic.id);
-                              setActiveTab("lessons");
-                            }}
-                          >
-                            Xem Bài học
-                          </Button>
-                          <Button
-                            variant="outline-danger"
-                            size="sm"
-                            onClick={() => deleteTopic(topic.id)}
-                          >
-                            Xóa
-                          </Button>
+                    {topics.length === 0 ? (
+                      <tr>
+                        <td colSpan="5" className="text-center py-4">
+                          Chưa có chủ đề nào.
                         </td>
                       </tr>
-                    ))}
+                    ) : (
+                      topics.map((topic) => (
+                        <tr key={topic.id}>
+                          <td>
+                            <strong>{topic.title}</strong>
+                          </td>
+                          <td>
+                            <Badge bg={getLevelBadgeVariant(topic.level)}>
+                              {topic.level}
+                            </Badge>
+                          </td>
+                          <td>{topic.description}</td>
+                          <td>{topic.display_order}</td>
+                          <td>
+                            <Button
+                              variant="outline-info"
+                              size="sm"
+                              className="me-2"
+                              onClick={() => openTopicModal(topic)}
+                            >
+                              Sửa
+                            </Button>
+                            <Button
+                              variant="outline-primary"
+                              size="sm"
+                              className="me-2"
+                              onClick={() => {
+                                handleTopicFilter(topic.id);
+                                setActiveTab("lessons");
+                              }}
+                            >
+                              Xem Bài học
+                            </Button>
+                            <Button
+                              variant="outline-danger"
+                              size="sm"
+                              onClick={() => deleteTopic(topic.id)}
+                            >
+                              Xóa
+                            </Button>
+                          </td>
+                        </tr>
+                      ))
+                    )}
                   </tbody>
                 </Table>
                 <div className="d-flex justify-content-end">

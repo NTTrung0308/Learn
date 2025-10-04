@@ -2,7 +2,10 @@ import React from "react";
 import { Link } from "react-router-dom";
 import logo from "../../assets/img/logo/logo.png";
 import avatar from "../../assets/img/profile.jpg";
-const Header = ({ toggleSidebar, handleLogout }) => {
+
+const Header = ({ toggleSidebar, handleLogout, user }) => {
+  const defaultAvatar = avatar;
+
   return (
     <div className="main-header">
       <div className="main-header-logo">
@@ -49,14 +52,20 @@ const Header = ({ toggleSidebar, handleLogout }) => {
               >
                 <div className="avatar-sm">
                   <img
-                    src={avatar}
+                    src={
+                      user && user.avatar
+                        ? `http://localhost:5000${user.avatar}`
+                        : defaultAvatar
+                    }
                     alt="..."
                     className="avatar-img rounded-circle"
                   />
                 </div>
                 <span className="profile-username">
                   <span className="op-7">Hi,</span>
-                  <span className="fw-bold">Hizrian</span>
+                  <span className="fw-bold">
+                    {user ? user.display_name : "User"}
+                  </span>
                 </span>
               </Link>
               <ul className="dropdown-menu dropdown-user animated fadeIn">
@@ -65,29 +74,35 @@ const Header = ({ toggleSidebar, handleLogout }) => {
                     <div className="user-box">
                       <div className="avatar-lg">
                         <img
-                          src={avatar}
+                          src={
+                            user && user.avatar
+                              ? `http://localhost:5000${user.avatar}`
+                              : defaultAvatar
+                          }
                           alt="image profile"
                           className="avatar-img rounded"
                         />
                       </div>
                       <div className="u-text">
-                        <h4>Hizrian</h4>
-                        <p className="text-muted">hello@example.com</p>
-                        <a
-                          href="profile.html"
+                        <h4>{user ? user.display_name : "User"}</h4>
+                        <p className="text-muted">
+                          {user ? user.email : "user@example.com"}
+                        </p>
+                        {/* <Link
+                          to="/profile"
                           className="btn btn-xs btn-secondary btn-sm"
                         >
                           View Profile
-                        </a>
+                        </Link> */}
                       </div>
                     </div>
                   </li>
                   <li>
                     <div className="dropdown-divider"></div>
-                    <Link className="dropdown-item" to={"#"}>
+                    {/* <Link className="dropdown-item" to="/profile">
                       My Profile
-                    </Link>
-                    <div className="dropdown-divider"></div>
+                    </Link> */}
+                    {/* <div className="dropdown-divider"></div> */}
                     <Link
                       className="dropdown-item"
                       to={"#"}

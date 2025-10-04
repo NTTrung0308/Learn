@@ -13,6 +13,10 @@ import ExamManagement from "../components/admin/ExamManagement";
 import GrammarManagement from "../components/admin/GrammarManagement";
 import VocabularyManagement from "../components/admin/VocabularyManagement";
 import UserManagement from "../components/admin/UserManagement";
+import ExamList from "../components/exam/ExamList";
+import ExamPreview from "../components/exam/ExamPreview";
+import ExamResult from "../components/exam/ExamResult";
+import ExamTaking from "../components/exam/ExamTaking";
 
 function AppRoutes({
   isAuthenticated,
@@ -73,6 +77,24 @@ function AppRoutes({
       <Route
         path="/profile"
         element={isAuthenticated ? <Profile /> : <Navigate to="/login" />}
+      />
+
+      {/* Exam Routes */}
+      <Route
+        path="/exams"
+        element={isAuthenticated ? <ExamList isAuthenticated={isAuthenticated} /> : <Navigate to="/login" />}
+      />
+      <Route
+        path="/exams/:id/take"
+        element={isAuthenticated ? <ExamTaking /> : <Navigate to="/login" />}
+      />
+      <Route
+        path="/exams/:id/result"
+        element={isAuthenticated ? <ExamResult /> : <Navigate to="/login" />}
+      />
+      <Route
+        path="/exams/:id/preview"
+        element={isAuthenticated ? <ExamPreview /> : <Navigate to="/login" />}
       />
 
       {/* Admin Routes */}

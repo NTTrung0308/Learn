@@ -14,6 +14,7 @@ import {
   InputGroup,
 } from "react-bootstrap";
 import { toast } from "react-toastify";
+import Swal from "sweetalert2";
 import Layout from "../layout/admin/Layout";
 
 const VocabularyManagement = ({ handleLogout }) => {
@@ -232,42 +233,64 @@ const VocabularyManagement = ({ handleLogout }) => {
     }
   };
 
-  const deleteCollection = async (id) => {
-    if (!window.confirm("Bạn có chắc chắn muốn xóa bộ từ vựng này?")) return;
-
-    try {
-      const token = localStorage.getItem("token");
-      await axios.delete(
-        `http://localhost:5000/api/vocabulary/collections/${id}`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
+  const deleteCollection = (id) => {
+    Swal.fire({
+      title: "Bạn có chắc chắn?",
+      text: "Bạn sẽ không thể khôi phục lại bộ từ vựng này!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Vâng, xóa nó đi!",
+      cancelButtonText: "Hủy",
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        try {
+          const token = localStorage.getItem("token");
+          await axios.delete(
+            `http://localhost:5000/api/vocabulary/collections/${id}`,
+            {
+              headers: { Authorization: `Bearer ${token}` },
+            }
+          );
+          Swal.fire("Đã xóa!", "Bộ từ vựng của bạn đã được xóa.", "success");
+          fetchCollections();
+        } catch (error) {
+          Swal.fire("Lỗi!", "Có lỗi xảy ra khi xóa bộ từ vựng.", "error");
         }
-      );
-      toast.success("Bộ từ vựng đã được xóa");
-      fetchCollections();
-    } catch (error) {
-      toast.error("Lỗi khi xóa bộ từ vựng");
-    }
+      }
+    });
   };
 
-  const deleteFlashcard = async (id) => {
-    if (!window.confirm("Bạn có chắc chắn muốn xóa flashcard này?")) return;
-
-    try {
-      const token = localStorage.getItem("token");
-      await axios.delete(
-        `http://localhost:5000/api/vocabulary/flashcards/${id}`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
+  const deleteFlashcard = (id) => {
+    Swal.fire({
+      title: "Bạn có chắc chắn?",
+      text: "Bạn sẽ không thể khôi phục lại flashcard này!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Vâng, xóa nó đi!",
+      cancelButtonText: "Hủy",
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        try {
+          const token = localStorage.getItem("token");
+          await axios.delete(
+            `http://localhost:5000/api/vocabulary/flashcards/${id}`,
+            {
+              headers: { Authorization: `Bearer ${token}` },
+            }
+          );
+          Swal.fire("Đã xóa!", "Flashcard của bạn đã được xóa.", "success");
+          if (currentCollection) {
+            fetchFlashcards(currentCollection.id);
+          }
+        } catch (error) {
+          Swal.fire("Lỗi!", "Có lỗi xảy ra khi xóa flashcard.", "error");
         }
-      );
-      toast.success("Flashcard đã được xóa");
-      if (currentCollection) {
-        fetchFlashcards(currentCollection.id);
       }
-    } catch (error) {
-      toast.error("Lỗi khi xóa flashcard");
-    }
+    });
   };
 
   const openCollectionModal = (collection = null) => {
