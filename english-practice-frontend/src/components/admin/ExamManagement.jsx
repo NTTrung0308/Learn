@@ -650,7 +650,7 @@ const ExamManagement = ({ handleLogout }) => {
                     <Form.Label>Đáp án đúng (nhập số thứ tự)</Form.Label>
                     <Form.Control
                       type="number"
-                      min="1"
+                      min="0"
                       max={questionForm.options.length}
                       value={questionForm.correct_answer}
                       onChange={(e) =>

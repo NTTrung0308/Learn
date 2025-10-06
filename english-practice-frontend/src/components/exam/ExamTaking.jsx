@@ -118,15 +118,21 @@ const ExamTaking = () => {
 
   const submitExam = async () => {
     try {
+      // Chuyển đổi object answers thành mảng theo định dạng backend yêu cầu
+      const formattedAnswers = Object.keys(answers).map((questionId) => ({
+        question_id: parseInt(questionId, 10),
+        answer: answers[questionId],
+      }));
+
       const response = await api.post(`/exams/${id}/submit`, {
-        answers,
+        answers: formattedAnswers,
         time_spent: exam.duration * 60 - timeLeft,
       });
 
-      // Lưu kết quả vào localStorage để hiển thị ở trang kết quả
-      localStorage.setItem(`exam_result_${id}`, JSON.stringify(response.data));
-      
-      navigate(`/exams/${id}/result`);
+      const { resultId } = response.data;
+
+      // Redirect to the result page with the resultId
+      navigate(`/exams/result/${resultId}`);
     } catch (error) {
       console.error("Error submitting exam:", error);
       toast.error("Lỗi khi nộp bài");
@@ -141,6 +147,21 @@ const ExamTaking = () => {
         <div className="loading-spinner">
           <i className="fas fa-spinner fa-spin"></i>
           <p>Đang tải đề thi...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Xử lý trường hợp đề thi không có câu hỏi
+  if (!exam.questions || exam.questions.length === 0) {
+    return (
+      <div className="exam-taking-container">
+        <div className="container text-center">
+          <h1>{exam.title}</h1>
+          <p>Đề thi này hiện chưa có câu hỏi.</p>
+          <button onClick={() => navigate("/exams")} className="btn btn-primary">
+            Quay lại danh sách đề thi
+          </button>
         </div>
       </div>
     );
@@ -219,9 +240,9 @@ const ExamTaking = () => {
                   <div
                     key={index}
                     className={`option ${
-                      answers[question.id] === option ? "selected" : ""
+                      answers[question.id] === index ? "selected" : ""
                     }`}
-                    onClick={() => handleAnswerSelect(question.id, option)}
+                    onClick={() => handleAnswerSelect(question.id, index)}
                   >
                     <span className="option-label">
                       {String.fromCharCode(65 + index)}
@@ -274,4 +295,4 @@ const ExamTaking = () => {
   );
 };
 
-export default ExamTaking;
+export default ExamTaking; 

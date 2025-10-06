@@ -175,4 +175,64 @@ const Question = {
   },
 };
 
-module.exports = { Exam, Question };
+// Bảng kết quả thi
+const ExamResult = {
+  create: async (resultData) => {
+    const sql = `
+      INSERT INTO exam_results (user_id, exam_id, score, total_points, correct_answers, total_questions, time_spent)
+      VALUES (?, ?, ?, ?, ?, ?, ?)
+    `;
+    const [result] = await db.execute(sql, [
+      resultData.user_id,
+      resultData.exam_id,
+      resultData.score,
+      resultData.total_points,
+      resultData.correct_answers,
+      resultData.total_questions,
+      resultData.time_spent,
+    ]);
+    return result.insertId;
+  },
+
+  findById: async (id) => {
+    const sql = "SELECT * FROM exam_results WHERE id = ?";
+    return await db.execute(sql, [id]);
+  },
+
+  findLatestByExamAndUser: async (examId, userId) => {
+    const sql = `
+      SELECT * FROM exam_results 
+      WHERE exam_id = ? AND user_id = ? 
+      ORDER BY created_at DESC 
+      LIMIT 1
+    `;
+    return await db.execute(sql, [examId, userId]);
+  },
+};
+
+// Bảng chi tiết bài làm
+const ExamSubmission = {
+  bulkCreate: async (submissions) => {
+    if (submissions.length === 0) return;
+
+    const sql = `
+      INSERT INTO exam_submissions (result_id, question_id, user_answer, is_correct)
+      VALUES ?
+    `;
+    const values = submissions.map(s => [
+      s.result_id,
+      s.question_id,
+      s.user_answer,
+      s.is_correct,
+    ]);
+
+    return await db.query(sql, [values]);
+  },
+
+  findByResultId: async (resultId) => {
+    const sql = "SELECT * FROM exam_submissions WHERE result_id = ?";
+    return await db.execute(sql, [resultId]);
+  },
+};
+
+module.exports = { Exam, Question, ExamResult, ExamSubmission };

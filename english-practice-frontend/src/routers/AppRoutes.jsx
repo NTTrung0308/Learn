@@ -89,7 +89,7 @@ function AppRoutes({
         element={isAuthenticated ? <ExamTaking /> : <Navigate to="/login" />}
       />
       <Route
-        path="/exams/:id/result"
+        path="/exams/result/:resultId"
         element={isAuthenticated ? <ExamResult /> : <Navigate to="/login" />}
       />
       <Route

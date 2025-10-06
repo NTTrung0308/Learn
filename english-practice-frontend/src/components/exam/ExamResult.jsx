@@ -1,53 +1,97 @@
+// ExamResult.jsx
 import React, { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { toast } from "react-toastify";
-import axios from "axios";
+import api from "../../api";
+
 const ExamResult = () => {
-  const { id } = useParams();
+  const { resultId } = useParams();
   const [result, setResult] = useState(null);
-  const [showExplanations, setShowExplanations] = useState(false);
+  const [detailedResults, setDetailedResults] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("overview");
 
   useEffect(() => {
-    loadResult();
-  }, [id]);
+    fetchExamResult();
+  }, [resultId]);
 
-  const loadResult = () => {
-    const savedResult = localStorage.getItem(`exam_result_${id}`);
-    if (savedResult) {
-      setResult(JSON.parse(savedResult));
-    } else {
-      toast.error("Không tìm thấy kết quả bài thi");
+  const fetchExamResult = async () => {
+    try {
+      const response = await api.get(`/exams/result/${resultId}`);
+      setResult(response.data.result);
+      setDetailedResults(response.data.detailedResults);
+    } catch (error) {
+      console.error("Error fetching exam result:", error);
+      toast.error("Không thể tải kết quả bài thi");
+    } finally {
+      setLoading(false);
     }
   };
 
-  const calculatePercentage = (correct, total) => {
-    return total > 0 ? Math.round((correct / total) * 100) : 0;
+  const calculatePercentage = () => {
+    if (!result) return 0;
+    return Math.round((result.score / result.total_points) * 100);
   };
 
-  const getScoreColor = (percentage) => {
-    if (percentage >= 80) return "excellent";
-    if (percentage >= 60) return "good";
-    if (percentage >= 40) return "average";
-    return "poor";
+  const getPerformanceMessage = () => {
+    const percentage = calculatePercentage();
+    if (percentage >= 90) return "Xuất sắc! 🎉";
+    if (percentage >= 80) return "Rất tốt! 👍";
+    if (percentage >= 70) return "Tốt! 👏";
+    if (percentage >= 60) return "Đạt yêu cầu ✅";
+    return "Cần cố gắng thêm 💪";
   };
 
-  const getSkillLevel = (percentage) => {
-    if (percentage >= 90) return "Xuất sắc";
-    if (percentage >= 80) return "Rất tốt";
-    if (percentage >= 70) return "Tốt";
-    if (percentage >= 60) return "Khá";
-    if (percentage >= 50) return "Trung bình";
-    return "Cần cải thiện";
+  const getPerformanceColor = () => {
+    const percentage = calculatePercentage();
+    if (percentage >= 80) return "success";
+    if (percentage >= 60) return "warning";
+    return "danger";
   };
+
+  const getGradeColor = () => {
+    const percentage = calculatePercentage();
+    if (percentage >= 80) return "text-success";
+    if (percentage >= 60) return "text-warning";
+    return "text-danger";
+  };
+
+  const formatTime = (seconds) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins.toString().padStart(2, "0")}:${secs
+      .toString()
+      .padStart(2, "0")}`;
+  };
+
+  if (loading) {
+    return (
+      <div className="exam-result-container min-vh-100 bg-light py-5">
+        <div className="container">
+          <div className="text-center py-5">
+            <div className="spinner-border text-primary mb-3" style={{width: '3rem', height: '3rem'}}></div>
+            <h4 className="text-muted">Đang tải kết quả...</h4>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (!result) {
     return (
-      <div className="exam-result-container">
+      <div className="exam-result-container min-vh-100 bg-light py-5">
         <div className="container">
-          <div className="loading-spinner">
-            <i className="fas fa-spinner fa-spin"></i>
-            <p>Đang tải kết quả...</p>
+          <div className="text-center py-5">
+            <div className="card shadow-sm border-0">
+              <div className="card-body py-5">
+                <i className="fas fa-exclamation-triangle text-warning mb-3" style={{fontSize: '3rem'}}></i>
+                <h2 className="text-dark mb-3">Không tìm thấy kết quả</h2>
+                <p className="text-muted mb-4">Kết quả bài thi không tồn tại hoặc đã bị xóa.</p>
+                <Link to="/exams" className="btn btn-primary btn-lg">
+                  <i className="fas fa-arrow-left me-2"></i>Quay lại danh sách đề thi
+                </Link>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -55,211 +99,493 @@ const ExamResult = () => {
   }
 
   return (
-    <div className="exam-result-container">
+    <div className="exam-result-container min-vh-100 bg-light py-4">
       <div className="container">
-        <div className="result-header">
-          <h1>Kết Quả Bài Thi</h1>
-          <h2>{result.exam.title}</h2>
-          <div className="result-summary">
-            <div className="score-card">
-              <div className="score-circle">
-                <div className={`score-value ${getScoreColor(result.score_percentage)}`}>
-                  {result.score_percentage}%
-                </div>
-              </div>
-              <div className="score-info">
-                <h3>Điểm tổng quan</h3>
-                <p>
-                  {result.correct_answers}/{result.total_questions} câu đúng
-                </p>
-                <span className={`skill-level ${getScoreColor(result.score_percentage)}`}>
-                  {getSkillLevel(result.score_percentage)}
+        {/* Header */}
+        <div className="result-header text-center mb-5">
+          <div className="card shadow-sm border-0">
+            <div className="card-body py-4">
+              <nav aria-label="breadcrumb" className="d-flex justify-content-center mb-3">
+                <ol className="breadcrumb mb-0">
+                  <li className="breadcrumb-item">
+                    <Link to="/exams" className="text-decoration-none">Đề thi</Link>
+                  </li>
+                  <li className="breadcrumb-item active">Kết quả bài thi</li>
+                </ol>
+              </nav>
+              <h1 className="h2 text-dark mb-2">Kết Quả Bài Thi</h1>
+              <h2 className="h4 text-primary">{result.exam_title}</h2>
+              <div className="d-flex justify-content-center align-items-center gap-3 mt-2">
+                <span className="badge bg-secondary">{result.exam_type}</span>
+                <span className="text-muted">
+                  <i className="fas fa-calendar me-1"></i>
+                  {new Date(result.submitted_at).toLocaleDateString("vi-VN")}
                 </span>
-              </div>
-            </div>
-
-            <div className="result-stats">
-              <div className="stat-item">
-                <i className="fas fa-check-circle"></i>
-                <div>
-                  <h4>{result.correct_answers}</h4>
-                  <p>Câu đúng</p>
-                </div>
-              </div>
-              <div className="stat-item">
-                <i className="fas fa-times-circle"></i>
-                <div>
-                  <h4>{result.incorrect_answers}</h4>
-                  <p>Câu sai</p>
-                </div>
-              </div>
-              <div className="stat-item">
-                <i className="fas fa-clock"></i>
-                <div>
-                  <h4>{Math.floor(result.time_spent / 60)}:{String(result.time_spent % 60).padStart(2, '0')}</h4>
-                  <p>Thời gian làm</p>
-                </div>
-              </div>
-              <div className="stat-item">
-                <i className="fas fa-tachometer-alt"></i>
-                <div>
-                  <h4>{Math.round(result.average_time_per_question)}s</h4>
-                  <p>Trung bình/câu</p>
-                </div>
               </div>
             </div>
           </div>
         </div>
 
-        <div className="result-tabs">
-          <button
-            className={`tab-btn ${activeTab === "overview" ? "active" : ""}`}
-            onClick={() => setActiveTab("overview")}
-          >
-            Tổng quan
-          </button>
-          <button
-            className={`tab-btn ${activeTab === "details" ? "active" : ""}`}
-            onClick={() => setActiveTab("details")}
-          >
-            Chi tiết từng câu
-          </button>
-          <button
-            className={`tab-btn ${activeTab === "analysis" ? "active" : ""}`}
-            onClick={() => setActiveTab("analysis")}
-          >
-            Phân tích lỗi
-          </button>
-        </div>
-
-        <div className="tab-content">
-          {activeTab === "overview" && (
-            <div className="overview-tab">
-              <div className="skill-breakdown">
-                <h3>Phân tích kỹ năng</h3>
-                <div className="skill-chart">
-                  {result.skill_analysis?.map((skill, index) => (
-                    <div key={index} className="skill-item">
-                      <div className="skill-header">
-                        <span className="skill-name">{skill.name}</span>
-                        <span className="skill-score">
-                          {skill.correct}/{skill.total} ({calculatePercentage(skill.correct, skill.total)}%)
-                        </span>
-                      </div>
-                      <div className="skill-progress">
-                        <div
-                          className={`skill-progress-bar ${getScoreColor(calculatePercentage(skill.correct, skill.total))}`}
-                          style={{ width: `${calculatePercentage(skill.correct, skill.total)}%` }}
-                        ></div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div className="recommendations">
-                <h3>Đề xuất cải thiện</h3>
-                <div className="recommendation-list">
-                  {result.recommendations?.map((rec, index) => (
-                    <div key={index} className="recommendation-item">
-                      <i className="fas fa-lightbulb"></i>
-                      <p>{rec}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          )}
-
-          {activeTab === "details" && (
-            <div className="details-tab">
-              <div className="questions-review">
-                {result.questions?.map((q, index) => (
-                  <div key={q.id} className="question-review">
-                    <div className="question-header">
-                      <h4>Câu {index + 1}</h4>
-                      <span className={`status ${q.is_correct ? "correct" : "incorrect"}`}>
-                        {q.is_correct ? "✓ Đúng" : "✗ Sai"}
-                      </span>
-                    </div>
-                    
-                    <div className="question-content">
-                      <p><strong>Câu hỏi:</strong> {q.question_text}</p>
-                      
-                      <div className="answer-comparison">
-                        <div className="answer-row">
-                          <span className="answer-label">Đáp án của bạn:</span>
-                          <span className={`user-answer ${!q.is_correct ? "wrong" : ""}`}>
-                            {q.user_answer || "Không trả lời"}
-                          </span>
-                        </div>
-                        {!q.is_correct && (
-                          <div className="answer-row">
-                            <span className="answer-label">Đáp án đúng:</span>
-                            <span className="correct-answer">{q.correct_answer}</span>
-                          </div>
-                        )}
-                      </div>
-
-                      {showExplanations && q.explanation && (
-                        <div className="explanation">
-                          <strong>Giải thích:</strong>
-                          <p>{q.explanation}</p>
-                        </div>
-                      )}
+        {/* Main Content */}
+        <div className="row">
+          {/* Sidebar - Score Summary */}
+          <div className="col-lg-4 mb-4">
+            <div className="card shadow-sm border-0 sticky-top" style={{top: '20px'}}>
+              <div className="card-body">
+                {/* Overall Score */}
+                <div className="text-center mb-4">
+                  <div className={`score-circle mx-auto mb-3 bg-${getPerformanceColor()} bg-opacity-10`}
+                    style={{
+                      width: '120px',
+                      height: '120px',
+                      borderRadius: '50%',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      border: `4px solid var(--bs-${getPerformanceColor()})`
+                    }}>
+                    <div className="text-center">
+                      <h2 className={`mb-0 text-${getPerformanceColor()}`} style={{fontWeight: 'bold'}}>
+                        {calculatePercentage()}%
+                      </h2>
+                      <small className="text-muted">Điểm phần trăm</small>
                     </div>
                   </div>
-                ))}
-              </div>
-              
-              <button
-                className="btn btn-outline toggle-explanations"
-                onClick={() => setShowExplanations(!showExplanations)}
-              >
-                {showExplanations ? "Ẩn giải thích" : "Hiện giải thích chi tiết"}
-              </button>
-            </div>
-          )}
+                  <h4 className={`text-${getPerformanceColor()} mb-2`}>
+                    {getPerformanceMessage()}
+                  </h4>
+                </div>
 
-          {activeTab === "analysis" && (
-            <div className="analysis-tab">
-              <div className="weak-areas">
-                <h3>Điểm yếu cần cải thiện</h3>
-                <div className="weakness-list">
-                  {result.weak_areas?.map((area, index) => (
-                    <div key={index} className="weakness-item">
-                      <div className="weakness-header">
-                        <i className="fas fa-exclamation-triangle"></i>
-                        <h4>{area.topic}</h4>
-                        <span className="weakness-score">{area.accuracy}%</span>
-                      </div>
-                      <p>{area.description}</p>
-                      <div className="suggested-actions">
-                        <strong>Gợi ý học tập:</strong>
-                        <ul>
-                          {area.suggestions?.map((suggestion, idx) => (
-                            <li key={idx}>{suggestion}</li>
-                          ))}
-                        </ul>
-                      </div>
-                    </div>
-                  ))}
+                {/* Stats */}
+                <div className="score-stats mb-4">
+                  <div className="d-flex justify-content-between align-items-center py-2 border-bottom">
+                    <span className="text-muted">Điểm số:</span>
+                    <strong>{result.score}/{result.total_points}</strong>
+                  </div>
+                  <div className="d-flex justify-content-between align-items-center py-2 border-bottom">
+                    <span className="text-muted">Số câu đúng:</span>
+                    <strong>{result.correct_answers}/{result.total_questions}</strong>
+                  </div>
+                  <div className="d-flex justify-content-between align-items-center py-2 border-bottom">
+                    <span className="text-muted">Thời gian làm:</span>
+                    <strong>{formatTime(result.time_spent)}</strong>
+                  </div>
+                </div>
+
+                {/* Progress Bars */}
+                <div className="progress-stats mb-4">
+                  <div className="d-flex justify-content-between mb-1">
+                    <small>Đúng: {result.correct_answers}</small>
+                    <small>{Math.round((result.correct_answers / result.total_questions) * 100)}%</small>
+                  </div>
+                  <div className="progress mb-3" style={{height: '8px'}}>
+                    <div 
+                      className="progress-bar bg-success" 
+                      style={{
+                        width: `${(result.correct_answers / result.total_questions) * 100}%`
+                      }}
+                    ></div>
+                  </div>
+                  
+                  <div className="d-flex justify-content-between mb-1">
+                    <small>Sai: {result.total_questions - result.correct_answers}</small>
+                    <small>{Math.round(((result.total_questions - result.correct_answers) / result.total_questions) * 100)}%</small>
+                  </div>
+                  <div className="progress" style={{height: '8px'}}>
+                    <div 
+                      className="progress-bar bg-danger" 
+                      style={{
+                        width: `${((result.total_questions - result.correct_answers) / result.total_questions) * 100}%`
+                      }}
+                    ></div>
+                  </div>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="action-buttons">
+                  <Link to="/exams" className="btn btn-outline-primary w-100 mb-2">
+                    <i className="fas fa-list me-2"></i>Đề thi khác
+                  </Link>
+                  <button 
+                    onClick={() => setActiveTab("details")}
+                    className="btn btn-primary w-100"
+                  >
+                    <i className="fas fa-search me-2"></i>Xem chi tiết
+                  </button>
                 </div>
               </div>
             </div>
-          )}
-        </div>
+          </div>
 
-        <div className="result-actions">
-          <Link to="/exams" className="btn btn-primary">
-            Làm đề thi khác
-          </Link>
-          <Link to={`/exam/${id}`} className="btn btn-outline">
-            Làm lại đề này
-          </Link>
-          <button className="btn btn-secondary">
-            <i className="fas fa-download"></i> Tải kết quả
-          </button>
+          {/* Main Content Area */}
+          <div className="col-lg-8">
+            {/* Navigation Tabs */}
+            <div className="card shadow-sm border-0 mb-4">
+              <div className="card-body p-0">
+                <ul className="nav nav-tabs nav-justified">
+                  <li className="nav-item">
+                    <button
+                      className={`nav-link ${activeTab === "overview" ? "active" : ""}`}
+                      onClick={() => setActiveTab("overview")}
+                    >
+                      <i className="fas fa-chart-bar me-2"></i>Tổng Quan
+                    </button>
+                  </li>
+                  <li className="nav-item">
+                    <button
+                      className={`nav-link ${activeTab === "details" ? "active" : ""}`}
+                      onClick={() => setActiveTab("details")}
+                    >
+                      <i className="fas fa-list-ul me-2"></i>Chi Tiết Câu Hỏi
+                    </button>
+                  </li>
+                  <li className="nav-item">
+                    <button
+                      className={`nav-link ${activeTab === "analysis" ? "active" : ""}`}
+                      onClick={() => setActiveTab("analysis")}
+                    >
+                      <i className="fas fa-chart-pie me-2"></i>Phân Tích Lỗi
+                    </button>
+                  </li>
+                </ul>
+              </div>
+            </div>
+
+            {/* Tab Content */}
+            <div className="tab-content">
+              {/* Overview Tab */}
+              {activeTab === "overview" && (
+                <div className="overview-tab">
+                  <div className="row">
+                    <div className="col-md-6 mb-4">
+                      <div className="card shadow-sm border-0 h-100">
+                        <div className="card-body">
+                          <h5 className="card-title d-flex align-items-center">
+                            <i className="fas fa-award text-warning me-2"></i>
+                            Thông tin bài làm
+                          </h5>
+                          <div className="time-info">
+                            <div className="d-flex justify-content-between align-items-center py-2 border-bottom">
+                              <span className="text-muted">Thời gian làm bài:</span>
+                              <strong>{formatTime(result.time_spent)}</strong>
+                            </div>
+                            <div className="d-flex justify-content-between align-items-center py-2">
+                              <span className="text-muted">Thời gian nộp:</span>
+                              <strong>{new Date(result.submitted_at).toLocaleString("vi-VN")}</strong>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="col-md-6 mb-4">
+                      <div className="card shadow-sm border-0 h-100">
+                        <div className="card-body">
+                          <h5 className="card-title d-flex align-items-center">
+                            <i className="fas fa-chart-line text-info me-2"></i>
+                            Thống kê nhanh
+                          </h5>
+                          <div className="quick-stats">
+                            <div className="d-flex align-items-center py-2 border-bottom">
+                              <i className="fas fa-check text-success me-3"></i>
+                              <div className="flex-grow-1">
+                                <div className="d-flex justify-content-between">
+                                  <span>Câu đúng:</span>
+                                  <strong>{result.correct_answers}</strong>
+                                </div>
+                              </div>
+                            </div>
+                            <div className="d-flex align-items-center py-2 border-bottom">
+                              <i className="fas fa-times text-danger me-3"></i>
+                              <div className="flex-grow-1">
+                                <div className="d-flex justify-content-between">
+                                  <span>Câu sai:</span>
+                                  <strong>{result.total_questions - result.correct_answers}</strong>
+                                </div>
+                              </div>
+                            </div>
+                            <div className="d-flex align-items-center py-2">
+                              <i className="fas fa-star text-warning me-3"></i>
+                              <div className="flex-grow-1">
+                                <div className="d-flex justify-content-between">
+                                  <span>Điểm trung bình/câu:</span>
+                                  <strong>{(result.score / result.total_questions).toFixed(2)}</strong>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Details Tab */}
+              {activeTab === "details" && (
+                <div className="details-tab">
+                  <div className="card shadow-sm border-0">
+                    <div className="card-body">
+                      <h4 className="card-title mb-4">
+                        <i className="fas fa-list-ul text-primary me-2"></i>
+                        Chi Tiết Từng Câu Hỏi
+                      </h4>
+                      <div className="questions-review">
+                        {detailedResults.map((question, index) => (
+                          <div
+                            key={question.id}
+                            className={`question-review card mb-4 ${
+                              question.is_correct ? "border-success" : "border-danger"
+                            }`}
+                          >
+                            <div className="card-body">
+                              <div className="question-header d-flex justify-content-between align-items-start mb-3">
+                                <div>
+                                  <h5 className="card-title mb-1">
+                                    Câu {index + 1} 
+                                    <span className="text-muted fs-6 ms-2">({question.points} điểm)</span>
+                                  </h5>
+                                </div>
+                                <span
+                                  className={`badge ${
+                                    question.is_correct ? "bg-success" : "bg-danger"
+                                  }`}
+                                >
+                                  {question.is_correct ? "Đúng" : "Sai"}
+                                </span>
+                              </div>
+
+                              <div className="question-content">
+                                {question.audio_url && (
+                                  <div className="question-audio mb-3">
+                                    <audio controls className="w-100">
+                                      <source
+                                        src={question.audio_url}
+                                        type="audio/mpeg"
+                                      />
+                                      Trình duyệt của bạn không hỗ trợ phát audio.
+                                    </audio>
+                                  </div>
+                                )}
+
+                                {question.image_url && (
+                                  <div className="question-image mb-3 text-center">
+                                    <img
+                                      src={question.image_url}
+                                      alt="Question visual"
+                                      className="img-fluid rounded"
+                                      style={{maxHeight: '200px'}}
+                                    />
+                                  </div>
+                                )}
+
+                                <div className="question-text mb-3">
+                                  <p className="fw-bold mb-0">{question.question_text}</p>
+                                </div>
+
+                                <div className="options-review">
+                                  {question.options.map((option, optIndex) => (
+                                    <div
+                                      key={optIndex}
+                                      className={`option p-3 rounded mb-2 ${
+                                        optIndex == question.correct_answer.answer
+                                          ? "bg-success bg-opacity-10 border border-success"
+                                          : ""
+                                      } ${
+                                        optIndex === question.user_answer &&
+                                        !question.is_correct
+                                          ? "bg-danger bg-opacity-10 border border-danger"
+                                          : ""
+                                      } ${
+                                        !question.is_correct && 
+                                        optIndex !== question.user_answer &&
+                                        optIndex != question.correct_answer.answer
+                                          ? "border"
+                                          : ""
+                                      }`}
+                                    >
+                                      <div className="d-flex align-items-center justify-content-between">
+                                        <div className="d-flex align-items-center">
+                                          <span className="option-label fw-bold me-3">
+                                            {String.fromCharCode(65 + optIndex)}
+                                          </span>
+                                          <span className="option-text">{option}</span>
+                                        </div>
+                                        <div>
+                                          {optIndex == question.correct_answer.answer && (
+                                            <span className="badge bg-success ms-2">
+                                              <i className="fas fa-check me-1"></i> Đáp án đúng
+                                            </span>
+                                          )}
+                                          {optIndex === question.user_answer &&
+                                            !question.is_correct && (
+                                              <span className="badge bg-danger ms-2">
+                                                <i className="fas fa-times me-1"></i> Bạn chọn
+                                              </span>
+                                            )}
+                                        </div>
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+
+                                {!question.is_correct && (
+                                  <div className="explanation mt-3 p-3 bg-light rounded">
+                                    <h6 className="d-flex align-items-center mb-2">
+                                      <i className="fas fa-lightbulb text-warning me-2"></i>
+                                      Giải thích:
+                                    </h6>
+                                    <p className="mb-0">
+                                      {question.correct_answer.explanation ||
+                                        `Câu trả lời đúng là: ${String.fromCharCode(65 + parseInt(question.correct_answer.answer))}. ${question.options[parseInt(question.correct_answer.answer)]}`}
+                                    </p>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Analysis Tab */}
+              {activeTab === "analysis" && (
+                <div className="analysis-tab">
+                  <div className="row">
+                    <div className="col-md-6 mb-4">
+                      <div className="card shadow-sm border-0 h-100">
+                        <div className="card-body">
+                          <h5 className="card-title d-flex align-items-center">
+                            <i className="fas fa-chart-pie text-primary me-2"></i>
+                            Phân Tích Điểm Số
+                          </h5>
+                          <div className="analysis-chart">
+                            <div className="text-center py-3">
+                              <div className="d-flex justify-content-around align-items-center mb-3">
+                                <div className="text-center">
+                                  <div className="fs-4 fw-bold text-success">{result.correct_answers}</div>
+                                  <small className="text-muted">Câu đúng</small>
+                                </div>
+                                <div className="text-center">
+                                  <div className="fs-4 fw-bold text-danger">
+                                    {result.total_questions - result.correct_answers}
+                                  </div>
+                                  <small className="text-muted">Câu sai</small>
+                                </div>
+                              </div>
+                              <div className="row text-center">
+                                <div className="col-6">
+                                  <p className="mb-1">
+                                    <strong>Tỷ lệ đúng:</strong>
+                                  </p>
+                                  <h5 className="text-success">
+                                    {Math.round((result.correct_answers / result.total_questions) * 100)}%
+                                  </h5>
+                                </div>
+                                <div className="col-6">
+                                  <p className="mb-1">
+                                    <strong>Điểm/câu:</strong>
+                                  </p>
+                                  <h5 className="text-primary">
+                                    {(result.score / result.total_questions).toFixed(2)}
+                                  </h5>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="col-md-6 mb-4">
+                      <div className="card shadow-sm border-0 h-100">
+                        <div className="card-body">
+                          <h5 className="card-title d-flex align-items-center">
+                            <i className="fas fa-bullseye text-warning me-2"></i>
+                            Đề Xuất Cải Thiện
+                          </h5>
+                          <div className="suggestions">
+                            {calculatePercentage() < 70 && (
+                              <div className="suggestion-item d-flex align-items-center p-2 border-bottom">
+                                <i className="fas fa-book text-primary me-3 fs-5"></i>
+                                <div>
+                                  <strong>Ôn tập toàn diện</strong>
+                                  <p className="small text-muted mb-0">Cần ôn tập lại toàn bộ kiến thức</p>
+                                </div>
+                              </div>
+                            )}
+                            {detailedResults.some(
+                              (q) => !q.is_correct && q.points > 1
+                            ) && (
+                              <div className="suggestion-item d-flex align-items-center p-2 border-bottom">
+                                <i className="fas fa-star text-warning me-3 fs-5"></i>
+                                <div>
+                                  <strong>Tập trung câu nhiều điểm</strong>
+                                  <p className="small text-muted mb-0">Ưu tiên các câu hỏi có điểm số cao</p>
+                                </div>
+                              </div>
+                            )}
+                            <div className="suggestion-item d-flex align-items-center p-2">
+                              <i className="fas fa-clock text-info me-3 fs-5"></i>
+                              <div>
+                                <strong>Luyện tốc độ</strong>
+                                <p className="small text-muted mb-0">Luyện tập với áp lực thời gian</p>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Wrong Questions Summary */}
+                  <div className="wrong-questions-summary mt-4">
+                    <div className="card shadow-sm border-0">
+                      <div className="card-body">
+                        <h5 className="card-title d-flex align-items-center">
+                          <i className="fas fa-exclamation-triangle text-danger me-2"></i>
+                          Câu Hỏi Cần Ôn Tập Lại
+                        </h5>
+                        <div className="row">
+                          {detailedResults
+                            .filter((q) => !q.is_correct)
+                            .map((question, index) => (
+                              <div key={question.id} className="col-md-6 mb-3">
+                                <div className="card border-danger border-1">
+                                  <div className="card-body">
+                                    <div className="d-flex justify-content-between align-items-start mb-2">
+                                      <h6 className="card-title mb-0">
+                                        Câu {detailedResults.indexOf(question) + 1}
+                                      </h6>
+                                      <span className="badge bg-danger">Sai</span>
+                                    </div>
+                                    <p className="small text-muted mb-2">{question.question_text}</p>
+                                    <p className="small text-danger mb-0">
+                                      <strong>Lý do:</strong>{" "}
+                                      {question.correct_answer.explanation ||
+                                        "Chưa nắm vững kiến thức này"}
+                                    </p>
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          {detailedResults.filter((q) => !q.is_correct).length === 0 && (
+                            <div className="col-12 text-center py-4">
+                              <i className="fas fa-check-circle text-success fs-1 mb-3"></i>
+                              <p className="text-muted">Không có câu hỏi nào cần ôn tập lại. Làm tốt lắm!</p>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       </div>
     </div>

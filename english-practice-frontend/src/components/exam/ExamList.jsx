@@ -63,7 +63,7 @@ const ExamList = ({ isAuthenticated }) => {
     <div className="exam-list-container">
       <div className="container">
         <div className="exam-header">
-          <h1>Luyện Đề Thi Tiếng Anh</h1>
+          <h1 className="text-dark">Luyện Đề Thi Tiếng Anh</h1>
           <p>Chọn đề thi phù hợp với trình độ và mục tiêu của bạn</p>
         </div>
 
