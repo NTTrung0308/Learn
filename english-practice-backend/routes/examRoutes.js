@@ -13,7 +13,8 @@ const {
   updateQuestion,
   deleteQuestion,
   submitExam, // Added back
-  getExamResult // Added back
+  getExamResult, // Added back
+  analyzeExamResult,
 } = require("../controllers/examController");
 
 const router = express.Router();
@@ -31,8 +32,11 @@ const storage = multer.diskStorage({
   },
   filename: function (req, file, cb) {
     const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
-    cb(null, file.fieldname + "-" + uniqueSuffix + path.extname(file.originalname));
-  }
+    cb(
+      null,
+      file.fieldname + "-" + uniqueSuffix + path.extname(file.originalname)
+    );
+  },
 });
 
 const upload = multer({
@@ -56,7 +60,7 @@ const upload = multer({
     } else {
       cb(new Error("Invalid fieldname"), false);
     }
-  }
+  },
 });
 
 // Routes cho đề thi
@@ -67,17 +71,28 @@ router.put("/:id", auth, updateExam);
 router.delete("/:id", auth, deleteExam);
 router.post("/:id/submit", auth, submitExam); // Added back
 router.get("/result/:resultId", auth, getExamResult); // Changed route
+router.post("/analyze", auth, analyzeExamResult);
 
 // Routes cho câu hỏi
-router.post("/:examId/questions", auth, upload.fields([
-  { name: "audio", maxCount: 1 },
-  { name: "image", maxCount: 1 }
-]), addQuestion);
+router.post(
+  "/:examId/questions",
+  auth,
+  upload.fields([
+    { name: "audio", maxCount: 1 },
+    { name: "image", maxCount: 1 },
+  ]),
+  addQuestion
+);
 
-router.put("/questions/:id", auth, upload.fields([
-  { name: "audio", maxCount: 1 },
-  { name: "image", maxCount: 1 }
-]), updateQuestion);
+router.put(
+  "/questions/:id",
+  auth,
+  upload.fields([
+    { name: "audio", maxCount: 1 },
+    { name: "image", maxCount: 1 },
+  ]),
+  updateQuestion
+);
 
 router.delete("/questions/:id", auth, deleteQuestion);
 

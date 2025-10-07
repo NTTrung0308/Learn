@@ -10,6 +10,8 @@ const ExamResult = () => {
   const [detailedResults, setDetailedResults] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("overview");
+  const [analysis, setAnalysis] = useState("");
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
 
   useEffect(() => {
     fetchExamResult();
@@ -62,6 +64,26 @@ const ExamResult = () => {
     return `${mins.toString().padStart(2, "0")}:${secs
       .toString()
       .padStart(2, "0")}`;
+  };
+
+  const handleAnalyze = async () => {
+    if (detailedResults.filter(q => !q.is_correct).length === 0) {
+      toast.info("Bạn đã trả lời đúng hết! Không cần phân tích thêm.");
+      setAnalysis("Chúc mừng! Bạn đã trả lời đúng tất cả các câu hỏi. Không có gì cần phân tích thêm.");
+      return;
+    }
+
+    setIsAnalyzing(true);
+    setAnalysis("");
+    try {
+      const response = await api.post("/exams/analyze", { detailedResults });
+      setAnalysis(response.data.analysis);
+    } catch (error) {
+      console.error("Error analyzing exam result:", error);
+      toast.error("Không thể lấy phân tích từ AI. Vui lòng thử lại.");
+    } finally {
+      setIsAnalyzing(false);
+    }
   };
 
   if (loading) {
@@ -454,132 +476,52 @@ const ExamResult = () => {
               {/* Analysis Tab */}
               {activeTab === "analysis" && (
                 <div className="analysis-tab">
-                  <div className="row">
-                    <div className="col-md-6 mb-4">
-                      <div className="card shadow-sm border-0 h-100">
-                        <div className="card-body">
-                          <h5 className="card-title d-flex align-items-center">
-                            <i className="fas fa-chart-pie text-primary me-2"></i>
-                            Phân Tích Điểm Số
-                          </h5>
-                          <div className="analysis-chart">
-                            <div className="text-center py-3">
-                              <div className="d-flex justify-content-around align-items-center mb-3">
-                                <div className="text-center">
-                                  <div className="fs-4 fw-bold text-success">{result.correct_answers}</div>
-                                  <small className="text-muted">Câu đúng</small>
-                                </div>
-                                <div className="text-center">
-                                  <div className="fs-4 fw-bold text-danger">
-                                    {result.total_questions - result.correct_answers}
-                                  </div>
-                                  <small className="text-muted">Câu sai</small>
-                                </div>
-                              </div>
-                              <div className="row text-center">
-                                <div className="col-6">
-                                  <p className="mb-1">
-                                    <strong>Tỷ lệ đúng:</strong>
-                                  </p>
-                                  <h5 className="text-success">
-                                    {Math.round((result.correct_answers / result.total_questions) * 100)}%
-                                  </h5>
-                                </div>
-                                <div className="col-6">
-                                  <p className="mb-1">
-                                    <strong>Điểm/câu:</strong>
-                                  </p>
-                                  <h5 className="text-primary">
-                                    {(result.score / result.total_questions).toFixed(2)}
-                                  </h5>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="col-md-6 mb-4">
-                      <div className="card shadow-sm border-0 h-100">
-                        <div className="card-body">
-                          <h5 className="card-title d-flex align-items-center">
-                            <i className="fas fa-bullseye text-warning me-2"></i>
-                            Đề Xuất Cải Thiện
-                          </h5>
-                          <div className="suggestions">
-                            {calculatePercentage() < 70 && (
-                              <div className="suggestion-item d-flex align-items-center p-2 border-bottom">
-                                <i className="fas fa-book text-primary me-3 fs-5"></i>
-                                <div>
-                                  <strong>Ôn tập toàn diện</strong>
-                                  <p className="small text-muted mb-0">Cần ôn tập lại toàn bộ kiến thức</p>
-                                </div>
-                              </div>
-                            )}
-                            {detailedResults.some(
-                              (q) => !q.is_correct && q.points > 1
-                            ) && (
-                              <div className="suggestion-item d-flex align-items-center p-2 border-bottom">
-                                <i className="fas fa-star text-warning me-3 fs-5"></i>
-                                <div>
-                                  <strong>Tập trung câu nhiều điểm</strong>
-                                  <p className="small text-muted mb-0">Ưu tiên các câu hỏi có điểm số cao</p>
-                                </div>
-                              </div>
-                            )}
-                            <div className="suggestion-item d-flex align-items-center p-2">
-                              <i className="fas fa-clock text-info me-3 fs-5"></i>
-                              <div>
-                                <strong>Luyện tốc độ</strong>
-                                <p className="small text-muted mb-0">Luyện tập với áp lực thời gian</p>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Wrong Questions Summary */}
-                  <div className="wrong-questions-summary mt-4">
-                    <div className="card shadow-sm border-0">
-                      <div className="card-body">
-                        <h5 className="card-title d-flex align-items-center">
-                          <i className="fas fa-exclamation-triangle text-danger me-2"></i>
-                          Câu Hỏi Cần Ôn Tập Lại
-                        </h5>
-                        <div className="row">
-                          {detailedResults
-                            .filter((q) => !q.is_correct)
-                            .map((question, index) => (
-                              <div key={question.id} className="col-md-6 mb-3">
-                                <div className="card border-danger border-1">
-                                  <div className="card-body">
-                                    <div className="d-flex justify-content-between align-items-start mb-2">
-                                      <h6 className="card-title mb-0">
-                                        Câu {detailedResults.indexOf(question) + 1}
-                                      </h6>
-                                      <span className="badge bg-danger">Sai</span>
-                                    </div>
-                                    <p className="small text-muted mb-2">{question.question_text}</p>
-                                    <p className="small text-danger mb-0">
-                                      <strong>Lý do:</strong>{" "}
-                                      {question.correct_answer.explanation ||
-                                        "Chưa nắm vững kiến thức này"}
-                                    </p>
-                                  </div>
-                                </div>
-                              </div>
-                            ))}
-                          {detailedResults.filter((q) => !q.is_correct).length === 0 && (
-                            <div className="col-12 text-center py-4">
-                              <i className="fas fa-check-circle text-success fs-1 mb-3"></i>
-                              <p className="text-muted">Không có câu hỏi nào cần ôn tập lại. Làm tốt lắm!</p>
-                            </div>
+                  <div className="card shadow-sm border-0">
+                    <div className="card-body">
+                      <div className="d-flex justify-content-between align-items-center mb-4">
+                        <h4 className="card-title mb-0">
+                          <i className="fas fa-robot text-primary me-2"></i>
+                          Phân Tích Chuyên Sâu từ AI
+                        </h4>
+                        <button 
+                          className="btn btn-primary"
+                          onClick={handleAnalyze}
+                          disabled={isAnalyzing}
+                        >
+                          {isAnalyzing ? (
+                            <><span className="spinner-border spinner-border-sm me-2"></span> Đang phân tích...</>
+                          ) : (
+                            <><i className="fas fa-magic me-2"></i> Nhận phân tích</>
                           )}
-                        </div>
+                        </button>
                       </div>
+
+                      {isAnalyzing && (
+                        <div className="text-center py-5">
+                          <div className="spinner-border text-primary mb-3" style={{width: '3rem', height: '3rem'}}></div>
+                          <h5 className="text-muted">AI đang phân tích bài làm của bạn...</h5>
+                          <p className="text-muted small">Quá trình này có thể mất một vài giây.</p>
+                        </div>
+                      )}
+
+                      {analysis && (
+                        <div className="ai-analysis-result mt-4 p-4 bg-light rounded border">
+                          <pre style={{ whiteSpace: 'pre-wrap', fontFamily: 'inherit', fontSize: 'inherit' }}>
+                            {analysis}
+                          </pre>
+                        </div>
+                      )}
+
+                      {!analysis && !isAnalyzing && (
+                         <div className="text-center py-5 bg-light rounded border">
+                            <i className="fas fa-robot fs-1 text-muted mb-3"></i>
+                            <h5 className="text-dark">Nhận phản hồi chi tiết</h5>
+                            <p className="text-muted">
+                              Nhấn nút "Nhận phân tích" để AI giúp bạn hiểu rõ các lỗi sai 
+                              <br/> và gợi ý cách cải thiện nhé!
+                            </p>
+                          </div>
+                      )}
                     </div>
                   </div>
                 </div>

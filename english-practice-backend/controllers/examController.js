@@ -1,3 +1,4 @@
+const { GoogleGenerativeAI } = require("@google/generative-ai");
 const {
   Exam,
   Question,
@@ -627,6 +628,57 @@ exports.getExamResult = async (req, res) => {
   } catch (err) {
     console.error("Error fetching exam result:", err);
     res.status(500).json({ message: "Lỗi server", error: err });
+  }
+};
+
+
+exports.analyzeExamResult = async (req, res) => {
+  const { detailedResults } = req.body;
+
+  if (!detailedResults || !Array.isArray(detailedResults)) {
+    return res.status(400).json({ message: "Dữ liệu bài làm không hợp lệ" });
+  }
+
+  try {
+    const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+
+    const incorrectAnswers = detailedResults.filter(q => !q.is_correct);
+
+    if (incorrectAnswers.length === 0) {
+      return res.json({ analysis: "Chúc mừng! Bạn đã trả lời đúng tất cả các câu hỏi. Không có gì cần phân tích thêm." });
+    }
+
+    const prompt = `
+      Bạn là một giáo viên tiếng Anh chuyên nghiệp. Hãy phân tích kết quả bài làm của một học sinh và đưa ra nhận xét chi tiết bằng tiếng Việt.
+      Dưới đây là danh sách các câu hỏi học sinh đã trả lời sai:
+
+      ${incorrectAnswers.map((q, index) => {
+        const userAnswerText = q.options[q.user_answer] || q.user_answer; // Fallback to user_answer if it's not an index
+        const correctAnswerText = q.options[q.correct_answer.answer] || JSON.stringify(q.correct_answer);
+        return `
+        Câu ${index + 1}:
+        - Đề bài: ${q.question_text}
+        - Các lựa chọn: ${JSON.stringify(q.options)}
+        - Câu trả lời của học sinh: "${userAnswerText}"
+        - Đáp án đúng: "${correctAnswerText}"
+      `}).join(`\n`)}
+
+      Yêu cầu:
+      1. Với mỗi câu trả lời sai, hãy giải thích rõ ràng tại sao đáp án của học sinh lại sai và tại sao đáp án đúng lại đúng. Tập trung vào các quy tắc ngữ pháp, cách dùng từ vựng, hoặc ngữ cảnh của câu.
+      2. Sau khi phân tích từng câu, hãy đưa ra một bản tóm tắt tổng quan về năng lực của học sinh dựa trên các lỗi sai này.
+      3. Cuối cùng, đề xuất 1-2 chủ đề ngữ pháp hoặc loại từ vựng cụ thể mà học sinh nên tập trung ôn luyện để cải thiện.
+    `;
+
+    const result = await model.generateContent(prompt);
+    const response = await result.response;
+    const analysis = await response.text();
+
+    res.json({ analysis });
+
+  } catch (error) {
+    console.error("Error analyzing exam result with AI:", error);
+    res.status(500).json({ message: "Lỗi máy chủ khi phân tích kết quả với AI", error: error.message });
   }
 };
 
