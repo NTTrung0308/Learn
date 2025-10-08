@@ -12,6 +12,7 @@ import {
   Badge,
   Tab,
   Tabs,
+  InputGroup,
 } from "react-bootstrap";
 import { toast } from "react-toastify";
 import Layout from "../layout/admin/Layout";
@@ -35,8 +36,8 @@ const GrammarExamplesAndPractices = ({ lessonId, lessonTitle }) => {
   const [practiceForm, setPracticeForm] = useState({
     title: "",
     instructions: "",
-    content: "",
-    practice_type: "sentence_building",
+    content: { questions: [] },
+    practice_type: "multiple_choice",
     difficulty_level: "medium",
     time_limit: 10,
     points: 10,
@@ -51,6 +52,7 @@ const GrammarExamplesAndPractices = ({ lessonId, lessonTitle }) => {
   }, [lessonId]);
 
   const fetchExamples = async () => {
+    console.log("Fetching examples for lessonId:", lessonId);
     try {
       const token = localStorage.getItem("token");
       const response = await axios.get(
@@ -59,8 +61,10 @@ const GrammarExamplesAndPractices = ({ lessonId, lessonTitle }) => {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
+      console.log("API response for examples:", response.data);
       setExamples(response.data);
     } catch (error) {
+      console.error("Error fetching examples:", error.response || error);
       toast.error("Lỗi khi tải danh sách ví dụ");
     }
   };
@@ -136,18 +140,12 @@ const GrammarExamplesAndPractices = ({ lessonId, lessonTitle }) => {
     try {
       const token = localStorage.getItem("token");
 
-      const practiceData = {
-        lesson_id: lessonId,
-        ...practiceForm,
-        content: JSON.stringify({
-          questions: [
-            {
-              question: "Sample question",
-              correctAnswer: "sample answer",
-            },
-          ],
-        }),
-      };
+      // Create a deep copy to avoid modifying state directly
+      const practiceData = JSON.parse(JSON.stringify(practiceForm));
+
+      // The content field needs to be a JSON string
+      practiceData.content = JSON.stringify(practiceData.content);
+      practiceData.lesson_id = lessonId;
 
       if (editingPractice) {
         await axios.put(
@@ -171,11 +169,12 @@ const GrammarExamplesAndPractices = ({ lessonId, lessonTitle }) => {
 
       setShowPracticeModal(false);
       setEditingPractice(null);
+      // Reset form state
       setPracticeForm({
         title: "",
         instructions: "",
-        content: "",
-        practice_type: "sentence_building",
+        content: { questions: [] },
+        practice_type: "multiple_choice",
         difficulty_level: "medium",
         time_limit: 10,
         points: 10,
@@ -183,8 +182,54 @@ const GrammarExamplesAndPractices = ({ lessonId, lessonTitle }) => {
       });
       fetchPractices();
     } catch (error) {
+      console.error("Practice submit error:", error.response || error);
       toast.error("Lỗi khi lưu bài thực hành");
     }
+  };
+
+  // Handlers for dynamic question form
+  const handleQuestionChange = (qIndex, field, value) => {
+    const newQuestions = [...practiceForm.content.questions];
+    newQuestions[qIndex][field] = value;
+    if (field === 'question_type') {
+        newQuestions[qIndex].options = [];
+        newQuestions[qIndex].correctAnswer = '';
+    }
+    setPracticeForm({ ...practiceForm, content: { ...practiceForm.content, questions: newQuestions } });
+  };
+
+  const handleQuestionAdd = () => {
+    const newQuestions = [...practiceForm.content.questions, {
+      question_type: 'multiple_choice',
+      question_text: '',
+      options: [],
+      correctAnswer: ''
+    }];
+    setPracticeForm({ ...practiceForm, content: { ...practiceForm.content, questions: newQuestions } });
+  };
+
+  const handleQuestionDelete = (qIndex) => {
+    const newQuestions = [...practiceForm.content.questions];
+    newQuestions.splice(qIndex, 1);
+    setPracticeForm({ ...practiceForm, content: { ...practiceForm.content, questions: newQuestions } });
+  };
+
+  const handleOptionChange = (qIndex, optIndex, value) => {
+    const newQuestions = [...practiceForm.content.questions];
+    newQuestions[qIndex].options[optIndex] = value;
+    setPracticeForm({ ...practiceForm, content: { ...practiceForm.content, questions: newQuestions } });
+  };
+
+  const handleOptionAdd = (qIndex) => {
+    const newQuestions = [...practiceForm.content.questions];
+    newQuestions[qIndex].options.push('');
+    setPracticeForm({ ...practiceForm, content: { ...practiceForm.content, questions: newQuestions } });
+  };
+
+  const handleOptionDelete = (qIndex, optIndex) => {
+    const newQuestions = [...practiceForm.content.questions];
+    newQuestions[qIndex].options.splice(optIndex, 1);
+    setPracticeForm({ ...practiceForm, content: { ...practiceForm.content, questions: newQuestions } });
   };
 
   const openExampleModal = (example = null) => {
@@ -211,10 +256,20 @@ const GrammarExamplesAndPractices = ({ lessonId, lessonTitle }) => {
   const openPracticeModal = (practice = null) => {
     if (practice) {
       setEditingPractice(practice);
+      let practiceContent = { questions: [] };
+      try {
+        // content from DB is a JSON string
+        if (practice.content && typeof practice.content === 'string') {
+          practiceContent = JSON.parse(practice.content);
+        }
+      } catch (error) {
+        console.error("Error parsing practice content:", error);
+        toast.error("Lỗi khi đọc dữ liệu câu hỏi của bài thực hành.");
+      }
       setPracticeForm({
         title: practice.title,
         instructions: practice.instructions,
-        content: practice.content ? JSON.stringify(practice.content) : "",
+        content: practiceContent, // Use parsed content
         practice_type: practice.practice_type,
         difficulty_level: practice.difficulty_level,
         time_limit: practice.time_limit,
@@ -226,8 +281,8 @@ const GrammarExamplesAndPractices = ({ lessonId, lessonTitle }) => {
       setPracticeForm({
         title: "",
         instructions: "",
-        content: "",
-        practice_type: "sentence_building",
+        content: { questions: [] }, // Initialize with empty questions array
+        practice_type: "multiple_choice",
         difficulty_level: "medium",
         time_limit: 10,
         points: 10,
@@ -314,7 +369,7 @@ const GrammarExamplesAndPractices = ({ lessonId, lessonTitle }) => {
           )}
         </Tab>
 
-        <Tab eventKey="practices" title="Bài tập thực hành">
+        <Tab eventKey="practices" title="Bài tập ngữ pháp">
           <Row>
             {practices.map((practice) => (
               <Col md={6} lg={4} key={practice.id} className="mb-4">
@@ -460,63 +515,53 @@ const GrammarExamplesAndPractices = ({ lessonId, lessonTitle }) => {
         onHide={() => setShowPracticeModal(false)}
         size="lg"
       >
-        <Modal.Header closeButton>
-          <Modal.Title>
-            {editingPractice ? "Sửa Bài thực hành" : "Thêm Bài thực hành Mới"}
-          </Modal.Title>
-        </Modal.Header>
         <Form onSubmit={handlePracticeSubmit}>
+          <Modal.Header closeButton>
+            <Modal.Title>
+              {editingPractice ? "Sửa Bài thực hành" : "Thêm Bài thực hành Mới"}
+            </Modal.Title>
+          </Modal.Header>
           <Modal.Body>
+            {/* Practice Metadata Form */}
             <Form.Group className="mb-3">
               <Form.Label>Tiêu đề</Form.Label>
               <Form.Control
                 type="text"
                 value={practiceForm.title}
                 onChange={(e) =>
-                  setPracticeForm({
-                    ...practiceForm,
-                    title: e.target.value,
-                  })
+                  setPracticeForm({ ...practiceForm, title: e.target.value })
                 }
                 required
               />
             </Form.Group>
-
             <Form.Group className="mb-3">
               <Form.Label>Hướng dẫn</Form.Label>
               <Form.Control
                 as="textarea"
-                rows={3}
+                rows={2}
                 value={practiceForm.instructions}
                 onChange={(e) =>
-                  setPracticeForm({
-                    ...practiceForm,
-                    instructions: e.target.value,
-                  })
+                  setPracticeForm({ ...practiceForm, instructions: e.target.value })
                 }
-                required
               />
             </Form.Group>
-
             <Row>
-              <Col md={6}>
-                <Form.Group className="mb-3">
-                  <Form.Label>Loại bài tập</Form.Label>
-                  <Form.Select
-                    value={practiceForm.practice_type}
-                    onChange={(e) =>
-                      setPracticeForm({
-                        ...practiceForm,
-                        practice_type: e.target.value,
-                      })
-                    }
-                  >
-                    <option value="sentence_building">Xây dựng câu</option>
-                    <option value="translation">Dịch thuật</option>
-                    <option value="fill_blank">Điền vào chỗ trống</option>
-                    <option value="conversation">Hội thoại</option>
-                  </Form.Select>
-                </Form.Group>
+                <Col md={6}>
+                    <Form.Group className="mb-3">
+                    <Form.Label>Loại bài tập</Form.Label>
+                    <Form.Select
+                        value={practiceForm.practice_type}
+                        onChange={(e) =>
+                        setPracticeForm({
+                            ...practiceForm,
+                            practice_type: e.target.value,
+                        })
+                        }
+                    >
+                        <option value="multiple_choice">Trắc nghiệm</option>
+                        <option value="fill_in_blank">Điền vào chỗ trống</option>
+                    </Form.Select>
+                    </Form.Group>
               </Col>
               <Col md={6}>
                 <Form.Group className="mb-3">
@@ -538,52 +583,63 @@ const GrammarExamplesAndPractices = ({ lessonId, lessonTitle }) => {
               </Col>
             </Row>
 
-            <Row>
-              <Col md={6}>
-                <Form.Group className="mb-3">
-                  <Form.Label>Thời gian (phút)</Form.Label>
-                  <Form.Control
-                    type="number"
-                    value={practiceForm.time_limit}
-                    onChange={(e) =>
-                      setPracticeForm({
-                        ...practiceForm,
-                        time_limit: parseInt(e.target.value),
-                      })
-                    }
-                  />
-                </Form.Group>
-              </Col>
-              <Col md={6}>
-                <Form.Group className="mb-3">
-                  <Form.Label>Điểm</Form.Label>
-                  <Form.Control
-                    type="number"
-                    value={practiceForm.points}
-                    onChange={(e) =>
-                      setPracticeForm({
-                        ...practiceForm,
-                        points: parseInt(e.target.value),
-                      })
-                    }
-                  />
-                </Form.Group>
-              </Col>
-            </Row>
+            {/* Dynamic Questions Form */}
+            <hr />
+            <h5>Câu hỏi</h5>
+            {practiceForm.content.questions.map((q, qIndex) => (
+              <Card key={qIndex} className="mb-3">
+                <Card.Body>
+                  <div className="d-flex justify-content-between mb-3">
+                    <strong>Câu hỏi {qIndex + 1}</strong>
+                    <Button variant="outline-danger" size="sm" onClick={() => handleQuestionDelete(qIndex)}>
+                      Xóa câu hỏi
+                    </Button>
+                  </div>
+                  <Form.Group className="mb-3">
+                    <Form.Label>Loại câu hỏi</Form.Label>
+                    <Form.Select value={q.question_type} onChange={(e) => handleQuestionChange(qIndex, 'question_type', e.target.value)}>
+                      <option value="multiple_choice">Trắc nghiệm</option>
+                      <option value="fill_in_blank">Điền vào chỗ trống</option>
+                    </Form.Select>
+                  </Form.Group>
+                  <Form.Group className="mb-3">
+                    <Form.Label>Nội dung câu hỏi</Form.Label>
+                    <Form.Control as="textarea" rows={2} value={q.question_text} onChange={(e) => handleQuestionChange(qIndex, 'question_text', e.target.value)} placeholder="Ví dụ: The sun ___ in the east."/>
+                  </Form.Group>
 
-            <Form.Group className="mb-3">
-              <Form.Label>Thứ tự hiển thị</Form.Label>
-              <Form.Control
-                type="number"
-                value={practiceForm.display_order}
-                onChange={(e) =>
-                  setPracticeForm({
-                    ...practiceForm,
-                    display_order: parseInt(e.target.value),
-                  })
-                }
-              />
-            </Form.Group>
+                  {q.question_type === 'multiple_choice' && (
+                    <div>
+                      <strong>Các lựa chọn</strong>
+                      {q.options.map((opt, optIndex) => (
+                        <InputGroup key={optIndex} className="mb-2">
+                           <InputGroup.Text>
+                            <Form.Check
+                              type="radio"
+                              name={`correctAnswer-${qIndex}`}
+                              id={`correctAnswer-${qIndex}-${optIndex}`}
+                              checked={q.correctAnswer === optIndex.toString()}
+                              onChange={() => handleQuestionChange(qIndex, 'correctAnswer', optIndex.toString())}
+                            />
+                          </InputGroup.Text>
+                          <Form.Control value={opt} onChange={(e) => handleOptionChange(qIndex, optIndex, e.target.value)} />
+                          <Button variant="outline-danger" size="sm" onClick={() => handleOptionDelete(qIndex, optIndex)}>Xóa</Button>
+                        </InputGroup>
+                      ))}
+                      <Button variant="outline-primary" size="sm" onClick={() => handleOptionAdd(qIndex)}>Thêm lựa chọn</Button>
+                    </div>
+                  )}
+
+                  {q.question_type === 'fill_in_blank' && (
+                     <Form.Group className="mb-3">
+                        <Form.Label>Đáp án đúng</Form.Label>
+                        <Form.Control type="text" value={q.correctAnswer} onChange={(e) => handleQuestionChange(qIndex, 'correctAnswer', e.target.value)} />
+                    </Form.Group>
+                  )}
+                </Card.Body>
+              </Card>
+            ))}
+            <Button variant="primary" onClick={handleQuestionAdd}>Thêm câu hỏi</Button>
+
           </Modal.Body>
           <Modal.Footer>
             <Button

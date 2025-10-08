@@ -3,6 +3,7 @@ const multer = require("multer");
 const path = require("path");
 const auth = require("../middleware/authMiddleware");
 const { isAdmin } = require("../middleware/roleMiddleware");
+// Database connection
 const {
   createTopic,
   getAllTopics,
@@ -137,7 +138,36 @@ router.put("/examples/:id", auth, upload.fields([
   { name: "audio", maxCount: 1 },
   { name: "image", maxCount: 1 }
 ]), updateExample);
+// Xóa ví dụ minh họa
 router.delete("/examples/:id", auth, deleteExample);
+
+// Route lưu tiến độ học ngữ pháp 
+router.post("/progress", auth, async (req, res) => {
+  const { lesson_id, score, time_spent, completed } = req.body;
+  const user_id = req.user.userId;
+
+  try {
+    // Logic lưu tiến độ vào database
+    // Có thể tạo bảng user_grammar_progress nếu chưa có
+    const sql = `
+      INSERT INTO user_grammar_progress 
+      (user_id, lesson_id, score, time_spent, completed, completed_at) 
+      VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+      ON DUPLICATE KEY UPDATE 
+      score = VALUES(score), 
+      time_spent = VALUES(time_spent),
+      completed = VALUES(completed),
+      completed_at = CURRENT_TIMESTAMP
+    `;
+    
+    await db.execute(sql, [user_id, lesson_id, score, time_spent, completed]);
+    
+    res.json({ message: "Đã lưu tiến độ" });
+  } catch (err) {
+    console.error("Error saving progress:", err);
+    res.status(500).json({ message: "Lỗi server", error: err.message });
+  }
+});
 
 // Routes cho bài thực hành
 router.post("/practices", auth, addPractice);
@@ -146,5 +176,6 @@ router.get("/practices/:id", auth, getPracticeDetail);
 router.put("/practices/:id", auth, updatePractice);
 router.post("/practices/submit", auth, submitPractice);
 router.get("/practices/history", auth, getPracticeHistory);
+
 
 module.exports = router;
