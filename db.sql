@@ -187,6 +187,22 @@ CREATE TABLE `user_grammar_practice` (
   FOREIGN KEY (`practice_id`) REFERENCES `grammar_practices`(`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- Bảng tiến độ học ngữ pháp của người dùng
+CREATE TABLE `user_grammar_progress` (
+  `id` INT AUTO_INCREMENT PRIMARY KEY,
+  `user_id` INT NOT NULL,
+  `lesson_id` INT NOT NULL,
+  `score` DECIMAL(5,2) NOT NULL,
+  `time_spent` INT, -- Thời gian làm bài (giây)
+  `completed` BOOLEAN DEFAULT FALSE,
+  `completed_at` TIMESTAMP NULL,
+  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE,
+  FOREIGN KEY (`lesson_id`) REFERENCES `grammar_lessons`(`id`) ON DELETE CASCADE,
+  UNIQUE KEY `unique_user_lesson` (`user_id`, `lesson_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 
 -- Bảng bộ từ vựng (flashcard collections)
 CREATE TABLE `vocabulary_collections` (

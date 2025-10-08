@@ -1,3 +1,4 @@
+const { GoogleGenerativeAI } = require("@google/generative-ai");
 const {
   GrammarTopic,
   GrammarLesson,
@@ -6,6 +7,7 @@ const {
   GrammarExample,
   GrammarPractice,
   UserGrammarPractice,
+  UserGrammarProgress,
 } = require("../models/grammarModel");
 const csv = require("csv-parser");
 const fs = require("fs");
@@ -170,7 +172,11 @@ exports.getLessons = async (req, res) => {
     if (level) filters.level = level;
     if (difficulty) filters.difficulty = difficulty;
 
-    const lessons = await GrammarLesson.findAll({ ...filters, limit: parseInt(limit), offset });
+    const lessons = await GrammarLesson.findAll({
+      ...filters,
+      limit: parseInt(limit),
+      offset,
+    });
     const totalLessons = await GrammarLesson.countAll(filters);
 
     res.json({
@@ -195,6 +201,8 @@ exports.getLessonDetail = async (req, res) => {
     }
 
     const exerciseResults = await GrammarExercise.findByLessonId(id);
+    const exampleResults = await GrammarExample.findByLessonId(id);
+    const practiceResults = await GrammarPractice.findByLessonId(id);
 
     // Parse JSON fields
     const lesson = {
@@ -204,6 +212,11 @@ exports.getLessonDetail = async (req, res) => {
         ...ex,
         options: ex.options ? JSON.parse(ex.options) : [],
         correct_answer: ex.correct_answer ? JSON.parse(ex.correct_answer) : {},
+      })),
+      examples: exampleResults,
+      practices: practiceResults.map((p) => ({
+        ...p,
+        content: p.content ? JSON.parse(p.content) : {},
       })),
     };
 
@@ -682,7 +695,16 @@ exports.getPracticeDetail = async (req, res) => {
 
 exports.updatePractice = async (req, res) => {
   const { id } = req.params;
-  const { title, instructions, content, practice_type, difficulty_level, time_limit, points, display_order } = req.body;
+  const {
+    title,
+    instructions,
+    content,
+    practice_type,
+    difficulty_level,
+    time_limit,
+    points,
+    display_order,
+  } = req.body;
 
   try {
     const results = await GrammarPractice.update(id, {
@@ -783,3 +805,72 @@ function calculatePracticeScore(answers, practiceContent) {
 
   return total > 0 ? (score / total) * 100 : 0;
 }
+
+// Lưu tiến độ học ngữ pháp
+exports.saveGrammarProgress = async (req, res) => {
+  const { lesson_id, score, time_spent, completed } = req.body;
+  const user_id = req.user.userId;
+
+  try {
+    await UserGrammarProgress.save({
+      user_id,
+      lesson_id,
+      score,
+      time_spent,
+      completed,
+    });
+    res.json({ message: "Đã lưu tiến độ" });
+  } catch (err) {
+    console.error("Error saving grammar progress:", err);
+    res.status(500).json({ message: "Lỗi server", error: err.message });
+  }
+};
+
+exports.analyzeGrammarResult = async (req, res) => {
+  const { quiz, results } = req.body;
+
+  if (!quiz || !results || !Array.isArray(quiz.exercises) || !Array.isArray(results)) {
+    return res.status(400).json({ message: "Dữ liệu bài làm không hợp lệ" });
+  }
+
+  try {
+    const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" }); // or another model
+
+    const incorrectAnswers = results.map((result, index) => ({...result, ...quiz.exercises[index]})).filter(q => !q.isCorrect);
+
+    if (incorrectAnswers.length === 0) {
+      return res.json({ analysis: "Chúc mừng! Bạn đã trả lời đúng tất cả các câu hỏi. Không có gì cần phân tích thêm." });
+    }
+
+    const prompt = `
+      Bạn là một giáo viên tiếng Anh chuyên nghiệp. Hãy phân tích kết quả bài làm ngữ pháp của một học sinh và đưa ra nhận xét chi tiết bằng tiếng Việt.
+      Dưới đây là danh sách các câu hỏi học sinh đã trả lời sai:
+
+      ${incorrectAnswers.map((q, index) => {
+        const userAnswerText = q.question_type === 'multiple_choice' ? q.options[q.userAnswer] : q.userAnswer;
+        const correctAnswerText = q.question_type === 'multiple_choice' ? q.options[q.correctAnswer] : q.correctAnswer;
+        return `
+        Câu ${index + 1}:
+        - Đề bài: ${q.question_text}
+        - Câu trả lời của học sinh: "${userAnswerText}"
+        - Đáp án đúng: "${correctAnswerText}"
+      `}).join(`\n`)}
+
+      Yêu cầu:
+      1. Với mỗi câu trả lời sai, hãy giải thích rõ ràng tại sao đáp án của học sinh lại sai và tại sao đáp án đúng lại đúng. Tập trung vào các quy tắc ngữ pháp.
+      2. Sau khi phân tích từng câu, hãy đưa ra một bản tóm tắt tổng quan về các điểm yếu ngữ pháp của học sinh.
+      3. Cuối cùng, đề xuất các chủ đề ngữ pháp cụ thể mà học sinh nên tập trung ôn luyện để cải thiện.
+    `;
+
+    const result = await model.generateContent(prompt);
+    const response = await result.response;
+    const analysis = await response.text();
+
+    res.json({ analysis });
+
+  } catch (error) {
+    console.error("Error analyzing grammar result with AI:", error);
+    res.status(500).json({ message: "Lỗi máy chủ khi phân tích kết quả với AI", error: error.message });
+  }
+};

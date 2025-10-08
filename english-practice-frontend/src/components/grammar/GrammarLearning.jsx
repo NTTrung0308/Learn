@@ -14,6 +14,8 @@ const GrammarLearning = () => {
   const [currentStep, setCurrentStep] = useState("lesson"); // 'lesson', 'quiz', 'result'
   const [userAnswers, setUserAnswers] = useState([]);
   const [quizResult, setQuizResult] = useState(null);
+  const [analysis, setAnalysis] = useState(null);
+  const [analyzing, setAnalyzing] = useState(false);
   const [loading, setLoading] = useState(true);
   const [progress, setProgress] = useState({
     completed: false,
@@ -29,7 +31,7 @@ const GrammarLearning = () => {
     try {
       setLoading(true);
       const response = await api.get(`http://localhost:5000/api/grammar/lessons/${lessonId}`);
-      console.log("Full lesson data from API:", response.data);
+      // console.log("Full lesson data from API:", response.data);
       setLesson(response.data);
       
       // Create quiz from lesson's practices
@@ -42,7 +44,7 @@ const GrammarLearning = () => {
               const questionsWithContext = content.questions.map((q) => ({
                 ...q,
                 practice_id: practice.id,
-                correct_answer: q.correct_answer,
+                correct_answer: q.correctAnswer,
               }));
               allQuestions = allQuestions.concat(questionsWithContext);
             }
@@ -54,9 +56,11 @@ const GrammarLearning = () => {
           }
         });
 
+        const firstPractice = response.data.practices[0];
         setQuiz({
-          title: `Luyện tập: ${response.data.title}`,
-          timeLimit: response.data.practices[0].time_limit || 10, // Default to 10 minutes
+          title: firstPractice.title || `Luyện tập: ${response.data.title}`,
+          instructions: firstPractice.instructions,
+          timeLimit: firstPractice.time_limit || 10, // Default to 10 minutes
           exercises: allQuestions,
         });
       }
@@ -142,6 +146,22 @@ const GrammarLearning = () => {
     navigate("/grammar");
   };
 
+  const handleAnalyzeResult = async () => {
+    try {
+      setAnalyzing(true);
+      const response = await api.post("http://localhost:5000/api/grammar/progress/analyze", {
+        quiz,
+        results: quizResult.results,
+      });
+      setAnalysis(response.data.analysis);
+    } catch (error) {
+      console.error("Error analyzing result:", error);
+      toast.error("Lỗi khi phân tích kết quả");
+    } finally {
+      setAnalyzing(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="grammar-learning-container min-vh-100 bg-light py-5">
@@ -212,6 +232,9 @@ const GrammarLearning = () => {
                 quiz={quiz}
                 onRetry={handleRetryQuiz}
                 onNext={handleNextLesson}
+                onAnalyze={handleAnalyzeResult}
+                analysis={analysis}
+                analyzing={analyzing}
               />
             )}
           </div>
@@ -230,7 +253,7 @@ const GrammarLearning = () => {
 };
 
 // Component hiển thị kết quả quiz
-const QuizResult = ({ result, lesson, quiz, onRetry, onNext }) => {
+const QuizResult = ({ result, lesson, quiz, onRetry, onNext, onAnalyze, analysis, analyzing }) => {
   const percentage = Math.round(result.score);
   
   const getPerformanceMessage = () => {
@@ -287,7 +310,7 @@ const QuizResult = ({ result, lesson, quiz, onRetry, onNext }) => {
                 </p>
                 {!item.isCorrect && (
                   <p className="mb-0 small text-muted">
-                    Đáp án đúng: {quiz.exercises[index].options[item.correctAnswer]}
+                    Đáp án đúng: {quiz.exercises[index].question_type === 'multiple_choice' && quiz.exercises[index].options ? quiz.exercises[index].options[item.correctAnswer] : item.correctAnswer}
                   </p>
                 )}
               </div>
@@ -302,7 +325,27 @@ const QuizResult = ({ result, lesson, quiz, onRetry, onNext }) => {
           <button onClick={onNext} className="btn btn-primary">
             <i className="fas fa-arrow-right me-2"></i>Bài học tiếp theo
           </button>
+          {!analysis && (
+            <button onClick={onAnalyze} className="btn btn-info" disabled={analyzing}>
+              {analyzing ? (
+                <><span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span> Đang phân tích...</>
+              ) : (
+                <><i className="fas fa-lightbulb me-2"></i> Phân tích kết quả bằng AI</>
+              )}
+            </button>
+          )}
         </div>
+
+        {analysis && (
+          <div className="ai-analysis mt-4">
+            <h5 className="mb-3">Phân tích từ AI</h5>
+            <div className="card bg-light border-0">
+              <div className="card-body">
+                <div dangerouslySetInnerHTML={{ __html: analysis.replace(/\n/g, '<br />') }} />
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

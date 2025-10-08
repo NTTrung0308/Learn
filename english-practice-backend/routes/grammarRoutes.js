@@ -29,6 +29,8 @@ const {
   updatePractice,
   submitPractice,
   getPracticeHistory,
+  saveGrammarProgress,
+  analyzeGrammarResult,
 } = require("../controllers/grammarController");
 
 const router = express.Router();
@@ -142,32 +144,8 @@ router.put("/examples/:id", auth, upload.fields([
 router.delete("/examples/:id", auth, deleteExample);
 
 // Route lưu tiến độ học ngữ pháp 
-router.post("/progress", auth, async (req, res) => {
-  const { lesson_id, score, time_spent, completed } = req.body;
-  const user_id = req.user.userId;
-
-  try {
-    // Logic lưu tiến độ vào database
-    // Có thể tạo bảng user_grammar_progress nếu chưa có
-    const sql = `
-      INSERT INTO user_grammar_progress 
-      (user_id, lesson_id, score, time_spent, completed, completed_at) 
-      VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
-      ON DUPLICATE KEY UPDATE 
-      score = VALUES(score), 
-      time_spent = VALUES(time_spent),
-      completed = VALUES(completed),
-      completed_at = CURRENT_TIMESTAMP
-    `;
-    
-    await db.execute(sql, [user_id, lesson_id, score, time_spent, completed]);
-    
-    res.json({ message: "Đã lưu tiến độ" });
-  } catch (err) {
-    console.error("Error saving progress:", err);
-    res.status(500).json({ message: "Lỗi server", error: err.message });
-  }
-});
+router.post("/progress", auth, saveGrammarProgress);
+router.post("/progress/analyze", auth, analyzeGrammarResult);
 
 // Routes cho bài thực hành
 router.post("/practices", auth, addPractice);

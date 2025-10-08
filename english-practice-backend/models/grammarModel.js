@@ -487,6 +487,29 @@ const UserGrammarPractice = {
   },
 };
 
+const UserGrammarProgress = {
+  save: async (progressData) => {
+    const sql = `
+      INSERT INTO user_grammar_progress 
+      (user_id, lesson_id, score, time_spent, completed, completed_at) 
+      VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+      ON DUPLICATE KEY UPDATE 
+      score = VALUES(score), 
+      time_spent = VALUES(time_spent),
+      completed = VALUES(completed),
+      completed_at = CURRENT_TIMESTAMP
+    `;
+    const [result] = await pool.execute(sql, [
+      progressData.user_id,
+      progressData.lesson_id,
+      progressData.score,
+      progressData.time_spent,
+      progressData.completed,
+    ]);
+    return result;
+  },
+};
+
 // Thêm vào module.exports
 module.exports = {
   GrammarTopic,
@@ -496,4 +519,5 @@ module.exports = {
   GrammarExample,
   GrammarPractice,
   UserGrammarPractice,
+  UserGrammarProgress,
 };

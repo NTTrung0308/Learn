@@ -46,7 +46,7 @@ const GrammarQuiz = ({ quiz, onSubmit, onBack }) => {
       <div className="card-header bg-white border-0 d-flex justify-content-between align-items-center">
         <div>
           <h4 className="card-title mb-0">{quiz.title}</h4>
-          <p className="text-muted mb-0 small">Hoàn thành các câu hỏi dưới đây.</p>
+          {quiz.instructions && <p className="text-muted mb-0 small">{quiz.instructions}</p>}
         </div>
         <div className="text-end">
             <span className="badge bg-danger fs-6">{formatTime(timeLeft)}</span>
@@ -55,6 +55,7 @@ const GrammarQuiz = ({ quiz, onSubmit, onBack }) => {
       <div className="card-body">
         {quiz.exercises.map((question, questionIndex) => (
           <div key={questionIndex} className="mb-4 p-3 border rounded">
+            <p></p>
             <p className="fw-bold">Câu {questionIndex + 1}: {question.question_text}</p>
             {question.question_type === 'multiple_choice' && (
               <div>

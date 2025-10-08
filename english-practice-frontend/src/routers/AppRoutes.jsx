@@ -20,6 +20,8 @@ import ExamTaking from "../components/exam/ExamTaking";
 import VocabularyCollections from "../components/vocabulary/VocabularyCollections";
 import FlashcardStudy from "../components/vocabulary/FlashcardStudy";
 import SelfTestQuiz from "../components/vocabulary/SelfTestQuiz";
+import GrammarLearning from "../components/grammar/GrammarLearning";
+import GrammarList from "../components/grammar/GrammarList";
 
 function AppRoutes({
   isAuthenticated,
@@ -130,6 +132,17 @@ function AppRoutes({
         path="/vocabulary-collections/:collectionId/self-test"
         element={
           isAuthenticated ? <SelfTestQuiz /> : <Navigate to="/login" />
+        }
+      />
+
+            <Route
+        path="/grammar"
+        element={isAuthenticated ? <GrammarList /> : <Navigate to="/login" />}
+      />
+      <Route
+        path="/grammar/learn/:lessonId"
+        element={
+          isAuthenticated ? <GrammarLearning /> : <Navigate to="/login" />
         }
       />
 
