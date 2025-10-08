@@ -8,6 +8,7 @@ import ResetPassword from "../components/ResetPassword";
 import VerifyEmail from "../pages/VerifyEmail";
 import AuthSuccess from "../pages/AuthSuccess";
 import Profile from "../components/Profile";
+import Courses from "../components/Courses";
 
 function UserRoutes({
   isAuthenticated,
@@ -19,59 +20,67 @@ function UserRoutes({
 }) {
   return (
     <Routes>
-      <Route
-        path="/"
-        element={
-          <Home
-            isAuthenticated={isAuthenticated}
-            userRole={userRole}
-            userId={userId}
-          />
-        }
+  {/* Route cụ thể phải đặt TRƯỚC */}
+  <Route path="/courses" element={<Courses />} />
+
+  {/* Trang chủ để SAU */}
+  <Route
+    path="/"
+    element={
+      <Home
+        isAuthenticated={isAuthenticated}
+        userRole={userRole}
+        userId={userId}
       />
-      <Route
-        path="/login"
-        element={
-          isAuthenticated ? (
-            userRole === "superadmin" || userRole === "admin" ? (
-              <Navigate to="/dashboard" />
-            ) : (
-              <Navigate to="/" />
-            )
-          ) : (
-            <Login
-              setAuth={setAuth}
-              setUserRole={setUserRole}
-              setUserId={setUserId}
-            />
-          )
-        }
+    }
+  />
+
+  <Route
+    path="/login"
+    element={
+      isAuthenticated ? (
+        userRole === "superadmin" || userRole === "admin" ? (
+          <Navigate to="/dashboard" />
+        ) : (
+          <Navigate to="/" />
+        )
+      ) : (
+        <Login
+          setAuth={setAuth}
+          setUserRole={setUserRole}
+          setUserId={setUserId}
+        />
+      )
+    }
+  />
+
+  <Route
+    path="/profile"
+    element={
+      isAuthenticated ? (
+        <Profile />
+      ) : (
+        <Login setAuth={setAuth} setUserRole={setUserRole} />
+      )
+    }
+  />
+
+  <Route path="/register" element={<Register />} />
+  <Route path="/forgot-password" element={<ForgotPassword />} />
+  <Route path="/reset-password" element={<ResetPassword />} />
+  <Route path="/verify-email" element={<VerifyEmail />} />
+  <Route
+    path="/auth/success"
+    element={
+      <AuthSuccess
+        setAuth={setAuth}
+        setUserRole={setUserRole}
+        setUserId={setUserId}
       />
-      <Route
-        path="/profile"
-        element={
-          isAuthenticated ? (
-            <Profile />
-          ) : (
-            <Login setAuth={setAuth} setUserRole={setUserRole} />
-          )
-        }
-      />
-      <Route path="/register" element={<Register />} />
-      <Route path="/forgot-password" element={<ForgotPassword />} />
-      <Route path="/reset-password" element={<ResetPassword />} />
-      <Route path="/verify-email" element={<VerifyEmail />} />
-      <Route
-        path="/auth/success"
-        element={
-          <AuthSuccess
-            setAuth={setAuth}
-            setUserRole={setUserRole}
-            setUserId={setUserId}
-          />
-        }
-      />
-    </Routes>
+    }
+  />
+</Routes>
+
   );
 }
 

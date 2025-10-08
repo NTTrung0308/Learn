@@ -9,16 +9,16 @@ const ForgotPassword = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setIsLoading(true);
+    if (!/\S+@\S+\.\S+/.test(email)) {
+      toast.error("Email không hợp lệ!");
+      return;
+    }
 
+    setIsLoading(true);
     try {
-      await axios.post("http://localhost:5000/api/auth/forgot-password", {
-        email,
-      });
+      await axios.post(`${process.env.REACT_APP_API_URL}/api/auth/forgot-password`, { email });
       setSent(true);
-      toast.success(
-        "Đã gửi email đặt lại mật khẩu. Vui lòng kiểm tra hộp thư!"
-      );
+      toast.success("Đã gửi email đặt lại mật khẩu. Vui lòng kiểm tra hộp thư!");
     } catch (err) {
       console.error("Lỗi khi gửi email:", err);
       if (err.code === "ERR_NETWORK") {
@@ -32,36 +32,44 @@ const ForgotPassword = () => {
   };
 
   return (
-    <div className="forgot-password-container">
-      <div className="forgot-password-card">
-        <h2>Quên Mật Khẩu</h2>
+    <div className="d-flex justify-content-center align-items-center vh-100 bg-light">
+      <div className="card shadow-lg p-4" style={{ width: "400px", borderRadius: "1rem" }}>
+        <h3 className="text-center mb-3 text-primary fw-bold">🔑 Quên Mật Khẩu</h3>
 
         {sent ? (
-          <div className="success-message">
-            <p>Vui lòng kiểm tra email để đặt lại mật khẩu.</p>
-            <p>Nếu không thấy email, hãy kiểm tra thư mục spam.</p>
-            <button onClick={() => setSent(false)} className="try-again-button">
+          <div className="text-center">
+            <p className="text-success fw-semibold">
+              📧 Vui lòng kiểm tra email để đặt lại mật khẩu.
+            </p>
+            <p className="text-muted">Nếu không thấy, hãy kiểm tra thư mục spam.</p>
+            <button
+              className="btn btn-outline-primary mt-3 w-100"
+              onClick={() => setSent(false)}
+            >
               Gửi lại yêu cầu
             </button>
           </div>
         ) : (
           <>
-            <p>Nhập email của bạn để nhận liên kết đặt lại mật khẩu.</p>
-            <form onSubmit={handleSubmit} className="forgot-password-form">
-              <div className="form-group">
+            <p className="text-muted text-center">
+              Nhập email để nhận liên kết đặt lại mật khẩu.
+            </p>
+            <form onSubmit={handleSubmit}>
+              <div className="mb-3">
+                <label className="form-label fw-semibold">Email</label>
                 <input
                   type="email"
-                  placeholder="Email của bạn"
+                  className="form-control form-control-lg"
+                  placeholder="Nhập email của bạn"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  required
                   disabled={isLoading}
+                  required
                 />
               </div>
-
               <button
                 type="submit"
-                className="submit-button"
+                className="btn btn-primary w-100 fw-bold py-2"
                 disabled={isLoading}
               >
                 {isLoading ? "Đang gửi..." : "Gửi yêu cầu"}
@@ -70,9 +78,11 @@ const ForgotPassword = () => {
           </>
         )}
 
-        <a href="/login" className="back-to-login">
-          Quay lại đăng nhập
-        </a>
+        <div className="text-center mt-3">
+          <a href="/login" className="text-decoration-none">
+            ← Quay lại đăng nhập
+          </a>
+        </div>
       </div>
     </div>
   );

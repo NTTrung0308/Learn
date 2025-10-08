@@ -146,7 +146,7 @@ const ResetPassword = () => {
             </button>
 
             <a href="/login" className="back-to-login">
-              Quay lại trang đăng nhập
+              Quay lại trang đăng nhậpfghfg h
             </a>
           </form>
         )}

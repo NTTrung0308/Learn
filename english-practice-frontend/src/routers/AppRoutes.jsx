@@ -13,6 +13,9 @@ import ExamManagement from "../components/admin/ExamManagement";
 import GrammarManagement from "../components/admin/GrammarManagement";
 import VocabularyManagement from "../components/admin/VocabularyManagement";
 import UserManagement from "../components/admin/UserManagement";
+import Courses from "../components/Courses";
+import Grammar from "../components/Grammar";
+import About from "../components/About";
 
 function AppRoutes({
   isAuthenticated,
@@ -131,6 +134,13 @@ function AppRoutes({
           )
         }
       />
+
+      <Route
+  path="/courses"
+  element={<Courses />}
+/>
+<Route path="/grammar" element={<Grammar />} />
+<Route path="/about" element={<About />} />
       {/* Catch all route */}
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

@@ -1,0 +1,33 @@
+.about-hero {
+    position: relative;
+    background: url("https://cdn.pixabay.com/photo/2016/11/19/14/00/english-1838666_1280.jpg") center/cover no-repeat;
+    height: 80vh;
+}
+
+.about-hero .overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+}
+
+.about-hero .content {
+    position: relative;
+    z-index: 2;
+}
+
+.about-team img {
+    transition: transform 0.3s ease;
+}
+
+.about-team img:hover {
+    transform: scale(1.1);
+}
+
+.about-contact .btn {
+    transition: 0.3s;
+}
+
+.about-contact .btn:hover {
+    transform: translateY(-3px);
+    background-color: #0056b3;
+}
