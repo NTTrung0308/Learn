@@ -3,6 +3,7 @@ const {
   VocabularyFlashcard,
   UserVocabularyLearning,
   VocabularyCSV,
+  VocabularyQuestion,
 } = require("../models/vocabularyModel");
 const csv = require("csv-parser");
 const fs = require("fs");
@@ -10,7 +11,8 @@ const { Parser } = require("json2csv");
 
 // Bộ từ vựng
 exports.createCollection = async (req, res) => {
-  const { title, description, level, category, tags, is_public, display_order } = req.body;
+  const { title, description, level, category, tags, is_public, display_order } =
+    req.body;
   const created_by = req.user.userId;
 
   try {
@@ -52,7 +54,7 @@ exports.getAllCollections = async (req, res) => {
     if (level) filters.level = level;
     if (category) filters.category = category;
     if (created_by) filters.created_by = created_by;
-    if (is_public !== undefined) filters.is_public = is_public === 'true';
+    if (is_public !== undefined) filters.is_public = is_public === "true";
 
     const results = await VocabularyCollection.findAll(filters);
     res.json(results);
@@ -75,8 +77,10 @@ exports.getCollectionDetail = async (req, res) => {
 
     const collection = {
       ...collectionResults[0],
-      tags: collectionResults[0].tags ? JSON.parse(collectionResults[0].tags) : [],
-      flashcards: flashcardsResults.map(card => ({
+      tags: collectionResults[0].tags
+        ? JSON.parse(collectionResults[0].tags)
+        : [],
+      flashcards: flashcardsResults.map((card) => ({
         ...card,
         synonyms: card.synonyms ? JSON.parse(card.synonyms) : [],
         antonyms: card.antonyms ? JSON.parse(card.antonyms) : [],
@@ -93,7 +97,8 @@ exports.getCollectionDetail = async (req, res) => {
 
 exports.updateCollection = async (req, res) => {
   const { id } = req.params;
-  const { title, description, level, category, tags, is_public, display_order } = req.body;
+  const { title, description, level, category, tags, is_public, display_order } =
+    req.body;
 
   try {
     let parsedTags = tags;
@@ -237,8 +242,8 @@ exports.getFlashcards = async (req, res) => {
     }
 
     const results = await VocabularyFlashcard.findByCollectionId(collection_id);
-    
-    const flashcards = results.map(card => ({
+
+    const flashcards = results.map((card) => ({
       ...card,
       synonyms: card.synonyms ? JSON.parse(card.synonyms) : [],
       antonyms: card.antonyms ? JSON.parse(card.antonyms) : [],
@@ -368,8 +373,8 @@ exports.searchVocabulary = async (req, res) => {
     }
 
     const results = await VocabularyFlashcard.search(q, collection_id);
-    
-    const flashcards = results.map(card => ({
+
+    const flashcards = results.map((card) => ({
       ...card,
       synonyms: card.synonyms ? JSON.parse(card.synonyms) : [],
       antonyms: card.antonyms ? JSON.parse(card.antonyms) : [],
@@ -404,9 +409,9 @@ exports.saveLearningProgress = async (req, res) => {
     // Cập nhật tổng tiến độ
     await UserVocabularyLearning.updateOverallProgress(user_id, collection_id);
 
-    res.json({ 
+    res.json({
       message: "Tiến độ học tập đã được lưu",
-      next_review_date: nextReviewDate
+      next_review_date: nextReviewDate,
     });
   } catch (err) {
     console.error("Error saving learning progress:", err);
@@ -419,10 +424,133 @@ exports.getLearningProgress = async (req, res) => {
   const { collection_id } = req.query;
 
   try {
-    const results = await UserVocabularyLearning.findByUser(user_id, collection_id);
+    const results = await UserVocabularyLearning.findByUser(
+      user_id,
+      collection_id
+    );
     res.json(results);
   } catch (err) {
     console.error("Error fetching learning progress:", err);
+    res.status(500).json({ message: "Lỗi server", error: err.message });
+  }
+};
+
+// Vocabulary Questions
+exports.createVocabularyQuestion = async (req, res) => {
+  const { collection_id, question_type, question_text, options, correct_answer } =
+    req.body;
+
+  try {
+    let parsedOptions = options;
+    if (typeof options === "string") {
+      try {
+        parsedOptions = JSON.parse(options);
+      } catch {
+        parsedOptions = options.split(",").map((option) => option.trim());
+      }
+    }
+
+    const results = await VocabularyQuestion.create({
+      collection_id,
+      question_type,
+      question_text,
+      options: parsedOptions,
+      correct_answer,
+    });
+
+    res.status(201).json({
+      message: "Câu hỏi đã được tạo",
+      questionId: results.insertId,
+    });
+  } catch (err) {
+    console.error("Error creating vocabulary question:", err);
+    res.status(500).json({ message: "Lỗi server", error: err.message });
+  }
+};
+
+exports.getVocabularyQuestions = async (req, res) => {
+  const { collection_id } = req.query;
+
+  try {
+    if (!collection_id) {
+      return res.status(400).json({ message: "Thiếu collection_id" });
+    }
+
+    const results = await VocabularyQuestion.findByCollectionId(collection_id);
+
+    const questions = results.map((question) => {
+      let optionsArray = [];
+      if (question.options && typeof question.options === 'string') {
+        try {
+          const parsed = JSON.parse(question.options);
+          if (Array.isArray(parsed)) {
+            optionsArray = parsed;
+          } else if (typeof parsed === 'string') {
+            optionsArray = parsed.split(',').map(opt => opt.trim());
+          }
+        } catch (e) {
+          optionsArray = question.options.split(',').map(opt => opt.trim());
+        }
+      }
+      
+      return {
+        ...question,
+        options: optionsArray,
+      };
+    });
+
+    res.json(questions);
+  } catch (err) {
+    console.error("Error fetching vocabulary questions:", err);
+    res.status(500).json({ message: "Lỗi server", error: err.message });
+  }
+};
+
+exports.updateVocabularyQuestion = async (req, res) => {
+  const { id } = req.params;
+  const { question_type, question_text, options, correct_answer } = req.body;
+
+  try {
+    let parsedOptions = options;
+    if (typeof options === "string") {
+      try {
+        parsedOptions = JSON.parse(options);
+      } catch {
+        parsedOptions = options.split(",").map((option) => option.trim());
+      }
+    }
+
+    const results = await VocabularyQuestion.update(id, {
+      question_type,
+      question_text,
+      options: parsedOptions,
+      correct_answer,
+    });
+
+    if (results.affectedRows === 0) {
+      return res.status(404).json({ message: "Câu hỏi không tồn tại" });
+    }
+
+    res.json({ message: "Câu hỏi đã được cập nhật" });
+  } catch (err) {
+    console.error("Error updating vocabulary question:", err);
+    res.status(500).json({ message: "Lỗi server", error: err.message });
+  }
+};
+
+exports.deleteVocabularyQuestion = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const results = await VocabularyQuestion.delete(id);
+
+    if (results.affectedRows === 0) {
+      return res.status(404).json({ message: "Câu hỏi không tồn tại" });
+    }
+
+    res.json({ message: "Câu hỏi đã được xóa" });
+  } catch (err) {
+    console.error("Error deleting vocabulary question:", err);
     res.status(500).json({ message: "Lỗi server", error: err.message });
   }
 };
@@ -485,11 +613,15 @@ exports.importFlashcardsCSV = async (req, res) => {
           pronunciation: data.pronunciation || null,
           example_sentence: data.example_sentence || null,
           example_meaning: data.example_meaning || null,
-          part_of_speech: data.part_of_speech || 'noun',
-          synonyms: data.synonyms ? data.synonyms.split(",").map(item => item.trim()) : [],
-          antonyms: data.antonyms ? data.antonyms.split(",").map(item => item.trim()) : [],
-          tags: data.tags ? data.tags.split(",").map(item => item.trim()) : [],
-          difficulty_level: data.difficulty_level || 'medium',
+          part_of_speech: data.part_of_speech || "noun",
+          synonyms: data.synonyms
+            ? data.synonyms.split(",").map((item) => item.trim())
+            : [],
+          antonyms: data.antonyms
+            ? data.antonyms.split(",").map((item) => item.trim())
+            : [],
+          tags: data.tags ? data.tags.split(",").map((item) => item.trim()) : [],
+          difficulty_level: data.difficulty_level || "medium",
           display_order: parseInt(data.display_order) || 0,
         };
         flashcards.push(flashcard);
@@ -504,7 +636,9 @@ exports.importFlashcardsCSV = async (req, res) => {
           });
         } catch (err) {
           console.error("Error bulk creating flashcards:", err);
-          res.status(500).json({ message: "Lỗi server", error: err.message });
+          res
+            .status(500)
+            .json({ message: "Lỗi server", error: err.message });
         }
       });
   } catch (err) {
@@ -545,15 +679,22 @@ exports.getWordDefinition = async (req, res) => {
     // Extract relevant information
     const definition = {
       word: data.word,
-      phonetic: data.results[0]?.lexicalEntries[0]?.pronunciations?.[0]?.phoneticSpelling,
-      audio: data.results[0]?.lexicalEntries[0]?.pronunciations?.find(p => p.audioFile)?.audioFile,
-      definitions: data.results[0]?.lexicalEntries?.map(lexicalEntry => ({
-        partOfSpeech: lexicalEntry.lexicalCategory?.text,
-        definitions: lexicalEntry.entries?.[0]?.senses?.map(sense => ({
-          definition: sense.definitions?.[0],
-          examples: sense.examples?.map(ex => ex.text) || [],
+      phonetic:
+        data.results[0]?.lexicalEntries[0]?.pronunciations?.[0]
+          ?.phoneticSpelling,
+      audio:
+        data.results[0]?.lexicalEntries[0]?.pronunciations?.find(
+          (p) => p.audioFile
+        )?.audioFile,
+      definitions:
+        data.results[0]?.lexicalEntries?.map((lexicalEntry) => ({
+          partOfSpeech: lexicalEntry.lexicalCategory?.text,
+          definitions:
+            lexicalEntry.entries?.[0]?.senses?.map((sense) => ({
+              definition: sense.definitions?.[0],
+              examples: sense.examples?.map((ex) => ex.text) || [],
+            })) || [],
         })) || [],
-      })) || [],
     };
 
     res.json(definition);
@@ -581,5 +722,5 @@ function calculateNextReviewDate(confidenceLevel) {
   // confidenceLevel < 40: ôn lại ngày mai (mặc định)
 
   today.setDate(today.getDate() + daysToAdd);
-  return today.toISOString().split('T')[0]; // Trả về YYYY-MM-DD
+  return today.toISOString().split("T")[0]; // Trả về YYYY-MM-DD
 }

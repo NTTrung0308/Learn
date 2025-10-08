@@ -17,6 +17,9 @@ import ExamList from "../components/exam/ExamList";
 import ExamPreview from "../components/exam/ExamPreview";
 import ExamResult from "../components/exam/ExamResult";
 import ExamTaking from "../components/exam/ExamTaking";
+import VocabularyCollections from "../components/vocabulary/VocabularyCollections";
+import FlashcardStudy from "../components/vocabulary/FlashcardStudy";
+import SelfTestQuiz from "../components/vocabulary/SelfTestQuiz";
 
 function AppRoutes({
   isAuthenticated,
@@ -82,7 +85,13 @@ function AppRoutes({
       {/* Exam Routes */}
       <Route
         path="/exams"
-        element={isAuthenticated ? <ExamList isAuthenticated={isAuthenticated} /> : <Navigate to="/login" />}
+        element={
+          isAuthenticated ? (
+            <ExamList isAuthenticated={isAuthenticated} />
+          ) : (
+            <Navigate to="/login" />
+          )
+        }
       />
       <Route
         path="/exams/:id/take"
@@ -95,6 +104,33 @@ function AppRoutes({
       <Route
         path="/exams/:id/preview"
         element={isAuthenticated ? <ExamPreview /> : <Navigate to="/login" />}
+      />
+
+      <Route
+        path="/vocabulary-collections"
+        element={
+          isAuthenticated ? (
+            <VocabularyCollections isAuthenticated={isAuthenticated} />
+          ) : (
+            <Navigate to="/login" />
+          )
+        }
+      />
+      <Route
+        path="/vocabulary-collections/:collectionId/study"
+        element={
+          isAuthenticated ? (
+            <FlashcardStudy isAuthenticated={isAuthenticated} />
+          ) : (
+            <Navigate to="/login" />
+          )
+        }
+      />
+      <Route
+        path="/vocabulary-collections/:collectionId/self-test"
+        element={
+          isAuthenticated ? <SelfTestQuiz /> : <Navigate to="/login" />
+        }
       />
 
       {/* Admin Routes */}

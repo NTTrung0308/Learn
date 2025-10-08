@@ -13,6 +13,7 @@ CREATE TABLE users (
   display_name VARCHAR(255) NULL,
   role ENUM('superadmin', 'admin', 'teacher', 'student', 'user') NOT NULL DEFAULT 'user',
   avatar VARCHAR(255) NULL,
+  is_premium TINYINT(1) DEFAULT 0 AFTER role;
   learning_goal TEXT NULL, 
   is_verified BOOLEAN DEFAULT FALSE,
   verification_token VARCHAR(255) NULL,
@@ -159,6 +160,7 @@ CREATE TABLE `grammar_practices` (
   `title` VARCHAR(255) NOT NULL,
   `instructions` TEXT NOT NULL,
   `content` JSON,
+  -- `answer` JSON,
   `practice_type` ENUM('sentence_building', 'translation', 'fill_blank', 'conversation') NOT NULL,
   `difficulty_level` ENUM('easy','medium','hard') DEFAULT 'medium',
   `time_limit` INT, -- Thời gian giới hạn (phút)
@@ -227,6 +229,21 @@ CREATE TABLE `vocabulary_flashcards` (
   REFERENCES `vocabulary_collections`(`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- Bảng câu hỏi tự kiểm tra từ vựng
+CREATE TABLE `vocabulary_questions` (
+  `id` INT AUTO_INCREMENT PRIMARY KEY,
+  `collection_id` INT NOT NULL,
+  `question_type` ENUM('multiple_choice', 'fill_in_the_blank', 'translation') NOT NULL,
+  `question_text` TEXT NOT NULL,
+  `options` JSON,
+  `correct_answer` VARCHAR(255) NOT NULL,
+  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  CONSTRAINT `fk_vocab_questions_collection` FOREIGN KEY (`collection_id`)
+  REFERENCES `vocabulary_collections`(`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+
 -- Bảng học từ vựng của người dùng
 CREATE TABLE `user_vocabulary_learning` (
   `id` INT AUTO_INCREMENT PRIMARY KEY,
@@ -281,7 +298,7 @@ CREATE TABLE `exam_results` (
   KEY `exam_id` (`exam_id`),
   CONSTRAINT `exam_results_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
   CONSTRAINT `exam_results_ibfk_2` FOREIGN KEY (`exam_id`) REFERENCES `exams` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4_unicode_ci;
 
 CREATE TABLE `exam_submissions` (
   `id` int NOT NULL AUTO_INCREMENT,

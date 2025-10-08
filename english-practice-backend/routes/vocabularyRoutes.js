@@ -18,6 +18,10 @@ const {
   exportFlashcardsCSV,
   importFlashcardsCSV,
   getWordDefinition,
+  createVocabularyQuestion,
+  getVocabularyQuestions,
+  updateVocabularyQuestion,
+  deleteVocabularyQuestion,
 } = require("../controllers/vocabularyController");
 
 const router = express.Router();
@@ -103,6 +107,12 @@ router.put(
   updateFlashcard
 );
 router.delete("/flashcards/:id", auth, deleteFlashcard);
+
+// Routes cho câu hỏi tự kiểm tra
+router.post("/questions", auth, createVocabularyQuestion);
+router.get("/questions", auth, getVocabularyQuestions);
+router.put("/questions/:id", auth, updateVocabularyQuestion);
+router.delete("/questions/:id", auth, deleteVocabularyQuestion);
 
 // Tìm kiếm từ vựng
 router.get("/search", auth, searchVocabulary);

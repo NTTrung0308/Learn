@@ -236,6 +236,67 @@ const VocabularyFlashcard = {
   },
 };
 
+const VocabularyQuestion = {
+  // Create a new question
+  create: async (questionData) => {
+    const sql = `
+      INSERT INTO vocabulary_questions
+      (collection_id, question_type, question_text, options, correct_answer)
+      VALUES (?, ?, ?, ?, ?)
+    `;
+    const [result] = await pool.execute(sql, [
+      questionData.collection_id,
+      questionData.question_type,
+      questionData.question_text,
+      JSON.stringify(questionData.options || []),
+      questionData.correct_answer,
+    ]);
+    return result;
+  },
+
+  // Get all questions for a collection
+  findByCollectionId: async (collectionId) => {
+    const sql = `
+      SELECT * FROM vocabulary_questions
+      WHERE collection_id = ?
+      ORDER BY created_at ASC
+    `;
+    const [rows] = await pool.execute(sql, [collectionId]);
+    return rows;
+  },
+
+  // Find a question by ID
+  findById: async (id) => {
+    const sql = "SELECT * FROM vocabulary_questions WHERE id = ?";
+    const [rows] = await pool.execute(sql, [id]);
+    return rows;
+  },
+
+  // Update a question
+  update: async (id, questionData) => {
+    const sql = `
+      UPDATE vocabulary_questions
+      SET question_type = ?, question_text = ?, options = ?, correct_answer = ?, updated_at = CURRENT_TIMESTAMP
+      WHERE id = ?
+    `;
+    const [result] = await pool.execute(sql, [
+      questionData.question_type,
+      questionData.question_text,
+      JSON.stringify(questionData.options || []),
+      questionData.correct_answer,
+      id,
+    ]);
+    return result;
+  },
+
+  // Delete a question
+  delete: async (id) => {
+    const sql = "DELETE FROM vocabulary_questions WHERE id = ?";
+    const [result] = await pool.execute(sql, [id]);
+    return result;
+  },
+};
+
 const UserVocabularyLearning = {
   // Lưu tiến độ học tập
   saveProgress: async (progressData) => {
@@ -372,4 +433,5 @@ module.exports = {
   VocabularyFlashcard,
   UserVocabularyLearning,
   VocabularyCSV,
+  VocabularyQuestion,
 };

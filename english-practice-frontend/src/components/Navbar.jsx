@@ -3,6 +3,7 @@ import { NavLink, Link } from "react-router-dom";
 import axios from "axios";
 import "bootstrap/dist/css/bootstrap.min.css";
 
+
 const Navbar = ({ isAuthenticated }) => {
   const [user, setUser] = useState(null);
 
@@ -59,7 +60,7 @@ const Navbar = ({ isAuthenticated }) => {
               { path: "/courses", label: "Khóa học" },
               { path: "/exams", label: "Luyện thi" },
               { path: "/grammar", label: "Ngữ pháp" },
-              { path: "/vocabulary", label: "Từ vựng" },
+              { path: "/vocabulary-collections", label: "Từ vựng" },
               { path: "/about", label: "Về chúng tôi" },
             ].map((item, idx) => (
               <li className="nav-item px-2" key={idx}>

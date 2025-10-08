@@ -20,10 +20,13 @@ import Layout from "../layout/admin/Layout";
 const VocabularyManagement = ({ handleLogout }) => {
   const [collections, setCollections] = useState([]);
   const [flashcards, setFlashcards] = useState([]);
+  const [questions, setQuestions] = useState([]);
   const [showCollectionModal, setShowCollectionModal] = useState(false);
   const [showFlashcardModal, setShowFlashcardModal] = useState(false);
+  const [showQuestionModal, setShowQuestionModal] = useState(false);
   const [editingCollection, setEditingCollection] = useState(null);
   const [editingFlashcard, setEditingFlashcard] = useState(null);
+  const [editingQuestion, setEditingQuestion] = useState(null);
   const [currentCollection, setCurrentCollection] = useState(null);
   const [activeTab, setActiveTab] = useState("collections");
   const [searchTerm, setSearchTerm] = useState("");
@@ -50,6 +53,13 @@ const VocabularyManagement = ({ handleLogout }) => {
     tags: "",
     difficulty_level: "medium",
     display_order: 0,
+  });
+
+  const [questionForm, setQuestionForm] = useState({
+    question_type: "multiple_choice",
+    question_text: "",
+    options: "",
+    correct_answer: "",
   });
 
   useEffect(() => {
@@ -88,6 +98,21 @@ const VocabularyManagement = ({ handleLogout }) => {
       setFlashcards(response.data);
     } catch (error) {
       toast.error("Lỗi khi tải danh sách flashcards");
+    }
+  };
+
+  const fetchQuestions = async (collectionId) => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axios.get(
+        `http://localhost:5000/api/vocabulary/questions?collection_id=${collectionId}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      setQuestions(response.data);
+    } catch (error) {
+      toast.error("Lỗi khi tải danh sách câu hỏi");
     }
   };
 
@@ -233,6 +258,47 @@ const VocabularyManagement = ({ handleLogout }) => {
     }
   };
 
+  const handleQuestionSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const token = localStorage.getItem("token");
+
+      if (editingQuestion) {
+        await axios.put(
+          `http://localhost:5000/api/vocabulary/questions/${editingQuestion.id}`,
+          questionForm,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+        toast.success("Câu hỏi đã được cập nhật");
+      } else {
+        await axios.post(
+          "http://localhost:5000/api/vocabulary/questions",
+          { ...questionForm, collection_id: currentCollection.id },
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+        toast.success("Câu hỏi đã được tạo");
+      }
+
+      setShowQuestionModal(false);
+      setEditingQuestion(null);
+      setQuestionForm({
+        question_type: "multiple_choice",
+        question_text: "",
+        options: "",
+        correct_answer: "",
+      });
+      if (currentCollection) {
+        fetchQuestions(currentCollection.id);
+      }
+    } catch (error) {
+      toast.error("Lỗi khi lưu câu hỏi");
+    }
+  };
+
   const deleteCollection = (id) => {
     Swal.fire({
       title: "Bạn có chắc chắn?",
@@ -288,6 +354,37 @@ const VocabularyManagement = ({ handleLogout }) => {
           }
         } catch (error) {
           Swal.fire("Lỗi!", "Có lỗi xảy ra khi xóa flashcard.", "error");
+        }
+      }
+    });
+  };
+
+  const deleteQuestion = (id) => {
+    Swal.fire({
+      title: "Bạn có chắc chắn?",
+      text: "Bạn sẽ không thể khôi phục lại câu hỏi này!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Vâng, xóa nó đi!",
+      cancelButtonText: "Hủy",
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        try {
+          const token = localStorage.getItem("token");
+          await axios.delete(
+            `http://localhost:5000/api/vocabulary/questions/${id}`,
+            {
+              headers: { Authorization: `Bearer ${token}` },
+            }
+          );
+          Swal.fire("Đã xóa!", "Câu hỏi của bạn đã được xóa.", "success");
+          if (currentCollection) {
+            fetchQuestions(currentCollection.id);
+          }
+        } catch (error) {
+          Swal.fire("Lỗi!", "Có lỗi xảy ra khi xóa câu hỏi.", "error");
         }
       }
     });
@@ -363,9 +460,33 @@ const VocabularyManagement = ({ handleLogout }) => {
     setShowFlashcardModal(true);
   };
 
+  const openQuestionModal = (question = null) => {
+    if (question) {
+      setEditingQuestion(question);
+      setQuestionForm({
+        question_type: question.question_type,
+        question_text: question.question_text,
+        options: Array.isArray(question.options)
+          ? question.options.join(", ")
+          : question.options || "",
+        correct_answer: question.correct_answer,
+      });
+    } else {
+      setEditingQuestion(null);
+      setQuestionForm({
+        question_type: "multiple_choice",
+        question_text: "",
+        options: "",
+        correct_answer: "",
+      });
+    }
+    setShowQuestionModal(true);
+  };
+
   const handleCollectionSelect = (collection) => {
     setCurrentCollection(collection);
     fetchFlashcards(collection.id);
+    fetchQuestions(collection.id);
     setActiveTab("flashcards");
   };
 
@@ -457,6 +578,13 @@ const VocabularyManagement = ({ handleLogout }) => {
               disabled={!currentCollection}
             >
               Thêm Flashcard
+            </Button>
+            <Button
+              variant="success"
+              onClick={() => openQuestionModal()}
+              disabled={!currentCollection}
+            >
+              Thêm Câu hỏi
             </Button>
           </div>
         </div>
@@ -699,6 +827,73 @@ const VocabularyManagement = ({ handleLogout }) => {
                   disabled={!currentCollection}
                 >
                   Thêm Flashcard Đầu tiên
+                </Button>
+              </div>
+            )}
+          </Tab>
+
+          <Tab eventKey="questions" title="Câu hỏi">
+            <div className="mb-3">
+              {currentCollection && (
+                <div className="d-flex justify-content-between align-items-center mb-3">
+                  <h5>Câu hỏi trong: {currentCollection.title}</h5>
+                  <Button
+                    variant="outline-secondary"
+                    size="sm"
+                    onClick={() => setCurrentCollection(null)}
+                  >
+                    Xem tất cả bộ từ vựng
+                  </Button>
+                </div>
+              )}
+            </div>
+
+            <Table striped bordered hover responsive>
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Loại câu hỏi</th>
+                  <th>Câu hỏi</th>
+                  <th>Hành động</th>
+                </tr>
+              </thead>
+              <tbody>
+                {questions.map((question, index) => (
+                  <tr key={question.id}>
+                    <td>{index + 1}</td>
+                    <td>{question.question_type}</td>
+                    <td>{question.question_text}</td>
+                    <td>
+                      <Button
+                        variant="outline-info"
+                        size="sm"
+                        className="me-2"
+                        onClick={() => openQuestionModal(question)}
+                      >
+                        Sửa
+                      </Button>
+                      <Button
+                        variant="outline-danger"
+                        size="sm"
+                        onClick={() => deleteQuestion(question.id)}
+                      >
+                        Xóa
+                      </Button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </Table>
+
+            {questions.length === 0 && (
+              <div className="text-center py-5">
+                <p>Chưa có câu hỏi nào.</p>
+                <Button
+                  variant="primary"
+                  onClick={() => openQuestionModal()}
+                  disabled={!currentCollection}
+                >
+                  Thêm Câu hỏi Đầu tiên
                 </Button>
               </div>
             )}
@@ -1074,6 +1269,96 @@ const VocabularyManagement = ({ handleLogout }) => {
               </Button>
               <Button variant="primary" type="submit">
                 {editingFlashcard ? "Cập nhật" : "Thêm"}
+              </Button>
+            </Modal.Footer>
+          </Form>
+        </Modal>
+
+        {/* Modal câu hỏi */}
+        <Modal
+          show={showQuestionModal}
+          onHide={() => setShowQuestionModal(false)}
+          size="lg"
+        >
+          <Modal.Header closeButton>
+            <Modal.Title>
+              {editingQuestion ? "Sửa Câu hỏi" : "Tạo Câu hỏi Mới"}
+            </Modal.Title>
+          </Modal.Header>
+          <Form onSubmit={handleQuestionSubmit}>
+            <Modal.Body>
+              <Form.Group className="mb-3">
+                <Form.Label>Loại câu hỏi</Form.Label>
+                <Form.Select
+                  value={questionForm.question_type}
+                  onChange={(e) =>
+                    setQuestionForm({
+                      ...questionForm,
+                      question_type: e.target.value,
+                    })
+                  }
+                >
+                  <option value="multiple_choice">Trắc nghiệm</option>
+                  <option value="fill_in_the_blank">Điền vào chỗ trống</option>
+                  <option value="translation">Dịch</option>
+                </Form.Select>
+              </Form.Group>
+
+              <Form.Group className="mb-3">
+                <Form.Label>Câu hỏi</Form.Label>
+                <Form.Control
+                  as="textarea"
+                  rows={3}
+                  value={questionForm.question_text}
+                  onChange={(e) =>
+                    setQuestionForm({
+                      ...questionForm,
+                      question_text: e.target.value,
+                    })
+                  }
+                  required
+                />
+              </Form.Group>
+
+              <Form.Group className="mb-3">
+                <Form.Label>Lựa chọn (phân cách bằng dấu phẩy)</Form.Label>
+                <Form.Control
+                  type="text"
+                  value={questionForm.options}
+                  onChange={(e) =>
+                    setQuestionForm({
+                      ...questionForm,
+                      options: e.target.value,
+                    })
+                  }
+                  placeholder="Lựa chọn 1, Lựa chọn 2, Lựa chọn 3"
+                />
+              </Form.Group>
+
+              <Form.Group className="mb-3">
+                <Form.Label>Đáp án đúng</Form.Label>
+                <Form.Control
+                  type="text"
+                  value={questionForm.correct_answer}
+                  onChange={(e) =>
+                    setQuestionForm({
+                      ...questionForm,
+                      correct_answer: e.target.value,
+                    })
+                  }
+                  required
+                />
+              </Form.Group>
+            </Modal.Body>
+            <Modal.Footer>
+              <Button
+                variant="secondary"
+                onClick={() => setShowQuestionModal(false)}
+              >
+                Hủy
+              </Button>
+              <Button variant="primary" type="submit">
+                {editingQuestion ? "Cập nhật" : "Tạo"}
               </Button>
             </Modal.Footer>
           </Form>
