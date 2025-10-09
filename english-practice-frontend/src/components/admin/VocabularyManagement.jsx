@@ -30,6 +30,8 @@ const VocabularyManagement = ({ handleLogout }) => {
   const [currentCollection, setCurrentCollection] = useState(null);
   const [activeTab, setActiveTab] = useState("collections");
   const [searchTerm, setSearchTerm] = useState("");
+  const [dictionarySearchTerm, setDictionarySearchTerm] = useState("");
+  const [dictionaryDefinition, setDictionaryDefinition] = useState(null);
 
   const [collectionForm, setCollectionForm] = useState({
     title: "",
@@ -559,6 +561,64 @@ const VocabularyManagement = ({ handleLogout }) => {
     }
   };
 
+  const searchDictionary = async () => {
+    if (!dictionarySearchTerm) return;
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axios.get(
+        `http://localhost:5000/api/vocabulary/dictionary/${dictionarySearchTerm}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      setDictionaryDefinition(response.data);
+      toast.success("Đã tìm thấy định nghĩa từ Dictionary");
+    } catch (error) {
+      setDictionaryDefinition(null);
+      toast.error(
+        error.response?.data?.message || "Không tìm thấy từ trong từ điển"
+      );
+    }
+  };
+
+  const fillFormFromDictionary = () => {
+    if (!dictionaryDefinition) return;
+
+    const firstMeaning = dictionaryDefinition.meanings?.[0];
+
+    let bestDefinition = firstMeaning?.definitions?.[0];
+    let maxScore = 0;
+
+    if (firstMeaning?.definitions) {
+      for (const def of firstMeaning.definitions) {
+        let score = 0;
+        if (def.definition) score++;
+        if (def.example) score++;
+        if (def.synonyms?.length > 0) score++;
+        if (def.antonyms?.length > 0) score++;
+
+        if (score > maxScore) {
+          maxScore = score;
+          bestDefinition = def;
+        }
+      }
+    }
+
+    setFlashcardForm({
+      ...flashcardForm,
+      word: dictionaryDefinition.word,
+      meaning: bestDefinition?.definition || "",
+      pronunciation: dictionaryDefinition.phonetic || "",
+      example_sentence: bestDefinition?.example || "",
+      part_of_speech: firstMeaning?.partOfSpeech?.toLowerCase() || "noun",
+      synonyms: (bestDefinition?.synonyms || []).join(", "),
+      antonyms: (bestDefinition?.antonyms || []).join(", "),
+    });
+
+    setDictionaryDefinition(null);
+    setDictionarySearchTerm("");
+  };
+
   return (
     <Layout handleLogout={handleLogout}>
       <div className="container mt-5">
@@ -1044,7 +1104,11 @@ const VocabularyManagement = ({ handleLogout }) => {
         {/* Modal flashcard */}
         <Modal
           show={showFlashcardModal}
-          onHide={() => setShowFlashcardModal(false)}
+          onHide={() => {
+            setShowFlashcardModal(false);
+            setDictionaryDefinition(null);
+            setDictionarySearchTerm("");
+          }}
           size="lg"
         >
           <Modal.Header closeButton>
@@ -1054,6 +1118,74 @@ const VocabularyManagement = ({ handleLogout }) => {
           </Modal.Header>
           <Form onSubmit={handleFlashcardSubmit}>
             <Modal.Body>
+              <Form.Group className="mb-3">
+                <Form.Label>
+                  Tìm từ trên Oxford Dictionary (Tùy chọn)
+                </Form.Label>
+                <InputGroup>
+                  <Form.Control
+                    type="text"
+                    placeholder="Nhập từ tiếng Anh..."
+                    value={dictionarySearchTerm}
+                    onChange={(e) => setDictionarySearchTerm(e.target.value)}
+                  />
+                  <Button
+                    variant="outline-secondary"
+                    onClick={searchDictionary}
+                  >
+                    Tìm kiếm
+                  </Button>
+                </InputGroup>
+              </Form.Group>
+
+              {dictionaryDefinition && (
+                <Card className="mb-3 bg-light">
+                  <Card.Body>
+                    <Card.Title>
+                      Kết quả từ Oxford: {dictionaryDefinition.word}
+                    </Card.Title>
+                    <Card.Text className="d-flex align-items-center">
+                      <strong className="me-2">Phát âm:</strong>{" "}
+                      {dictionaryDefinition.phonetic}
+                      {dictionaryDefinition.audio && (
+                        <audio
+                          controls
+                          src={dictionaryDefinition.audio}
+                          className="ms-3"
+                          style={{ height: "30px" }}
+                        >
+                          Your browser does not support the audio element.
+                        </audio>
+                      )}
+                    </Card.Text>
+                    {dictionaryDefinition.meanings.map((def, index) => (
+                      <div key={index}>
+                        <strong>{def.partOfSpeech}</strong>
+                        <ul>
+                          {def.definitions.map((d, i) => (
+                            <li key={i}>
+                              {d.definition}
+                              {d.example && (
+                                <em className="d-block text-muted">
+                                  Ex: {d.example}
+                                </em>
+                              )}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    ))}
+                    <Button
+                      variant="primary"
+                      size="sm"
+                      onClick={fillFormFromDictionary}
+                    >
+                      Điền vào biểu mẫu
+                    </Button>
+                  </Card.Body>
+                </Card>
+              )}
+
               <Row>
                 <Col md={6}>
                   <Form.Group className="mb-3">
@@ -1263,7 +1395,11 @@ const VocabularyManagement = ({ handleLogout }) => {
             <Modal.Footer>
               <Button
                 variant="secondary"
-                onClick={() => setShowFlashcardModal(false)}
+                onClick={() => {
+                  setShowFlashcardModal(false);
+                  setDictionaryDefinition(null);
+                  setDictionarySearchTerm("");
+                }}
               >
                 Hủy
               </Button>

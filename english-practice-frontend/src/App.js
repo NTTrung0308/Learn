@@ -9,14 +9,17 @@ import {
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "./components/styles/global.js";
+import './App.css';
 
 // Import jQuery và khởi tạo
 import './components/styles/jquery-init.js';
 
 import Navbar from "./components/Navbar";
-import AdminRoutes from "./routers/AdminRoutes";
-import UserRoutes from "./routers/UserRoutes";
+
 import AppRoutes from "./routers/AppRoutes";
+import BackToTop from "./components/BackToTop";
+import ChatAI from "./components/ChatAI";
+import "@fortawesome/fontawesome-free/css/all.min.css";
 
 function AppContent({
   isAuthenticated,
@@ -83,6 +86,8 @@ function AppContent({
         setUserId={setUserId}
         handleLogout={handleLogout}
       />
+      <BackToTop />
+      {!hideNavbarPaths.includes(location.pathname) && <ChatAI />}
     </>
   );
 }

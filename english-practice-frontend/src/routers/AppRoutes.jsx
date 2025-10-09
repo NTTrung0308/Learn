@@ -130,12 +130,10 @@ function AppRoutes({
       />
       <Route
         path="/vocabulary-collections/:collectionId/self-test"
-        element={
-          isAuthenticated ? <SelfTestQuiz /> : <Navigate to="/login" />
-        }
+        element={isAuthenticated ? <SelfTestQuiz /> : <Navigate to="/login" />}
       />
 
-            <Route
+      <Route
         path="/grammar"
         element={isAuthenticated ? <GrammarList /> : <Navigate to="/login" />}
       />

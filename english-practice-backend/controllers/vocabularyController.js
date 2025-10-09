@@ -8,11 +8,19 @@ const {
 const csv = require("csv-parser");
 const fs = require("fs");
 const { Parser } = require("json2csv");
+const fetch = require("node-fetch");
 
 // Bộ từ vựng
 exports.createCollection = async (req, res) => {
-  const { title, description, level, category, tags, is_public, display_order } =
-    req.body;
+  const {
+    title,
+    description,
+    level,
+    category,
+    tags,
+    is_public,
+    display_order,
+  } = req.body;
   const created_by = req.user.userId;
 
   try {
@@ -97,8 +105,15 @@ exports.getCollectionDetail = async (req, res) => {
 
 exports.updateCollection = async (req, res) => {
   const { id } = req.params;
-  const { title, description, level, category, tags, is_public, display_order } =
-    req.body;
+  const {
+    title,
+    description,
+    level,
+    category,
+    tags,
+    is_public,
+    display_order,
+  } = req.body;
 
   try {
     let parsedTags = tags;
@@ -163,14 +178,24 @@ exports.addFlashcard = async (req, res) => {
     tags,
     difficulty_level,
     display_order,
+    pronunciation_audio_url,
   } = req.body;
 
   try {
-    // Xử lý file upload
-    const pronunciation_audio =
-      req.files && req.files.audio
-        ? `/uploads/audio/${req.files.audio[0].filename}`
-        : null;
+    // Xử lý file upload hoặc gọi API
+    let pronunciation_audio = pronunciation_audio_url || null;
+    if (req.files && req.files.audio) {
+      pronunciation_audio = `/uploads/audio/${req.files.audio[0].filename}`;
+    } else if (!pronunciation_audio && word) {
+      // Nếu không có file audio và không có URL, thử gọi API
+      console.log(`Fetching pronunciation for "${word}" from API...`);
+      pronunciation_audio = await getAudioFromApi(word);
+      if (pronunciation_audio) {
+        console.log(`Found pronunciation audio: ${pronunciation_audio}`);
+      } else {
+        console.log(`Could not find pronunciation for "${word}" from API.`);
+      }
+    }
 
     const example_image =
       req.files && req.files.image
@@ -271,6 +296,8 @@ exports.updateFlashcard = async (req, res) => {
     tags,
     difficulty_level,
     display_order,
+    pronunciation_audio_url,
+    fetch_pronunciation_audio,
   } = req.body;
 
   try {
@@ -279,11 +306,21 @@ exports.updateFlashcard = async (req, res) => {
       return res.status(404).json({ message: "Flashcard không tồn tại" });
     }
 
-    // Xử lý file upload
-    const pronunciation_audio =
-      req.files && req.files.audio
-        ? `/uploads/audio/${req.files.audio[0].filename}`
-        : currentFlashcard[0].pronunciation_audio;
+    // Xử lý file upload hoặc gọi API
+    let pronunciation_audio = pronunciation_audio_url || currentFlashcard[0].pronunciation_audio;
+    if (req.files && req.files.audio) {
+      pronunciation_audio = `/uploads/audio/${req.files.audio[0].filename}`;
+    } else if (fetch_pronunciation_audio) {
+        const wordToFetch = word || currentFlashcard[0].word;
+        console.log(`Fetching pronunciation for \"${wordToFetch}\" from API...`);
+        pronunciation_audio = await getAudioFromApi(wordToFetch);
+        if (pronunciation_audio) {
+            console.log(`Found pronunciation audio: ${pronunciation_audio}`);
+        } else {
+            console.log(`Could not find pronunciation for \"${wordToFetch}\" from API.`);
+            pronunciation_audio = currentFlashcard[0].pronunciation_audio; // Giữ lại audio cũ nếu không tìm thấy
+        }
+    }
 
     const example_image =
       req.files && req.files.image
@@ -390,7 +427,8 @@ exports.searchVocabulary = async (req, res) => {
 
 // Học từ vựng
 exports.saveLearningProgress = async (req, res) => {
-  const { flashcard_id, collection_id, status, confidence_level } = req.body;
+  const { flashcard_id, collection_id, status, confidence_level } =
+    req.body;
   const user_id = req.user.userId;
 
   try {
@@ -407,7 +445,10 @@ exports.saveLearningProgress = async (req, res) => {
     });
 
     // Cập nhật tổng tiến độ
-    await UserVocabularyLearning.updateOverallProgress(user_id, collection_id);
+    await UserVocabularyLearning.updateOverallProgress(
+      user_id,
+      collection_id
+    );
 
     res.json({
       message: "Tiến độ học tập đã được lưu",
@@ -440,7 +481,10 @@ exports.saveQuizProgress = async (req, res) => {
     });
 
     await UserVocabularyLearning.saveBulkProgress(progressDataArray);
-    await UserVocabularyLearning.updateOverallProgress(user_id, collection_id);
+    await UserVocabularyLearning.updateOverallProgress(
+      user_id,
+      collection_id
+    );
 
     res.status(200).json({ message: "Quiz progress saved successfully" });
   } catch (err) {
@@ -453,15 +497,17 @@ exports.completeSession = async (req, res) => {
   const { collection_id, study_progress, quiz_answers } = req.body;
   const user_id = req.user.userId;
 
-  console.log('--- completeSession ---');
-  console.log('collection_id:', collection_id);
-  console.log('study_progress:', JSON.stringify(study_progress, null, 2));
-  console.log('quiz_answers:', JSON.stringify(quiz_answers, null, 2));
+  console.log("--- completeSession ---");
+  console.log("collection_id:", collection_id);
+  console.log("study_progress:", JSON.stringify(study_progress, null, 2));
+  console.log("quiz_answers:", JSON.stringify(quiz_answers, null, 2));
 
   try {
     // Combine study progress and quiz answers
     const allProgress = study_progress.map((progress) => {
-      const next_review_date = calculateNextReviewDate(progress.confidence_level);
+      const next_review_date = calculateNextReviewDate(
+        progress.confidence_level
+      );
       return {
         ...progress,
         user_id,
@@ -487,16 +533,20 @@ exports.completeSession = async (req, res) => {
       });
     });
 
-    console.log('allProgress:', JSON.stringify(allProgress, null, 2));
+    console.log("allProgress:", JSON.stringify(allProgress, null, 2));
 
     if (allProgress.length > 0) {
       await UserVocabularyLearning.saveBulkProgress(allProgress);
     }
 
-    await UserVocabularyLearning.updateOverallProgress(user_id, collection_id);
+    await UserVocabularyLearning.updateOverallProgress(
+      user_id,
+      collection_id
+    );
 
-    res.status(200).json({ message: "Session completed and progress saved" });
-
+    res
+      .status(200)
+      .json({ message: "Session completed and progress saved" });
   } catch (err) {
     console.error("Error completing session:", err);
     res.status(500).json({ message: "Lỗi server", error: err.message });
@@ -521,8 +571,14 @@ exports.getLearningProgress = async (req, res) => {
 
 // Vocabulary Questions
 exports.createVocabularyQuestion = async (req, res) => {
-  const { collection_id, flashcard_id, question_type, question_text, options, correct_answer } =
-    req.body;
+  const {
+    collection_id,
+    flashcard_id,
+    question_type,
+    question_text,
+    options,
+    correct_answer,
+  } = req.body;
 
   try {
     let parsedOptions = options;
@@ -561,23 +617,27 @@ exports.getVocabularyQuestions = async (req, res) => {
       return res.status(400).json({ message: "Thiếu collection_id" });
     }
 
-    const results = await VocabularyQuestion.findByCollectionId(collection_id);
+    const results = await VocabularyQuestion.findByCollectionId(
+      collection_id
+    );
 
     const questions = results.map((question) => {
       let optionsArray = [];
-      if (question.options && typeof question.options === 'string') {
+      if (question.options && typeof question.options === "string") {
         try {
           const parsed = JSON.parse(question.options);
           if (Array.isArray(parsed)) {
             optionsArray = parsed;
-          } else if (typeof parsed === 'string') {
-            optionsArray = parsed.split(',').map(opt => opt.trim());
+          } else if (typeof parsed === "string") {
+            optionsArray = parsed.split(",").map((opt) => opt.trim());
           }
         } catch (e) {
-          optionsArray = question.options.split(',').map(opt => opt.trim());
+          optionsArray = question.options
+            .split(",")
+            .map((opt) => opt.trim());
         }
       }
-      
+
       return {
         ...question,
         options: optionsArray,
@@ -593,7 +653,13 @@ exports.getVocabularyQuestions = async (req, res) => {
 
 exports.updateVocabularyQuestion = async (req, res) => {
   const { id } = req.params;
-  const { flashcard_id, question_type, question_text, options, correct_answer } = req.body;
+  const {
+    flashcard_id,
+    question_type,
+    question_text,
+    options,
+    correct_answer,
+  } = req.body;
 
   try {
     let parsedOptions = options;
@@ -706,7 +772,9 @@ exports.importFlashcardsCSV = async (req, res) => {
           antonyms: data.antonyms
             ? data.antonyms.split(",").map((item) => item.trim())
             : [],
-          tags: data.tags ? data.tags.split(",").map((item) => item.trim()) : [],
+          tags: data.tags
+            ? data.tags.split(",").map((item) => item.trim())
+            : [],
           difficulty_level: data.difficulty_level || "medium",
           display_order: parseInt(data.display_order) || 0,
         };
@@ -733,52 +801,43 @@ exports.importFlashcardsCSV = async (req, res) => {
   }
 };
 
-// Oxford Dictionary API integration
+// Dictionary API integration
 exports.getWordDefinition = async (req, res) => {
   const { word } = req.params;
-  const appId = process.env.OXFORD_APP_ID;
-  const appKey = process.env.OXFORD_APP_KEY;
-
-  if (!appId || !appKey) {
-    return res.status(400).json({
-      message: "Oxford Dictionary API chưa được cấu hình",
-    });
-  }
 
   try {
     const response = await fetch(
-      `https://od-api.oxforddictionaries.com/api/v2/entries/en-us/${word.toLowerCase()}`,
-      {
-        headers: {
-          app_id: appId,
-          app_key: appKey,
-        },
-      }
+      `https://api.dictionaryapi.dev/api/v2/entries/en/${word.toLowerCase()}`
     );
 
     if (!response.ok) {
-      throw new Error("Không tìm thấy từ trong từ điển");
+      const errorBody = await response.json();
+      console.error(
+        `Dictionary API Error: ${response.status} ${response.statusText}`,
+        errorBody
+      );
+      throw new Error(errorBody.title || "Không tìm thấy từ trong từ điển");
     }
 
     const data = await response.json();
 
-    // Extract relevant information
+    // Extract relevant information from the first result
+    const firstResult = data[0];
     const definition = {
-      word: data.word,
+      word: firstResult.word,
       phonetic:
-        data.results[0]?.lexicalEntries[0]?.pronunciations?.[0]
-          ?.phoneticSpelling,
-      audio:
-        data.results[0]?.lexicalEntries[0]?.pronunciations?.find(
-          (p) => p.audioFile
-        )?.audioFile,
-      definitions:
-        data.results[0]?.lexicalEntries?.map((lexicalEntry) => ({
-          partOfSpeech: lexicalEntry.lexicalCategory?.text,
+        firstResult.phonetics?.find((p) => p.text)?.text ||
+        firstResult.phonetic,
+      audio: firstResult.phonetics?.find((p) => p.audio)?.audio,
+      meanings:
+        firstResult.meanings?.map((meaning) => ({
+          partOfSpeech: meaning.partOfSpeech,
           definitions:
-            lexicalEntry.entries?.[0]?.senses?.map((sense) => ({
-              definition: sense.definitions?.[0],
-              examples: sense.examples?.map((ex) => ex.text) || [],
+            meaning.definitions?.map((def) => ({
+              definition: def.definition,
+              example: def.example,
+              synonyms: def.synonyms,
+              antonyms: def.antonyms,
             })) || [],
         })) || [],
     };
@@ -787,11 +846,31 @@ exports.getWordDefinition = async (req, res) => {
   } catch (err) {
     console.error("Error fetching word definition:", err);
     res.status(500).json({
-      message: "Lỗi khi lấy định nghĩa từ",
+      message: err.message || "Lỗi khi lấy định nghĩa từ",
       error: err.message,
     });
   }
 };
+
+async function getAudioFromApi(word) {
+  try {
+    const response = await fetch(
+      `https://api.dictionaryapi.dev/api/v2/entries/en/${word.toLowerCase()}`
+    );
+    if (!response.ok) {
+      console.error(`Dictionary API Error for ${word}: ${response.status} ${response.statusText}`);
+      return null;
+    }
+    const data = await response.json();
+    const firstResult = data[0];
+    // Find the first phonetic with an audio link
+    const audioPhonetic = firstResult.phonetics?.find((p) => p.audio);
+    return audioPhonetic?.audio || null;
+  } catch (error) {
+    console.error(`Error fetching audio from dictionary API for ${word}:`, error);
+    return null;
+  }
+}
 
 // Hàm tính ngày ôn tập tiếp theo
 function calculateNextReviewDate(confidenceLevel) {

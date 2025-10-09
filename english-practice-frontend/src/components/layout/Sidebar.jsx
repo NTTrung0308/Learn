@@ -20,13 +20,13 @@ const Sidebar = ({ toggleSidebar }) => {
                 className="btn btn-toggle toggle-sidebar"
                 onClick={toggleSidebar}
               >
-                <i class="fa-solid fa-bars-staggered"></i>
+                <i className="fa-solid fa-bars-staggered"></i>
               </button>
               <button
                 className="btn btn-toggle sidenav-toggler"
                 onClick={toggleSidebar}
               >
-                <i class="fa-solid fa-bars-staggered"></i>
+                <i className="fa-solid fa-bars-staggered"></i>
               </button>
             </div>
             <button className="topbar-toggler more">
@@ -37,25 +37,13 @@ const Sidebar = ({ toggleSidebar }) => {
         <div className="sidebar-wrapper scrollbar scrollbar-inner">
           <div className="sidebar-content">
             <ul className="nav nav-secondary">
-              <li className="nav-item active">
-                <a
-                  data-bs-toggle="collapse"
-                  href="#dashboard"
-                  className="collapsed"
-                  aria-expanded="false"
-                >
+              <li className="nav-item ">
+                <Link to={"/dashboard"} className="collapsed">
                   <i className="fas fa-home"></i>
                   <p>Dashboard</p>
-                  <span className="caret"></span>
-                </a>
+                </Link>
                 <div className="collapse" id="dashboard">
-                  <ul className="nav nav-collapse">
-                    <li>
-                      <a href="../demo1/index.html">
-                        <span className="sub-item">Dashboard 1</span>
-                      </a>
-                    </li>
-                  </ul>
+                  <ul className="nav nav-collapse"></ul>
                 </div>
               </li>
               <li className="nav-section">

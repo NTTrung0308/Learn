@@ -26,7 +26,9 @@ const FlashcardStudy = ({ isAuthenticated }) => {
       const [collectionRes, progressRes] = await Promise.all([
         api.get(`/vocabulary/collections/${collectionId}`),
         isAuthenticated
-          ? api.get(`/vocabulary/learning/progress?collection_id=${collectionId}`)
+          ? api.get(
+              `/vocabulary/learning/progress?collection_id=${collectionId}`
+            )
           : Promise.resolve({ data: [] }),
       ]);
 
@@ -194,11 +196,32 @@ const FlashcardStudy = ({ isAuthenticated }) => {
   const currentCard = sessionCards[currentIndex];
   const progress = ((currentIndex / sessionCards.length) * 100).toFixed(1);
 
+  const getAudioSrc = (audioPath) => {
+    if (!audioPath) {
+      return "";
+    }
+    if (audioPath.startsWith("http")) {
+      return audioPath;
+    }
+    return `http://localhost:5000${audioPath}`;
+  };
+
+  const playAudio = (e) => {
+    e.stopPropagation();
+    if (currentCard.pronunciation_audio) {
+      const audio = new Audio(getAudioSrc(currentCard.pronunciation_audio));
+      audio.play().catch((err) => console.error("Audio play failed:", err));
+    }
+  };
+
   return (
     <div className="flashcard-study-container">
       <div className="container">
         <div className="study-header">
-          <Link to={`/vocabulary-collections/${collectionId}`} className="back-btn">
+          <Link
+            to={`/vocabulary-collections/${collectionId}`}
+            className="back-btn"
+          >
             <i className="fas fa-arrow-left"></i> Quay lại
           </Link>
           <h1>{collection.title}</h1>
@@ -210,7 +233,7 @@ const FlashcardStudy = ({ isAuthenticated }) => {
               ></div>
             </div>
             <span>
-              {currentIndex + 1} / {sessionCards.length} ({(100 - progress)}% còn
+              {currentIndex + 1} / {sessionCards.length} ({100 - progress}% còn
               lại)
             </span>
           </div>
@@ -225,30 +248,46 @@ const FlashcardStudy = ({ isAuthenticated }) => {
               <div className="flashcard-front">
                 <div className="card-content">
                   <h2>{currentCard.word}</h2>
-                  <p className="pronunciation">{currentCard.pronunciation}</p>
-                  {currentCard.pronunciation_audio && (
-                    <audio controls className="audio-player">
-                      <source
-                        src={`http://localhost:5000${currentCard.pronunciation_audio}`}
-                        type="audio/mpeg"
-                      />
-                    </audio>
-                  )}
+                  <p className="pronunciation">
+                    {currentCard.pronunciation}
+                    {currentCard.pronunciation_audio && (
+                      <button
+                        className="btn-play-audio"
+                        onClick={playAudio}
+                        title="Nghe phát âm"
+                      >
+                        <i className="fas fa-volume-up"></i>
+                      </button>
+                    )}
+                  </p>
                   <div className="hint">
-                    <i className="fas fa-mouse"></i> Click hoặc <kbd>Space</kbd> để
-                    lật thẻ
+                    <i className="fas fa-mouse"></i> Click hoặc <kbd>Space</kbd>{" "}
+                    để lật thẻ
                   </div>
                 </div>
               </div>
               <div className="flashcard-back">
                 <div className="card-content">
                   <h2>{currentCard.word}</h2>
-                  <p className="pronunciation">{currentCard.pronunciation}</p>
+                  <p className="pronunciation">
+                    {currentCard.pronunciation}
+                    {currentCard.pronunciation_audio && (
+                      <button
+                        className="btn-play-audio"
+                        onClick={playAudio}
+                        title="Nghe phát âm"
+                      >
+                        <i className="fas fa-volume-up"></i>
+                      </button>
+                    )}
+                  </p>
                   <p className="meaning">{currentCard.meaning}</p>
 
                   {currentCard.part_of_speech && (
                     <div className="part-of-speech">
-                      <span className="pos-tag">{currentCard.part_of_speech}</span>
+                      <span className="pos-tag">
+                        {currentCard.part_of_speech}
+                      </span>
                     </div>
                   )}
 
@@ -265,7 +304,7 @@ const FlashcardStudy = ({ isAuthenticated }) => {
                     </div>
                   )}
 
-                  {(currentCard.synonyms && currentCard.synonyms.length > 0) && (
+                  {currentCard.synonyms && currentCard.synonyms.length > 0 && (
                     <div className="synonyms">
                       <strong>Từ đồng nghĩa:</strong>{" "}
                       {currentCard.synonyms.join(", ")}
