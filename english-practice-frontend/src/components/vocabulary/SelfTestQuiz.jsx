@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useParams, Link, useNavigate } from "react-router-dom";
+import { useParams, Link, useNavigate, useLocation } from "react-router-dom";
 import { toast } from "react-toastify";
 import api from "../../api";
 import {
@@ -14,12 +14,16 @@ import {
 const SelfTestQuiz = () => {
   const { collectionId } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const [collection, setCollection] = useState(null);
   const [questions, setQuestions] = useState([]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [userAnswers, setUserAnswers] = useState({});
   const [showResults, setShowResults] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const sessionProgress = location.state?.sessionProgress || [];
 
   useEffect(() => {
     fetchQuizData();
@@ -48,8 +52,33 @@ const SelfTestQuiz = () => {
     });
   };
 
-  const handleSubmitQuiz = () => {
-    setShowResults(true);
+  const handleSubmitQuiz = async () => {
+    setIsSubmitting(true);
+    const score = questions.reduce((acc, question) => {
+      return userAnswers[question.id] === question.correct_answer
+        ? acc + 1
+        : acc;
+    }, 0);
+
+    const quizAnswers = questions.map((question) => ({
+      flashcard_id: question.flashcard_id, // Assuming flashcard_id is available
+      is_correct: userAnswers[question.id] === question.correct_answer,
+    }));
+
+    try {
+      await api.post("/vocabulary/session/complete", {
+        collection_id: collectionId,
+        study_progress: sessionProgress,
+        quiz_answers: quizAnswers,
+      });
+      toast.success("Chúc mừng bạn đã hoàn thành bài kiểm tra và buổi học!");
+      setShowResults(true);
+    } catch (error) {
+      console.error("Error saving session progress:", error);
+      toast.error("Lưu tiến độ thất bại, vui lòng thử lại.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   if (loading) {
@@ -148,7 +177,9 @@ const SelfTestQuiz = () => {
                   Next
                 </Button>
               ) : (
-                <Button onClick={handleSubmitQuiz}>Submit</Button>
+                <Button onClick={handleSubmitQuiz} disabled={isSubmitting}>
+                  {isSubmitting ? "Submitting..." : "Submit"}
+                </Button>
               )}
             </Card.Footer>
           </Card>

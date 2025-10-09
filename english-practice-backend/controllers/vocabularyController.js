@@ -419,6 +419,90 @@ exports.saveLearningProgress = async (req, res) => {
   }
 };
 
+exports.saveQuizProgress = async (req, res) => {
+  const { collection_id, answers } = req.body;
+  const user_id = req.user.userId;
+
+  try {
+    const progressDataArray = answers.map((answer) => {
+      const confidence_level = answer.is_correct ? 80 : 20; // Example logic
+      const status = answer.is_correct ? "learned" : "learning";
+      const next_review_date = calculateNextReviewDate(confidence_level);
+
+      return {
+        user_id,
+        flashcard_id: answer.flashcard_id,
+        collection_id,
+        status,
+        confidence_level,
+        next_review_date,
+      };
+    });
+
+    await UserVocabularyLearning.saveBulkProgress(progressDataArray);
+    await UserVocabularyLearning.updateOverallProgress(user_id, collection_id);
+
+    res.status(200).json({ message: "Quiz progress saved successfully" });
+  } catch (err) {
+    console.error("Error saving quiz progress:", err);
+    res.status(500).json({ message: "Lỗi server", error: err.message });
+  }
+};
+
+exports.completeSession = async (req, res) => {
+  const { collection_id, study_progress, quiz_answers } = req.body;
+  const user_id = req.user.userId;
+
+  console.log('--- completeSession ---');
+  console.log('collection_id:', collection_id);
+  console.log('study_progress:', JSON.stringify(study_progress, null, 2));
+  console.log('quiz_answers:', JSON.stringify(quiz_answers, null, 2));
+
+  try {
+    // Combine study progress and quiz answers
+    const allProgress = study_progress.map((progress) => {
+      const next_review_date = calculateNextReviewDate(progress.confidence_level);
+      return {
+        ...progress,
+        user_id,
+        collection_id,
+        next_review_date,
+      };
+    });
+
+    // In a real app, you might want to handle quiz answers differently
+    // For now, we'll just add them to the bulk progress save
+    quiz_answers.forEach((answer) => {
+      const confidence_level = answer.is_correct ? 85 : 25; // Slightly different from study
+      const status = answer.is_correct ? "learned" : "learning";
+      const next_review_date = calculateNextReviewDate(confidence_level);
+
+      allProgress.push({
+        user_id,
+        flashcard_id: answer.flashcard_id,
+        collection_id,
+        status,
+        confidence_level,
+        next_review_date,
+      });
+    });
+
+    console.log('allProgress:', JSON.stringify(allProgress, null, 2));
+
+    if (allProgress.length > 0) {
+      await UserVocabularyLearning.saveBulkProgress(allProgress);
+    }
+
+    await UserVocabularyLearning.updateOverallProgress(user_id, collection_id);
+
+    res.status(200).json({ message: "Session completed and progress saved" });
+
+  } catch (err) {
+    console.error("Error completing session:", err);
+    res.status(500).json({ message: "Lỗi server", error: err.message });
+  }
+};
+
 exports.getLearningProgress = async (req, res) => {
   const user_id = req.user.userId;
   const { collection_id } = req.query;
@@ -437,7 +521,7 @@ exports.getLearningProgress = async (req, res) => {
 
 // Vocabulary Questions
 exports.createVocabularyQuestion = async (req, res) => {
-  const { collection_id, question_type, question_text, options, correct_answer } =
+  const { collection_id, flashcard_id, question_type, question_text, options, correct_answer } =
     req.body;
 
   try {
@@ -452,6 +536,7 @@ exports.createVocabularyQuestion = async (req, res) => {
 
     const results = await VocabularyQuestion.create({
       collection_id,
+      flashcard_id,
       question_type,
       question_text,
       options: parsedOptions,
@@ -508,7 +593,7 @@ exports.getVocabularyQuestions = async (req, res) => {
 
 exports.updateVocabularyQuestion = async (req, res) => {
   const { id } = req.params;
-  const { question_type, question_text, options, correct_answer } = req.body;
+  const { flashcard_id, question_type, question_text, options, correct_answer } = req.body;
 
   try {
     let parsedOptions = options;
@@ -521,6 +606,7 @@ exports.updateVocabularyQuestion = async (req, res) => {
     }
 
     const results = await VocabularyQuestion.update(id, {
+      flashcard_id,
       question_type,
       question_text,
       options: parsedOptions,

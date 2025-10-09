@@ -22,6 +22,8 @@ const {
   getVocabularyQuestions,
   updateVocabularyQuestion,
   deleteVocabularyQuestion,
+  saveQuizProgress,
+  completeSession,
 } = require("../controllers/vocabularyController");
 
 const router = express.Router();
@@ -119,6 +121,9 @@ router.get("/search", auth, searchVocabulary);
 
 // Học từ vựng
 router.post("/learning/progress", auth, saveLearningProgress);
+router.post("/quiz/progress", auth, saveQuizProgress);
+router.post("/session/complete", auth, completeSession);
+
 router.get("/learning/progress", auth, getLearningProgress);
 
 // Import/Export CSV

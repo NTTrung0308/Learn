@@ -241,11 +241,12 @@ const VocabularyQuestion = {
   create: async (questionData) => {
     const sql = `
       INSERT INTO vocabulary_questions
-      (collection_id, question_type, question_text, options, correct_answer)
-      VALUES (?, ?, ?, ?, ?)
+      (collection_id, flashcard_id, question_type, question_text, options, correct_answer)
+      VALUES (?, ?, ?, ?, ?, ?)
     `;
     const [result] = await pool.execute(sql, [
       questionData.collection_id,
+      questionData.flashcard_id,
       questionData.question_type,
       questionData.question_text,
       JSON.stringify(questionData.options || []),
@@ -276,10 +277,11 @@ const VocabularyQuestion = {
   update: async (id, questionData) => {
     const sql = `
       UPDATE vocabulary_questions
-      SET question_type = ?, question_text = ?, options = ?, correct_answer = ?, updated_at = CURRENT_TIMESTAMP
+      SET flashcard_id = ?, question_type = ?, question_text = ?, options = ?, correct_answer = ?, updated_at = CURRENT_TIMESTAMP
       WHERE id = ?
     `;
     const [result] = await pool.execute(sql, [
+      questionData.flashcard_id,
       questionData.question_type,
       questionData.question_text,
       JSON.stringify(questionData.options || []),
@@ -401,6 +403,46 @@ const UserVocabularyLearning = {
       collectionId,
     ]);
     return result;
+  },
+
+  // Lưu hàng loạt tiến độ học tập
+  saveBulkProgress: async (progressDataArray) => {
+    const connection = await pool.getConnection();
+    try {
+      await connection.beginTransaction();
+
+      const sql = `
+        INSERT INTO user_vocabulary_learning 
+        (user_id, flashcard_id, collection_id, status, confidence_level, next_review_date, review_count, last_reviewed_at) 
+        VALUES (?, ?, ?, ?, ?, ?, 1, CURRENT_TIMESTAMP)
+        ON DUPLICATE KEY UPDATE
+          status = VALUES(status),
+          confidence_level = VALUES(confidence_level),
+          next_review_date = VALUES(next_review_date),
+          review_count = review_count + 1,
+          last_reviewed_at = CURRENT_TIMESTAMP,
+          updated_at = CURRENT_TIMESTAMP
+      `;
+
+      for (const progressData of progressDataArray) {
+        await connection.execute(sql, [
+          progressData.user_id,
+          progressData.flashcard_id,
+          progressData.collection_id,
+          progressData.status,
+          progressData.confidence_level,
+          progressData.next_review_date,
+        ]);
+      }
+
+      await connection.commit();
+      return { message: "Bulk progress saved successfully." };
+    } catch (error) {
+      await connection.rollback();
+      throw error;
+    } finally {
+      connection.release();
+    }
   },
 };
 

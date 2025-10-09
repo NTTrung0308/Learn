@@ -13,6 +13,7 @@ const FlashcardStudy = ({ isAuthenticated }) => {
   const [loading, setLoading] = useState(true);
   const [studyMode, setStudyMode] = useState("new"); // new, review, mastered
   const [sessionCards, setSessionCards] = useState([]);
+  const [sessionProgress, setSessionProgress] = useState([]);
 
   useEffect(() => {
     if (collectionId) {
@@ -100,20 +101,16 @@ const FlashcardStudy = ({ isAuthenticated }) => {
         confidenceLevel = 50;
     }
 
-    try {
-      await api.post("/vocabulary/learning/progress", {
+    setSessionProgress([
+      ...sessionProgress,
+      {
         flashcard_id: currentCard.id,
-        collection_id: collectionId,
-        status: confidenceLevel >= 80 ? "mastered" : "learning",
         confidence_level: confidenceLevel,
-      });
+        status: confidenceLevel >= 80 ? "mastered" : "learning",
+      },
+    ]);
 
-      toast.success("Đã lưu tiến độ!");
-      goToNextCard();
-    } catch (error) {
-      console.error("Error saving progress:", error);
-      toast.error("Lỗi khi lưu tiến độ");
-    }
+    goToNextCard();
   };
 
   const goToNextCard = () => {
@@ -123,7 +120,9 @@ const FlashcardStudy = ({ isAuthenticated }) => {
     } else {
       // Kết thúc session
       toast.success("Chúc mừng! Bạn đã hoàn thành buổi học này!");
-      navigate(`/vocabulary-collections/${collectionId}/self-test`);
+      navigate(`/vocabulary-collections/${collectionId}/self-test`, {
+        state: { sessionProgress },
+      });
     }
   };
 
