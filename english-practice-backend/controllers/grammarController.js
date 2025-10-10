@@ -829,7 +829,12 @@ exports.saveGrammarProgress = async (req, res) => {
 exports.analyzeGrammarResult = async (req, res) => {
   const { quiz, results } = req.body;
 
-  if (!quiz || !results || !Array.isArray(quiz.exercises) || !Array.isArray(results)) {
+  if (
+    !quiz ||
+    !results ||
+    !Array.isArray(quiz.exercises) ||
+    !Array.isArray(results)
+  ) {
     return res.status(400).json({ message: "Dữ liệu bài làm không hợp lệ" });
   }
 
@@ -837,25 +842,39 @@ exports.analyzeGrammarResult = async (req, res) => {
     const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
     const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" }); // or another model
 
-    const incorrectAnswers = results.map((result, index) => ({...result, ...quiz.exercises[index]})).filter(q => !q.isCorrect);
+    const incorrectAnswers = results
+      .map((result, index) => ({ ...result, ...quiz.exercises[index] }))
+      .filter((q) => !q.isCorrect);
 
     if (incorrectAnswers.length === 0) {
-      return res.json({ analysis: "Chúc mừng! Bạn đã trả lời đúng tất cả các câu hỏi. Không có gì cần phân tích thêm." });
+      return res.json({
+        analysis:
+          "Chúc mừng! Bạn đã trả lời đúng tất cả các câu hỏi. Không có gì cần phân tích thêm.",
+      });
     }
 
     const prompt = `
       Bạn là một giáo viên tiếng Anh chuyên nghiệp. Hãy phân tích kết quả bài làm ngữ pháp của một học sinh và đưa ra nhận xét chi tiết bằng tiếng Việt.
       Dưới đây là danh sách các câu hỏi học sinh đã trả lời sai:
 
-      ${incorrectAnswers.map((q, index) => {
-        const userAnswerText = q.question_type === 'multiple_choice' ? q.options[q.userAnswer] : q.userAnswer;
-        const correctAnswerText = q.question_type === 'multiple_choice' ? q.options[q.correctAnswer] : q.correctAnswer;
-        return `
+      ${incorrectAnswers
+        .map((q, index) => {
+          const userAnswerText =
+            q.question_type === "multiple_choice"
+              ? q.options[q.userAnswer]
+              : q.userAnswer;
+          const correctAnswerText =
+            q.question_type === "multiple_choice"
+              ? q.options[q.correctAnswer]
+              : q.correctAnswer;
+          return `
         Câu ${index + 1}:
         - Đề bài: ${q.question_text}
         - Câu trả lời của học sinh: "${userAnswerText}"
         - Đáp án đúng: "${correctAnswerText}"
-      `}).join(`\n`)}
+      `;
+        })
+        .join(`\n`)}
 
       Yêu cầu:
       1. Với mỗi câu trả lời sai, hãy giải thích rõ ràng tại sao đáp án của học sinh lại sai và tại sao đáp án đúng lại đúng. Tập trung vào các quy tắc ngữ pháp.
@@ -868,9 +887,13 @@ exports.analyzeGrammarResult = async (req, res) => {
     const analysis = await response.text();
 
     res.json({ analysis });
-
   } catch (error) {
     console.error("Error analyzing grammar result with AI:", error);
-    res.status(500).json({ message: "Lỗi máy chủ khi phân tích kết quả với AI", error: error.message });
+    res
+      .status(500)
+      .json({
+        message: "Lỗi máy chủ khi phân tích kết quả với AI",
+        error: error.message,
+      });
   }
 };
