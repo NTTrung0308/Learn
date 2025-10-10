@@ -621,7 +621,7 @@ const VocabularyManagement = ({ handleLogout }) => {
 
   return (
     <Layout handleLogout={handleLogout}>
-      <div className="container mt-5">
+      <div className="page-inner mt-3">
         <div className="d-flex justify-content-between align-items-center mb-4">
           <h2>Quản lý Từ vựng</h2>
           <div>
@@ -856,7 +856,7 @@ const VocabularyManagement = ({ handleLogout }) => {
                       )}
                     </Card.Body>
                     <Card.Footer>
-                      <div className="d-flex justify-content-between">
+                      <div className="d-flex justify-content-end">
                         <Button
                           variant="outline-info"
                           size="sm"

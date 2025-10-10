@@ -5,6 +5,7 @@ import {
   Route,
   Navigate,
   useLocation,
+  useNavigate,
 } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -25,13 +26,19 @@ function AppContent({
   isAuthenticated,
   userRole,
   userId,
-  handleLogout,
+  handleLogout: originalHandleLogout,
   setAuth,
   setUserRole,
   setUserId,
   isLoading,
 }) {
   const location = useLocation();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    originalHandleLogout();
+    navigate("/login");
+  };
 
   // Các route không hiển thị navbar
   const hideNavbarPaths = [

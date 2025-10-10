@@ -14,6 +14,7 @@ const {
   deleteQuestion,
   submitExam, // Added back
   getExamResult, // Added back
+  getExamHistory,
   analyzeExamResult,
 } = require("../controllers/examController");
 
@@ -66,6 +67,7 @@ const upload = multer({
 // Routes cho đề thi
 router.post("/", auth, createExam);
 router.get("/", getAllExams);
+router.get("/history", auth, getExamHistory);
 router.get("/:id", getExamDetail);
 router.put("/:id", auth, updateExam);
 router.delete("/:id", auth, deleteExam);

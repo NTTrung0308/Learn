@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import logo from "../../assets/img/logo/logo.png";
 import avatar from "../../assets/img/profile.jpg";
 
-const Header = ({ toggleSidebar, handleLogout, user }) => {
+const Header = ({ toggleSidebar, toggleSidebarOpen, handleLogout, user }) => {
   const defaultAvatar = avatar;
 
   return (
@@ -27,18 +27,18 @@ const Header = ({ toggleSidebar, handleLogout, user }) => {
             </button>
             <button
               className="btn btn-toggle sidenav-toggler"
-              onClick={toggleSidebar}
+              onClick={toggleSidebarOpen}
             >
               <i className="gg-menu-left"></i>
             </button>
           </div>
-          <button className="topbar-toggler more">
+          {/* <button className="topbar-toggler more" onClick={toggleSidebarOpen}>
             <i className="gg-more-vertical-alt"></i>
-          </button>
+          </button> */}
         </div>
       </div>
       <nav className="navbar navbar-header navbar-header-transparent navbar-expand-lg border-bottom">
-        <div className="container-fluid">
+        <div className="container">
           <nav className="navbar navbar-header-left navbar-expand-lg navbar-form nav-search p-0 d-none d-lg-flex">
             <div className="input-group"></div>
           </nav>
@@ -61,9 +61,12 @@ const Header = ({ toggleSidebar, handleLogout, user }) => {
                     className="avatar-img rounded-circle"
                   />
                 </div>
-                <span className="profile-username">
-                  <span className="op-7">Hi,</span>
-                  <span className="fw-bold">
+                <span className="profile-username d-flex flex-column text-start">
+                  <span className="op-7">Xin chào,</span>
+                  <span
+                    className="fw-bold text-truncate"
+                    style={{ maxWidth: "150px" }}
+                  >
                     {user ? user.display_name : "User"}
                   </span>
                 </span>
@@ -88,27 +91,17 @@ const Header = ({ toggleSidebar, handleLogout, user }) => {
                         <p className="text-muted">
                           {user ? user.email : "user@example.com"}
                         </p>
-                        {/* <Link
-                          to="/profile"
-                          className="btn btn-xs btn-secondary btn-sm"
-                        >
-                          View Profile
-                        </Link> */}
                       </div>
                     </div>
                   </li>
                   <li>
                     <div className="dropdown-divider"></div>
-                    {/* <Link className="dropdown-item" to="/profile">
-                      My Profile
-                    </Link> */}
-                    {/* <div className="dropdown-divider"></div> */}
                     <Link
                       className="dropdown-item"
                       to={"#"}
                       onClick={handleLogout}
                     >
-                      Logout
+                      Đăng xuất
                     </Link>
                   </li>
                 </div>

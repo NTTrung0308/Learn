@@ -7,12 +7,23 @@ import axios from "axios";
 
 const Layout = ({ children, handleLogout }) => {
   const [isSidebarMinimized, setSidebarMinimized] = useState(false);
+  const [isSidebarOpened, setSidebarOpened] = useState(false);
   const [user, setUser] = useState(null);
   const location = useLocation();
 
-  const toggleSidebar = () => {
+  const toggleSidebarMinimize = () => {
     setSidebarMinimized(!isSidebarMinimized);
-    document.body.classList.toggle("sidebar_minimize");
+  };
+
+  const toggleSidebarOpen = () => {
+    setSidebarOpened(!isSidebarOpened);
+  };
+
+  // Đóng sidebar khi chuyển route (trên mobile)
+  const closeSidebar = () => {
+    if (window.innerWidth < 992) {
+      setSidebarOpened(false);
+    }
   };
 
   useEffect(() => {
@@ -35,25 +46,42 @@ const Layout = ({ children, handleLogout }) => {
   }, []);
 
   useEffect(() => {
-    // Đảm bảo DOM đã sẵn sàng
-    if (typeof window !== "undefined" && window.$) {
-      // Khởi tạo lại các plugin nếu cần
-      try {
-        // Gọi các hàm khởi tạo từ kaiadmin.js nếu cần
-        if (window.initKaiAdmin) {
-          window.initKaiAdmin();
-        }
-      } catch (error) {
-        console.warn("Lỗi khởi tạo plugin:", error);
-      }
-    }
+    closeSidebar();
   }, [location.pathname]);
 
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 992) {
+        setSidebarOpened(false);
+      }
+    };
+
+    window.addEventListener("resize", handleResize);
+    handleResize();
+
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
   return (
-    <div className={`wrapper ${isSidebarMinimized ? "sidebar_minimize" : ""}`}>
-      <Sidebar toggleSidebar={toggleSidebar} />
+    <div
+      className={`wrapper ${isSidebarMinimized ? "sidebar_minimize" : ""} ${
+        isSidebarOpened ? "nav_open" : ""
+      }`}
+    >
+      <Sidebar
+        toggleSidebar={toggleSidebarMinimize}
+        toggleSidebarOpen={toggleSidebarOpen}
+        handleLogout={handleLogout}
+        closeSidebar={closeSidebar} // Thêm prop mới
+      />
       <div className="main-panel">
-        <Header toggleSidebar={toggleSidebar} handleLogout={handleLogout} user={user} />
+        <Header
+          toggleSidebar={toggleSidebarMinimize}
+          toggleSidebarOpen={toggleSidebarOpen}
+          handleLogout={handleLogout}
+          user={user}
+          isSidebarOpened={isSidebarOpened}
+        />
         <div className="container">{children}</div>
         <Footer />
       </div>

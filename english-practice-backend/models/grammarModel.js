@@ -1,5 +1,12 @@
 const pool = require("../config/database");
 
+const Grammar = {};
+
+Grammar.getHistoryByUserId = async (userId) => {
+  const [rows] = await UserGrammarPractice.findByUser(userId);
+  return rows;
+};
+
 const GrammarTopic = {
   // Tạo chủ đề mới
   create: async (topicData) => {
@@ -511,13 +518,4 @@ const UserGrammarProgress = {
 };
 
 // Thêm vào module.exports
-module.exports = {
-  GrammarTopic,
-  GrammarLesson,
-  GrammarExercise,
-  GrammarCSV,
-  GrammarExample,
-  GrammarPractice,
-  UserGrammarPractice,
-  UserGrammarProgress,
-};
+module.exports = Grammar;

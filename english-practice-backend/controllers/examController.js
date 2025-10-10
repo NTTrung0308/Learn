@@ -631,6 +631,17 @@ exports.getExamResult = async (req, res) => {
   }
 };
 
+exports.getExamHistory = async (req, res) => {
+  const user_id = req.user.userId;
+  try {
+    const [results] = await ExamResult.findExamResultsByUserId(user_id);
+    res.json(results);
+  } catch (err) {
+    console.error("Error fetching exam history:", err);
+    res.status(500).json({ message: "Lỗi server", error: err });
+  }
+};
+
 
 exports.analyzeExamResult = async (req, res) => {
   const { detailedResults } = req.body;

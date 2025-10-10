@@ -1,6 +1,15 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { Modal, Button, Form, Table, Tabs, Tab, Row, Col } from "react-bootstrap";
+import {
+  Modal,
+  Button,
+  Form,
+  Table,
+  Tabs,
+  Tab,
+  Row,
+  Col,
+} from "react-bootstrap";
 import { toast } from "react-toastify";
 import Swal from "sweetalert2";
 import withReactContent from "sweetalert2-react-content";
@@ -303,7 +312,7 @@ const ExamManagement = ({ handleLogout }) => {
 
   return (
     <Layout handleLogout={handleLogout}>
-      <div className="container mt-5">
+      <div className="page-inner mt-3">
         <div className="d-flex justify-content-between align-items-center mb-4">
           <h2>Quản lý Đề thi IELTS</h2>
           <Button variant="primary" onClick={() => setShowModal(true)}>
@@ -318,7 +327,7 @@ const ExamManagement = ({ handleLogout }) => {
         >
           <Tab eventKey="exams" title="Danh sách Đề thi">
             <Row className="mb-3 mt-3">
-              <Col md={4}>
+              <Col md={4} className="mb-2">
                 <Form.Control
                   type="text"
                   placeholder="Tìm kiếm..."
@@ -326,8 +335,11 @@ const ExamManagement = ({ handleLogout }) => {
                   onChange={(e) => setSearch(e.target.value)}
                 />
               </Col>
-              <Col md={3}>
-                <Form.Select value={examType} onChange={(e) => setExamType(e.target.value)}>
+              <Col md={3} className="mb-2">
+                <Form.Select
+                  value={examType}
+                  onChange={(e) => setExamType(e.target.value)}
+                >
                   <option value="">Tất cả các loại</option>
                   <option value="listening">Listening</option>
                   <option value="reading">Reading</option>
@@ -337,7 +349,7 @@ const ExamManagement = ({ handleLogout }) => {
                 </Form.Select>
               </Col>
             </Row>
-            <Table striped bordered hover>
+            <Table striped bordered hover responsive>
               <thead>
                 <tr>
                   <th>Tiêu đề</th>
@@ -422,7 +434,7 @@ const ExamManagement = ({ handleLogout }) => {
             {currentExam ? (
               <div>
                 <h4>Câu hỏi trong: {currentExam.title}</h4>
-                <Table striped bordered hover>
+                <Table striped bordered hover responsive>
                   <thead>
                     <tr>
                       <th>#</th>

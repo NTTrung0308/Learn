@@ -22,8 +22,10 @@ const GrammarExamplesAndPractices = ({ lessonId, lessonTitle }) => {
   const [practices, setPractices] = useState([]);
   const [showExampleModal, setShowExampleModal] = useState(false);
   const [showPracticeModal, setShowPracticeModal] = useState(false);
+  const [showPracticeDetailModal, setShowPracticeDetailModal] = useState(false);
   const [editingExample, setEditingExample] = useState(null);
   const [editingPractice, setEditingPractice] = useState(null);
+  const [selectedPractice, setSelectedPractice] = useState(null);
   const [activeTab, setActiveTab] = useState("examples");
 
   const [exampleForm, setExampleForm] = useState({
@@ -303,7 +305,7 @@ const GrammarExamplesAndPractices = ({ lessonId, lessonTitle }) => {
   }
 
   return (
-    <div className="container">
+    <div className="page-inner">
       <div className="d-flex justify-content-between align-items-center mb-4">
         <h4>Quản lý Ví dụ & Bài tập - {lessonTitle}</h4>
         <div>
@@ -344,7 +346,7 @@ const GrammarExamplesAndPractices = ({ lessonId, lessonTitle }) => {
                         <strong>Ghi chú:</strong> {example.notes}
                       </Card.Text>
                     )}
-                    <div className="d-flex justify-content-between mt-3">
+                    <div className="d-flex justify-content-end mt-3">
                       <Button
                         variant="outline-info"
                         size="sm"
@@ -392,22 +394,13 @@ const GrammarExamplesAndPractices = ({ lessonId, lessonTitle }) => {
                     </div>
                   </Card.Body>
                   <Card.Footer>
-                    <div className="d-flex justify-content-between">
+                    <div className="d-flex justify-content-end">
                       <Button
                         variant="outline-info"
                         size="sm"
                         onClick={() => openPracticeModal(practice)}
                       >
                         Sửa
-                      </Button>
-                      <Button
-                        variant="outline-primary"
-                        size="sm"
-                        onClick={() => {
-                          /* Xem chi tiết */
-                        }}
-                      >
-                        Xem
                       </Button>
                     </div>
                   </Card.Footer>
