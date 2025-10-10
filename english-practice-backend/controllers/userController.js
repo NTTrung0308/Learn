@@ -1,7 +1,7 @@
 const User = require("../models/userModel");
-const Exam = require("../models/examModel");
-const Grammar = require("../models/grammarModel");
-const Vocabulary = require("../models/vocabularyModel");
+const { Exam } = require("../models/examModel");
+const { Grammar } = require("../models/grammarModel");
+const { Vocabulary } = require("../models/vocabularyModel");
 
 const getProfile = async (req, res) => {
   try {

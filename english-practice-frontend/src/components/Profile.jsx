@@ -159,7 +159,12 @@ const Profile = () => {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
-      setLearningHistory(response.data);
+            setLearningHistory({
+        examHistory: [],
+        grammarHistory: [],
+        vocabularyHistory: [],
+        ...response.data,
+      });
     } catch (error) {
       console.error("Error fetching learning history:", error);
       toast.error("Không thể tải lịch sử học tập");
@@ -176,7 +181,7 @@ const Profile = () => {
             {learningHistory.examHistory.map((item) => (
               <li key={item.result_id}>
                 <strong>{item.exam_title}</strong> - Điểm: {item.score} - Ngày:{" "}
-                {new Date(item.completed_at).toLocaleDateString()}
+                {new Date(item.submitted_at).toLocaleDateString()}
               </li>
             ))}
           </ul>
@@ -191,7 +196,7 @@ const Profile = () => {
             {learningHistory.grammarHistory.map((item) => (
               <li key={item.id}>
                 <strong>{item.title}</strong> - Hoàn thành:{" "}
-                {new Date(item.learned_at).toLocaleDateString()}
+                {new Date(item.completed_at).toLocaleDateString()}
               </li>
             ))}
           </ul>
@@ -206,7 +211,7 @@ const Profile = () => {
             {learningHistory.vocabularyHistory.map((item) => (
               <li key={item.id}>
                 <strong>{item.collection_name}</strong> - Hoàn thành:{" "}
-                {new Date(item.learned_at).toLocaleDateString()}
+                {new Date(item.last_reviewed_at).toLocaleDateString()}
               </li>
             ))}
           </ul>

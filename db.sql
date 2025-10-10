@@ -13,7 +13,7 @@ CREATE TABLE users (
   display_name VARCHAR(255) NULL,
   role ENUM('superadmin', 'admin', 'teacher', 'student', 'user') NOT NULL DEFAULT 'user',
   avatar VARCHAR(255) NULL,
-  is_premium TINYINT(1) DEFAULT 0 AFTER role;
+  is_premium TINYINT(1) DEFAULT 0 AFTER role,
   learning_goal TEXT NULL, 
   is_verified BOOLEAN DEFAULT FALSE,
   verification_token VARCHAR(255) NULL,

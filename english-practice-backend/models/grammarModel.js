@@ -3,8 +3,7 @@ const pool = require("../config/database");
 const Grammar = {};
 
 Grammar.getHistoryByUserId = async (userId) => {
-  const [rows] = await UserGrammarPractice.findByUser(userId);
-  return rows;
+  return await UserGrammarPractice.findByUser(userId);
 };
 
 const GrammarTopic = {
@@ -517,5 +516,15 @@ const UserGrammarProgress = {
   },
 };
 
-// Thêm vào module.exports
-module.exports = Grammar;
+// Thêm vào
+module.exports = {
+  Grammar,
+  GrammarTopic,
+  GrammarLesson,
+  GrammarExercise,
+  GrammarCSV,
+  GrammarExample,
+  GrammarPractice,
+  UserGrammarPractice,
+  UserGrammarProgress,
+};

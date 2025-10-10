@@ -99,7 +99,7 @@ Exam.getHistoryByUserId = async (userId) => {
     FROM exam_results er
     JOIN exams e ON er.exam_id = e.id
     WHERE er.user_id = ?
-    ORDER BY er.created_at DESC
+    ORDER BY er.submitted_at DESC
   `;
   const [rows] = await db.execute(sql, [userId]);
   return rows;
@@ -202,7 +202,7 @@ ExamResult.findLatestByExamAndUser = async (examId, userId) => {
   const sql = `
     SELECT * FROM exam_results 
     WHERE exam_id = ? AND user_id = ? 
-    ORDER BY created_at DESC 
+    ORDER BY submitted_at DESC 
     LIMIT 1
   `;
   return await db.execute(sql, [examId, userId]);
@@ -214,7 +214,7 @@ ExamResult.findExamResultsByUserId = async (userId) => {
     FROM exam_results er
     JOIN exams e ON er.exam_id = e.id
     WHERE er.user_id = ?
-    ORDER BY er.created_at DESC
+    ORDER BY er.submitted_at DESC
   `;
   return await db.execute(sql, [userId]);
 };
@@ -243,4 +243,9 @@ ExamSubmission.findByResultId = async (resultId) => {
   return await db.execute(sql, [resultId]);
 };
 
-module.exports = Exam;
+module.exports = {
+  Exam,
+  Question,
+  ExamResult,
+  ExamSubmission,
+};

@@ -3,8 +3,7 @@ const pool = require("../config/database");
 const Vocabulary = {};
 
 Vocabulary.getHistoryByUserId = async (userId) => {
-  const [rows] = await UserVocabularyLearning.findByUser(userId);
-  return rows;
+  return await UserVocabularyLearning.findByUser(userId);
 };
 
 const VocabularyCollection = {
@@ -477,4 +476,11 @@ const VocabularyCSV = {
   },
 };
 
-module.exports = Vocabulary;
+module.exports = {
+  Vocabulary,
+  VocabularyCollection,
+  VocabularyFlashcard,
+  VocabularyQuestion,
+  UserVocabularyLearning,
+  VocabularyCSV,
+};

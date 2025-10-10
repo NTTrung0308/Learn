@@ -93,6 +93,17 @@ const GrammarLearning = () => {
       });
 
       const totalScore = (score / quiz.exercises.reduce((sum, ex) => sum + (ex.points || 1), 0)) * 100;
+
+      // Save practice history
+      if (quiz.exercises.length > 0) {
+        const firstExercise = quiz.exercises[0];
+        await api.post("http://localhost:5000/api/grammar/practices/submit", {
+          practice_id: firstExercise.practice_id,
+          answers: answers,
+          time_spent: timeSpent,
+          score: totalScore,
+        });
+      }
       
       setQuizResult({
         score: totalScore,
