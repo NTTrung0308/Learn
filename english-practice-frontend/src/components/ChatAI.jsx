@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import "./assets/css/ChatAI.css";
 import api from "../api";
 
@@ -12,6 +12,8 @@ const ChatAI = () => {
   ]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [isRecording, setIsRecording] = useState(false);
+  const recognitionRef = useRef(null);
 
   const toggleChat = () => {
     setIsOpen(!isOpen);
@@ -52,7 +54,99 @@ const ChatAI = () => {
     }
   };
 
-  // Tối ưu auto-scroll
+  const handleToggleRecording = () => {
+    if (isRecording) {
+      stopRecording();
+    } else {
+      startRecording();
+    }
+  };
+
+  const startRecording = () => {
+    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+      alert("Trình duyệt của bạn không hỗ trợ nhận dạng giọng nói. Vui lòng sử dụng Chrome hoặc Edge.");
+      return;
+    }
+
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    recognitionRef.current = new SpeechRecognition();
+    
+    recognitionRef.current.continuous = false;
+    recognitionRef.current.interimResults = true;
+    recognitionRef.current.lang = 'en-US';
+
+    recognitionRef.current.onstart = () => {
+      setIsRecording(true);
+    };
+
+    recognitionRef.current.onresult = (event) => {
+      let finalTranscript = '';
+      let interimTranscript = '';
+
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        const transcript = event.results[i][0].transcript;
+        if (event.results[i].isFinal) {
+          finalTranscript += transcript;
+        } else {
+          interimTranscript += transcript;
+        }
+      }
+
+      setInput(finalTranscript || interimTranscript);
+    };
+
+    recognitionRef.current.onerror = (event) => {
+      console.error('Speech recognition error:', event.error);
+      setIsRecording(false);
+      
+      if (event.error === 'not-allowed') {
+        alert('Vui lòng cho phép sử dụng microphone để ghi âm.');
+      }
+    };
+
+    recognitionRef.current.onend = () => {
+      setIsRecording(false);
+      if (input.trim()) {
+        handleSendVoiceMessage(input);
+      }
+    };
+
+    recognitionRef.current.start();
+  };
+
+  const stopRecording = () => {
+    if (recognitionRef.current) {
+      recognitionRef.current.stop();
+    }
+    setIsRecording(false);
+  };
+
+  const handleSendVoiceMessage = async (voiceText) => {
+    if (!voiceText.trim()) return;
+
+    const userMessage = { text: voiceText, sender: "user" };
+    setMessages((prev) => [...prev, userMessage]);
+    setInput("");
+    setIsLoading(true);
+
+    try {
+      const response = await api.post("/chat/voice-feedback", { 
+        transcription: voiceText 
+      });
+      const aiMessage = { text: response.data.reply, sender: "ai" };
+      setMessages((prev) => [...prev, aiMessage]);
+    } catch (error) {
+      console.error("Error sending voice message:", error);
+      const errorMessage = {
+        text: "Xin lỗi, tôi không thể xử lý tin nhắn thoại của bạn.",
+        sender: "ai",
+      };
+      setMessages((prev) => [...prev, errorMessage]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   useEffect(() => {
     const messagesContainer = document.querySelector(".chat-ai-messages");
     if (messagesContainer) {
@@ -63,7 +157,6 @@ const ChatAI = () => {
     }
   }, [messages, isLoading]);
 
-  // Thêm tính năng clear chat
   const clearChat = () => {
     setMessages([
       {
@@ -123,12 +216,20 @@ const ChatAI = () => {
               value={input}
               onChange={handleInputChange}
               onKeyPress={handleKeyPress}
-              placeholder="Nhập câu hỏi tiếng Anh của bạn..."
-              disabled={isLoading}
+              placeholder={isRecording ? "Đang nghe..." : "Nhập câu hỏi tiếng Anh của bạn..."}
+              disabled={isLoading || isRecording}
             />
             <button
+              onClick={handleToggleRecording}
+              className={`record-button ${isRecording ? "recording" : ""}`}
+              title={isRecording ? "Dừng ghi âm" : "Ghi âm"}
+              disabled={isLoading}
+            >
+              <i className={`fas ${isRecording ? "fa-stop" : "fa-microphone"}`}></i>
+            </button>
+            <button
               onClick={handleSendMessage}
-              disabled={isLoading || input.trim() === ""}
+              disabled={isLoading || input.trim() === "" || isRecording}
               className="send-button"
             >
               {isLoading ? (
@@ -138,6 +239,12 @@ const ChatAI = () => {
               )}
             </button>
           </div>
+          {isRecording && (
+            <div className="recording-indicator">
+              <div className="pulse-animation"></div>
+              <span>Đang ghi âm... Nói tiếng Anh vào microphone</span>
+            </div>
+          )}
         </div>
       )}
     </div>
