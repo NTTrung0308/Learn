@@ -210,7 +210,7 @@ const Profile = () => {
           <ul>
             {learningHistory.vocabularyHistory.map((item) => (
               <li key={item.id}>
-                <strong>{item.collection_name}</strong> - Hoàn thành:{" "}
+                <strong>{item.collection_title}</strong> - Hoàn thành:{" "}
                 {new Date(item.last_reviewed_at).toLocaleDateString()}
               </li>
             ))}

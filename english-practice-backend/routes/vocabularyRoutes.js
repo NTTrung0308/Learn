@@ -24,6 +24,7 @@ const {
   deleteVocabularyQuestion,
   saveQuizProgress,
   completeSession,
+  analyzeQuizResult,
 } = require("../controllers/vocabularyController");
 
 const router = express.Router();
@@ -123,6 +124,7 @@ router.get("/search", auth, searchVocabulary);
 router.post("/learning/progress", auth, saveLearningProgress);
 router.post("/quiz/progress", auth, saveQuizProgress);
 router.post("/session/complete", auth, completeSession);
+router.post("/analyze", auth, analyzeQuizResult);
 
 router.get("/learning/progress", auth, getLearningProgress);
 

@@ -249,6 +249,7 @@ CREATE TABLE `vocabulary_flashcards` (
 CREATE TABLE `vocabulary_questions` (
   `id` INT AUTO_INCREMENT PRIMARY KEY,
   `collection_id` INT NOT NULL,
+  `flashcard_id` INT NULL DEFAULT NULL,
   `question_type` ENUM('multiple_choice', 'fill_in_the_blank', 'translation') NOT NULL,
   `question_text` TEXT NOT NULL,
   `options` JSON,
@@ -256,7 +257,9 @@ CREATE TABLE `vocabulary_questions` (
   `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   CONSTRAINT `fk_vocab_questions_collection` FOREIGN KEY (`collection_id`)
-  REFERENCES `vocabulary_collections`(`id`) ON DELETE CASCADE
+  REFERENCES `vocabulary_collections`(`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_vocab_questions_flashcard` FOREIGN KEY (`flashcard_id`)
+  REFERENCES `vocabulary_flashcards`(`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 

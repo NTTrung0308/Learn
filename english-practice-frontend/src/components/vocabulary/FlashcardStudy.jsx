@@ -82,7 +82,7 @@ const FlashcardStudy = ({ isAuthenticated }) => {
     if (!isAuthenticated) {
       toast.info("Đăng nhập để lưu tiến độ học tập");
       // Vẫn cho phép học tiếp dù chưa đăng nhập
-      goToNextCard();
+      goToNextCard([]);
       return;
     }
 
@@ -103,19 +103,20 @@ const FlashcardStudy = ({ isAuthenticated }) => {
         confidenceLevel = 50;
     }
 
-    setSessionProgress([
+    const newProgress = [
       ...sessionProgress,
       {
         flashcard_id: currentCard.id,
         confidence_level: confidenceLevel,
         status: confidenceLevel >= 80 ? "mastered" : "learning",
       },
-    ]);
+    ];
+    setSessionProgress(newProgress);
 
-    goToNextCard();
+    goToNextCard(newProgress);
   };
 
-  const goToNextCard = () => {
+  const goToNextCard = (currentProgress) => {
     if (currentIndex < sessionCards.length - 1) {
       setCurrentIndex(currentIndex + 1);
       setIsFlipped(false);
@@ -123,7 +124,7 @@ const FlashcardStudy = ({ isAuthenticated }) => {
       // Kết thúc session
       toast.success("Chúc mừng! Bạn đã hoàn thành buổi học này!");
       navigate(`/vocabulary-collections/${collectionId}/self-test`, {
-        state: { sessionProgress },
+        state: { sessionProgress: currentProgress },
       });
     }
   };

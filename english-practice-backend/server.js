@@ -11,6 +11,7 @@ const examRoutes = require("./routes/examRoutes");
 const grammarRoutes = require("./routes/grammarRoutes");
 const vocabulary = require("./routes/vocabularyRoutes");
 const adminRoutes = require("./routes/adminRoutes");
+const chatRoutes = require("./routes/chatRoutes");
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -50,6 +51,7 @@ app.use("/api/exams", examRoutes);
 app.use("/api/grammar", grammarRoutes);
 app.use("/api/vocabulary", vocabulary);
 app.use("/api/admin", adminRoutes);
+app.use("/api/chat", chatRoutes);
 
 // Health check endpoint
 app.get("/api/health", (req, res) => {
