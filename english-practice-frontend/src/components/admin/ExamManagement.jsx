@@ -37,6 +37,7 @@ const ExamManagement = ({ handleLogout }) => {
     description: "",
     exam_type: "listening",
     duration: 30,
+    difficulty: "easy",
   });
 
   const [questionForm, setQuestionForm] = useState({
@@ -114,6 +115,7 @@ const ExamManagement = ({ handleLogout }) => {
         description: "",
         exam_type: "listening",
         duration: 30,
+        difficulty: "easy",
       });
       fetchExams();
     } catch (error) {
@@ -542,6 +544,21 @@ const ExamManagement = ({ handleLogout }) => {
                   <option value="writing">Writing</option>
                   <option value="speaking">Speaking</option>
                   <option value="full_test">Full Test</option>
+                </Form.Select>
+              </Form.Group>
+
+              <Form.Group className="mb-3">
+                <Form.Label>Độ khó</Form.Label>
+                <Form.Select
+                  value={examForm.difficulty}
+                  onChange={(e) =>
+                    setExamForm({ ...examForm, difficulty: e.target.value })
+                  }
+                >
+                  <option value="easy">Dễ</option>
+                  <option value="medium">Trung bình</option>
+                  <option value="hard">Khó</option>
+                  <option value="expert">Chuyên gia</option>
                 </Form.Select>
               </Form.Group>
 

@@ -16,6 +16,7 @@ import './App.css';
 import './components/styles/jquery-init.js';
 
 import Navbar from "./components/Navbar";
+import Footer from "./components/layout/Footer";
 
 import AppRoutes from "./routers/AppRoutes";
 import BackToTop from "./components/BackToTop";
@@ -93,6 +94,7 @@ function AppContent({
         setUserId={setUserId}
         handleLogout={handleLogout}
       />
+      {!hideNavbarPaths.includes(location.pathname) && <Footer />}
       <BackToTop />
       {!hideNavbarPaths.includes(location.pathname) && <ChatAI />}
     </>

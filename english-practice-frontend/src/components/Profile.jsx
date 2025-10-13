@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
-import "../public/assets/css/style.css";
+import "./assets/css/profile.css"; // Thêm file CSS riêng
 
 const Profile = () => {
   const [user, setUser] = useState({
@@ -19,12 +19,24 @@ const Profile = () => {
     confirmPassword: "",
   });
   const [pwLoading, setPwLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState("profile");
+  const [learningHistory, setLearningHistory] = useState({
+    examHistory: [],
+    grammarHistory: [],
+    vocabularyHistory: [],
+  });
 
   const fileInputRef = useRef(null);
 
   useEffect(() => {
     fetchUserProfile();
   }, []);
+
+  useEffect(() => {
+    if (activeTab === "history") {
+      fetchLearningHistory();
+    }
+  }, [activeTab]);
 
   const fetchUserProfile = async () => {
     try {
@@ -137,19 +149,6 @@ const Profile = () => {
     }
   };
 
-  const [activeTab, setActiveTab] = useState("profile");
-  const [learningHistory, setLearningHistory] = useState({
-    examHistory: [],
-    grammarHistory: [],
-    vocabularyHistory: [],
-  });
-
-  useEffect(() => {
-    if (activeTab === "history") {
-      fetchLearningHistory();
-    }
-  }, [activeTab]);
-
   const fetchLearningHistory = async () => {
     try {
       const token = localStorage.getItem("token");
@@ -159,7 +158,7 @@ const Profile = () => {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
-            setLearningHistory({
+      setLearningHistory({
         examHistory: [],
         grammarHistory: [],
         vocabularyHistory: [],
@@ -172,230 +171,268 @@ const Profile = () => {
   };
 
   const renderLearningHistory = () => (
-    <div>
-      <h3>Lịch sử học tập</h3>
+    <div className="history-container">
+      <h3 className="section-title">Lịch sử học tập</h3>
+      
       <div className="history-section">
-        <h4>Lịch sử làm bài thi</h4>
+        <h4 className="history-section-title">
+          <span className="icon">📝</span>
+          Lịch sử làm bài thi
+        </h4>
         {learningHistory.examHistory.length > 0 ? (
-          <ul>
+          <div className="history-list">
             {learningHistory.examHistory.map((item) => (
-              <li key={item.result_id}>
-                <strong>{item.exam_title}</strong> - Điểm: {item.score} - Ngày:{" "}
-                {new Date(item.submitted_at).toLocaleDateString()}
-              </li>
+              <div key={item.result_id} className="history-item">
+                <div className="history-item-main">
+                  <strong className="history-item-title">{item.exam_title}</strong>
+                  <span className="history-item-score">Điểm: {item.score}</span>
+                </div>
+                <div className="history-item-date">
+                  {new Date(item.submitted_at).toLocaleDateString("vi-VN")}
+                </div>
+              </div>
             ))}
-          </ul>
+          </div>
         ) : (
-          <p>Chưa có lịch sử làm bài thi.</p>
+          <div className="empty-state">
+            <p>Chưa có lịch sử làm bài thi.</p>
+          </div>
         )}
       </div>
+      
       <div className="history-section">
-        <h4>Lịch sử học ngữ pháp</h4>
+        <h4 className="history-section-title">
+          <span className="icon">📚</span>
+          Lịch sử học ngữ pháp
+        </h4>
         {learningHistory.grammarHistory.length > 0 ? (
-          <ul>
+          <div className="history-list">
             {learningHistory.grammarHistory.map((item) => (
-              <li key={item.id}>
-                <strong>{item.title}</strong> - Hoàn thành:{" "}
-                {new Date(item.completed_at).toLocaleDateString()}
-              </li>
+              <div key={item.id} className="history-item">
+                <div className="history-item-main">
+                  <strong className="history-item-title">{item.title}</strong>
+                </div>
+                <div className="history-item-date">
+                  {new Date(item.completed_at).toLocaleDateString("vi-VN")}
+                </div>
+              </div>
             ))}
-          </ul>
+          </div>
         ) : (
-          <p>Chưa có lịch sử học ngữ pháp.</p>
+          <div className="empty-state">
+            <p>Chưa có lịch sử học ngữ pháp.</p>
+          </div>
         )}
       </div>
+      
       <div className="history-section">
-        <h4>Lịch sử học từ vựng</h4>
+        <h4 className="history-section-title">
+          <span className="icon">🔤</span>
+          Lịch sử học từ vựng
+        </h4>
         {learningHistory.vocabularyHistory.length > 0 ? (
-          <ul>
+          <div className="history-list">
             {learningHistory.vocabularyHistory.map((item) => (
-              <li key={item.id}>
-                <strong>{item.collection_title}</strong> - Hoàn thành:{" "}
-                {new Date(item.last_reviewed_at).toLocaleDateString()}
-              </li>
+              <div key={item.id} className="history-item">
+                <div className="history-item-main">
+                  <strong className="history-item-title">{item.collection_title}</strong>
+                </div>
+                <div className="history-item-date">
+                  {new Date(item.last_reviewed_at).toLocaleDateString("vi-VN")}
+                </div>
+              </div>
             ))}
-          </ul>
+          </div>
         ) : (
-          <p>Chưa có lịch sử học từ vựng.</p>
+          <div className="empty-state">
+            <p>Chưa có lịch sử học từ vựng.</p>
+          </div>
         )}
       </div>
     </div>
   );
 
   return (
-    <div style={{ maxWidth: "800px", margin: "0 auto", padding: "20px" }}>
-      <h2>Hồ sơ cá nhân</h2>
-      <div className="tab-buttons">
-        <button
-          onClick={() => setActiveTab("profile")}
-          className={activeTab === "profile" ? "active" : ""}
-        >
-          Thông tin cá nhân
-        </button>
-        <button
-          onClick={() => setActiveTab("history")}
-          className={activeTab === "history" ? "active" : ""}
-        >
-          Lịch sử học tập
-        </button>
+    <div className="profile-container">
+      <div className="profile-header">
+        <h2 className="profile-title">Hồ sơ cá nhân</h2>
+        <div className="tab-buttons">
+          <button
+            onClick={() => setActiveTab("profile")}
+            className={`tab-button ${activeTab === "profile" ? "active" : ""}`}
+          >
+            <span className="tab-icon">👤</span>
+            Thông tin cá nhân
+          </button>
+          <button
+            onClick={() => setActiveTab("history")}
+            className={`tab-button ${activeTab === "history" ? "active" : ""}`}
+          >
+            <span className="tab-icon">📊</span>
+            Lịch sử học tập
+          </button>
+        </div>
       </div>
 
-      {activeTab === "profile" ? (
-        <div>
-          <form onSubmit={handleSubmit}>
-            <div style={{ marginBottom: "15px" }}>
-              <label>Ảnh đại diện:</label>
-              <div
-                onClick={() => fileInputRef.current.click()}
-                className="avatar-container"
-              >
-                {user.avatar ? (
-                  <img
-                    src={
-                      user.avatar.startsWith("blob:")
-                        ? user.avatar
-                        : `http://localhost:5000${user.avatar}`
-                    }
-                    alt="Avatar"
-                    className="avatar"
-                  />
-                ) : (
-                  <div className="no-avatar">No Avatar</div>
-                )}
-                <span className="edit-avatar-icon">✏️</span>
+      <div className="profile-content">
+        {activeTab === "profile" ? (
+          <div className="profile-form-container">
+            <form onSubmit={handleSubmit} className="profile-form">
+              <div className="avatar-section">
+                <label className="form-label">Ảnh đại diện</label>
+                <div
+                  onClick={() => fileInputRef.current.click()}
+                  className="avatar-container"
+                >
+                  {user.avatar ? (
+                    <img
+                      src={
+                        user.avatar.startsWith("blob:")
+                          ? user.avatar
+                          : `http://localhost:5000${user.avatar}`
+                      }
+                      alt="Avatar"
+                      className="avatar"
+                    />
+                  ) : (
+                    <div className="no-avatar">
+                      <span className="avatar-placeholder">👤</span>
+                    </div>
+                  )}
+                  <div className="edit-avatar-overlay">
+                    <span className="edit-avatar-icon">📷</span>
+                  </div>
+                </div>
+                <input
+                  type="file"
+                  accept="image/*"
+                  ref={fileInputRef}
+                  className="file-input"
+                  onChange={handleFileChange}
+                />
               </div>
-              <input
-                type="file"
-                accept="image/*"
-                ref={fileInputRef}
-                style={{ display: "none" }}
-                onChange={handleFileChange}
-              />
-            </div>
 
-            <div style={{ marginBottom: "15px" }}>
-              <label>Họ và tên:</label>
-              <input
-                type="text"
-                name="display_name"
-                value={user.display_name}
-                onChange={handleInputChange}
-                style={{ width: "100%", padding: "8px", marginTop: "5px" }}
-              />
-            </div>
+              <div className="form-group">
+                <label className="form-label">Họ và tên</label>
+                <input
+                  type="text"
+                  name="display_name"
+                  value={user.display_name}
+                  onChange={handleInputChange}
+                  className="form-input"
+                  placeholder="Nhập họ và tên của bạn"
+                />
+              </div>
 
-            <div style={{ marginBottom: "15px" }}>
-              <label>Email:</label>
-              <input
-                type="email"
-                name="email"
-                value={user.email}
-                disabled
-                style={{
-                  width: "100%",
-                  padding: "8px",
-                  marginTop: "5px",
-                  backgroundColor: "#f5f5f5",
-                }}
-              />
-              <small style={{ color: "#666" }}>
-                Email không thể thay đổi
-              </small>
-            </div>
+              <div className="form-group">
+                <label className="form-label">Email</label>
+                <input
+                  type="email"
+                  name="email"
+                  value={user.email}
+                  disabled
+                  className="form-input disabled"
+                />
+                <small className="form-hint">Email không thể thay đổi</small>
+              </div>
 
-            <div style={{ marginBottom: "15px" }}>
-              <label>Số điện thoại:</label>
-              <input
-                type="text"
-                name="phone"
-                value={user.phone || ""}
-                onChange={handleInputChange}
-                style={{ width: "100%", padding: "8px", marginTop: "5px" }}
-              />
-            </div>
+              <div className="form-group">
+                <label className="form-label">Số điện thoại</label>
+                <input
+                  type="text"
+                  name="phone"
+                  value={user.phone || ""}
+                  onChange={handleInputChange}
+                  className="form-input"
+                  placeholder="Nhập số điện thoại của bạn"
+                />
+              </div>
 
-            <div style={{ marginBottom: "15px" }}>
-              <label>Mục tiêu học tập (target band IELTS):</label>
-              <input
-                type="text"
-                name="learning_goal"
-                value={user.learning_goal || ""}
-                onChange={handleInputChange}
-                placeholder="Ví dụ: IELTS 7.0"
-                style={{ width: "100%", padding: "8px", marginTop: "5px" }}
-              />
-            </div>
+              <div className="form-group">
+                <label className="form-label">Mục tiêu học tập</label>
+                <input
+                  type="text"
+                  name="learning_goal"
+                  value={user.learning_goal || ""}
+                  onChange={handleInputChange}
+                  className="form-input"
+                  placeholder="Ví dụ: IELTS 7.0"
+                />
+              </div>
 
-            <button
-              type="submit"
-              disabled={loading}
-              style={{
-                padding: "10px 20px",
-                backgroundColor: "#4CAF50",
-                color: "white",
-                border: "none",
-                borderRadius: "4px",
-                cursor: loading ? "not-allowed" : "pointer",
-              }}
-            >
-              {loading ? "Đang xử lý..." : "Cập nhật thông tin"}
-            </button>
-          </form>
+              <button
+                type="submit"
+                disabled={loading}
+                className="submit-button"
+              >
+                {loading ? (
+                  <>
+                    <span className="loading-spinner"></span>
+                    Đang xử lý...
+                  </>
+                ) : (
+                  "Cập nhật thông tin"
+                )}
+              </button>
+            </form>
 
-          <form onSubmit={handleChangePassword} style={{ marginTop: 32 }}>
-            <h3>Đổi mật khẩu</h3>
-            <div style={{ marginBottom: 10 }}>
-              <input
-                type="password"
-                name="oldPassword"
-                placeholder="Mật khẩu hiện tại"
-                value={changePw.oldPassword}
-                onChange={handlePwChange}
-                style={{ width: "100%", padding: 8 }}
-                required
-              />
+            <div className="password-section">
+              <h3 className="section-title">Đổi mật khẩu</h3>
+              <form onSubmit={handleChangePassword} className="password-form">
+                <div className="form-group">
+                  <input
+                    type="password"
+                    name="oldPassword"
+                    placeholder="Mật khẩu hiện tại"
+                    value={changePw.oldPassword}
+                    onChange={handlePwChange}
+                    className="form-input"
+                    required
+                  />
+                </div>
+                <div className="form-group">
+                  <input
+                    type="password"
+                    name="newPassword"
+                    placeholder="Mật khẩu mới"
+                    value={changePw.newPassword}
+                    onChange={handlePwChange}
+                    className="form-input"
+                    required
+                  />
+                </div>
+                <div className="form-group">
+                  <input
+                    type="password"
+                    name="confirmPassword"
+                    placeholder="Nhập lại mật khẩu mới"
+                    value={changePw.confirmPassword}
+                    onChange={handlePwChange}
+                    className="form-input"
+                    required
+                  />
+                </div>
+                <button
+                  type="submit"
+                  disabled={pwLoading}
+                  className="submit-button secondary"
+                >
+                  {pwLoading ? (
+                    <>
+                      <span className="loading-spinner"></span>
+                      Đang xử lý...
+                    </>
+                  ) : (
+                    "Đổi mật khẩu"
+                  )}
+                </button>
+              </form>
             </div>
-            <div style={{ marginBottom: 10 }}>
-              <input
-                type="password"
-                name="newPassword"
-                placeholder="Mật khẩu mới"
-                value={changePw.newPassword}
-                onChange={handlePwChange}
-                style={{ width: "100%", padding: 8 }}
-                required
-              />
-            </div>
-            <div style={{ marginBottom: 10 }}>
-              <input
-                type="password"
-                name="confirmPassword"
-                placeholder="Nhập lại mật khẩu mới"
-                value={changePw.confirmPassword}
-                onChange={handlePwChange}
-                style={{ width: "100%", padding: 8 }}
-                required
-              />
-            </div>
-            <button
-              type="submit"
-              disabled={pwLoading}
-              style={{
-                padding: "10px 20px",
-                backgroundColor: "#1976d2",
-                color: "white",
-                border: "none",
-                borderRadius: "4px",
-                cursor: pwLoading ? "not-allowed" : "pointer",
-              }}
-            >
-              {pwLoading ? "Đang xử lý..." : "Đổi mật khẩu"}
-            </button>
-          </form>
-        </div>
-      ) : (
-        renderLearningHistory()
-      )}
+          </div>
+        ) : (
+          renderLearningHistory()
+        )}
+      </div>
     </div>
   );
 };

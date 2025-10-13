@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { toast } from "react-toastify";
 import axios from "axios";
+import "../assets/css/examlist.css";
+
 
 const ExamList = ({ isAuthenticated }) => {
   const [exams, setExams] = useState([]);
@@ -9,6 +11,7 @@ const ExamList = ({ isAuthenticated }) => {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [examType, setExamType] = useState("");
+  const [difficulty, setDifficulty] = useState("");
 
   useEffect(() => {
     fetchExams();
@@ -16,7 +19,7 @@ const ExamList = ({ isAuthenticated }) => {
 
   useEffect(() => {
     filterExams();
-  }, [exams, searchTerm, examType]);
+  }, [exams, searchTerm, examType, difficulty]);
 
   const fetchExams = async () => {
     try {
@@ -43,16 +46,42 @@ const ExamList = ({ isAuthenticated }) => {
       filtered = filtered.filter(exam => exam.exam_type === examType);
     }
 
+    if (difficulty) {
+      filtered = filtered.filter(exam => exam.difficulty === difficulty);
+    }
+
     setFilteredExams(filtered);
+  };
+
+  const getExamTypeIcon = (type) => {
+    const icons = {
+      ielts: "🎓",
+      toeic: "💼",
+      toefl: "🌎",
+      general: "📚",
+      practice: "🔰"
+    };
+    return icons[type] || "📝";
+  };
+
+  const getDifficultyBadge = (level) => {
+    const levels = {
+      easy: { text: "Dễ", color: "#27ae60", bg: "#d5f4e6" },
+      medium: { text: "Trung bình", color: "#f39c12", bg: "#fef5e6" },
+      hard: { text: "Khó", color: "#e74c3c", bg: "#fde8e6" },
+      expert: { text: "Chuyên gia", color: "#8e44ad", bg: "#f4e6fd" }
+    };
+    return levels[level] || { text: "Không xác định", color: "#95a5a6", bg: "#ecf0f1" };
   };
 
   if (loading) {
     return (
       <div className="exam-list-container">
         <div className="container">
-          <div className="loading-spinner">
-            <i className="fas fa-spinner fa-spin"></i>
-            <p>Đang tải danh sách đề thi...</p>
+          <div className="loading-state">
+            <div className="loading-spinner"></div>
+            <h3>Đang tải danh sách đề thi...</h3>
+            <p>Vui lòng chờ trong giây lát</p>
           </div>
         </div>
       </div>
@@ -62,93 +91,259 @@ const ExamList = ({ isAuthenticated }) => {
   return (
     <div className="exam-list-container">
       <div className="container">
-        <div className="exam-header">
-          <h1 className="text-dark">Luyện Đề Thi Tiếng Anh</h1>
-          <p>Chọn đề thi phù hợp với trình độ và mục tiêu của bạn</p>
-        </div>
-
-        <div className="exam-filters">
-          <div className="search-box">
-            <i className="fas fa-search"></i>
-            <input
-              type="text"
-              placeholder="Tìm kiếm đề thi..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
+        {/* Header Section */}
+        <div className="exam-header-list">
+          <div className="header-content">
+            <h1 className="page-title">Luyện Đề Thi Tiếng Anh</h1>
+            <p className="page-subtitle">
+              Chọn đề thi phù hợp với trình độ và mục tiêu của bạn. 
+              Hệ thống đề thi đa dạng từ cơ bản đến nâng cao.
+            </p>
           </div>
-          <div className="filter-select">
-            <select
-              value={examType}
-              onChange={(e) => setExamType(e.target.value)}
-            >
-              <option value="">Tất cả loại đề</option>
-              <option value="ielts">IELTS</option>
-              <option value="toeic">TOEIC</option>
-              <option value="toefl">TOEFL</option>
-              <option value="general">Tổng quát</option>
-            </select>
+          <div className="header-stats">
+            <div className="stat-item">
+              <div className="stat-number">{exams.length}</div>
+              <div className="stat-label">Đề thi có sẵn</div>
+            </div>
+            <div className="stat-item">
+              <div className="stat-number">
+                {exams.reduce((acc, exam) => acc + (exam.attempt_count || 0), 0)}
+              </div>
+              <div className="stat-label">Lượt thi</div>
+            </div>
           </div>
         </div>
 
+        {/* Filters Section */}
+        <div className="filters-section">
+          <div className="search-filter">
+            <div className="search-box">
+              <span className="search-icon">🔍</span>
+              <input
+                type="text"
+                placeholder="Tìm kiếm đề thi theo tên..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="search-input"
+              />
+              {searchTerm && (
+                <button 
+                  className="clear-search"
+                  onClick={() => setSearchTerm("")}
+                >
+                  ✕
+                </button>
+              )}
+            </div>
+          </div>
+
+          <div className="filter-group">
+            <div className="filter-item">
+              <label className="filter-label">Loại đề thi</label>
+              <select
+                value={examType}
+                onChange={(e) => setExamType(e.target.value)}
+                className="filter-select"
+              >
+                <option value="">Tất cả loại đề</option>
+                <option value="ielts">IELTS</option>
+                <option value="toeic">TOEIC</option>
+                <option value="toefl">TOEFL</option>
+                <option value="general">Tổng quát</option>
+                <option value="practice">Luyện tập</option>
+              </select>
+            </div>
+
+            <div className="filter-item">
+              <label className="filter-label">Độ khó</label>
+              <select
+                value={difficulty}
+                onChange={(e) => setDifficulty(e.target.value)}
+                className="filter-select"
+              >
+                <option value="">Tất cả độ khó</option>
+                <option value="easy">Dễ</option>
+                <option value="medium">Trung bình</option>
+                <option value="hard">Khó</option>
+                <option value="expert">Chuyên gia</option>
+              </select>
+            </div>
+
+            <div className="filter-actions">
+              <button 
+                className="reset-filters"
+                onClick={() => {
+                  setSearchTerm("");
+                  setExamType("");
+                  setDifficulty("");
+                }}
+              >
+                🔄 Xóa bộ lọc
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Results Info */}
+        <div className="results-info">
+          <div className="results-count">
+            Hiển thị <strong>{filteredExams.length}</strong> đề thi
+            {(searchTerm || examType || difficulty) && (
+              <span className="filtered-text"> (đã lọc)</span>
+            )}
+          </div>
+        </div>
+
+        {/* Exams Grid */}
         <div className="exams-grid">
           {filteredExams.length === 0 ? (
-            <div className="no-exams">
-              <i className="fas fa-file-alt"></i>
+            <div className="empty-state">
+              <div className="empty-icon">📚</div>
               <h3>Không tìm thấy đề thi phù hợp</h3>
-              <p>Hãy thử thay đổi từ khóa tìm kiếm hoặc bộ lọc</p>
+              <p>Hãy thử thay đổi từ khóa tìm kiếm hoặc điều chỉnh bộ lọc</p>
+              <button 
+                className="btn-primary"
+                onClick={() => {
+                  setSearchTerm("");
+                  setExamType("");
+                  setDifficulty("");
+                }}
+              >
+                🔄 Xóa bộ lọc
+              </button>
             </div>
           ) : (
-            filteredExams.map((exam) => (
-              <div key={exam.id} className="exam-card">
-                <div className="exam-card-header">
-                  <span className={`exam-type ${exam.exam_type}`}>
-                    {exam.exam_type.toUpperCase()}
-                  </span>
-                  <span className="exam-duration">
-                    <i className="far fa-clock"></i> {exam.duration} phút
-                  </span>
-                </div>
-                <div className="exam-card-body">
-                  <h3>{exam.title}</h3>
-                  <p>{exam.description}</p>
-                  <div className="exam-stats">
-                    <span>
-                      <i className="fas fa-question-circle"></i>{" "}
-                      {exam.total_questions || 0} câu
-                    </span>
-                    <span>
-                      <i className="fas fa-users"></i> {exam.attempt_count || 0} lượt thi
-                    </span>
+            filteredExams.map((exam) => {
+              const difficultyInfo = getDifficultyBadge(exam.difficulty);
+              
+              return (
+                <div key={exam.id} className="exam-card">
+                  <div className="exam-card-header">
+                    <div className="exam-type-badge">
+                      <span className="type-icon">
+                        {getExamTypeIcon(exam.exam_type)}
+                      </span>
+                      <span className="type-text">
+                        {exam.exam_type.toUpperCase()}
+                      </span>
+                    </div>
+                    <div 
+                      className="difficulty-badge"
+                      style={{ 
+                        backgroundColor: difficultyInfo.bg,
+                        color: difficultyInfo.color
+                      }}
+                    >
+                      {difficultyInfo.text}
+                    </div>
+                  </div>
+
+                  <div className="exam-card-body">
+                    <h3 className="exam-title">{exam.title}</h3>
+                    <p className="exam-description">{exam.description}</p>
+                    
+                    <div className="exam-meta">
+                      <div className="meta-item">
+                        <span className="meta-icon">⏱️</span>
+                        <span className="meta-text">{exam.duration} phút</span>
+                      </div>
+                      <div className="meta-item">
+                        <span className="meta-icon">❓</span>
+                        <span className="meta-text">{exam.total_questions || 0} câu hỏi</span>
+                      </div>
+                      <div className="meta-item">
+                        <span className="meta-icon">👥</span>
+                        <span className="meta-text">{exam.attempt_count || 0} lượt thi</span>
+                      </div>
+                    </div>
+
+                    {exam.tags && exam.tags.length > 0 && (
+                      <div className="exam-tags">
+                        {exam.tags.slice(0, 3).map((tag, index) => (
+                          <span key={index} className="exam-tag">
+                            #{tag}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="exam-card-footer">
+                    {isAuthenticated ? (
+                      <Link
+                        to={`/exams/${exam.id}/take`}
+                        className="btn-primary exam-action"
+                      >
+                        <span className="btn-icon">🚀</span>
+                        Bắt đầu thi
+                      </Link>
+                    ) : (
+                      <Link
+                        to="/login"
+                        className="btn-primary exam-action"
+                      >
+                        <span className="btn-icon">🔐</span>
+                        Đăng nhập để thi
+                      </Link>
+                    )}
+                    
+                    <div className="action-buttons">
+                      <Link
+                        to={`/exams/${exam.id}/preview`}
+                        className="btn-secondary"
+                      >
+                        <span className="btn-icon">👁️</span>
+                        Xem trước
+                      </Link>
+                      <Link
+                        to={`/exams/${exam.id}/results`}
+                        className="btn-outline"
+                      >
+                        <span className="btn-icon">📊</span>
+                        Kết quả
+                      </Link>
+                    </div>
                   </div>
                 </div>
-                <div className="exam-card-footer">
-                  {isAuthenticated ? (
-                    <Link
-                      to={`/exams/${exam.id}/take`}
-                      className="btn btn-primary"
-                    >
-                      Bắt đầu làm bài
-                    </Link>
-                  ) : (
-                    <Link
-                      to="/login"
-                      className="btn btn-primary"
-                    >
-                      Đăng nhập để làm bài
-                    </Link>
-                  )}
-                  <Link
-                    to={`/exams/${exam.id}/preview`}
-                    className="btn btn-outline"
-                  >
-                    Xem trước
-                  </Link>
-                </div>
-              </div>
-            ))
+              );
+            })
           )}
         </div>
+
+        {/* Quick Stats */}
+        {filteredExams.length > 0 && (
+          <div className="quick-stats">
+            <div className="stats-grid">
+              <div className="stat-card">
+                <div className="stat-icon">📝</div>
+                <div className="stat-content">
+                  <div className="stat-value">
+                    {filteredExams.reduce((acc, exam) => acc + (exam.total_questions || 0), 0)}
+                  </div>
+                  <div className="stat-label">Tổng số câu hỏi</div>
+                </div>
+              </div>
+              <div className="stat-card">
+                <div className="stat-icon">⏱️</div>
+                <div className="stat-content">
+                  <div className="stat-value">
+                    {filteredExams.reduce((acc, exam) => acc + exam.duration, 0)}
+                  </div>
+                  <div className="stat-label">Tổng thời gian (phút)</div>
+                </div>
+              </div>
+              <div className="stat-card">
+                <div className="stat-icon">👥</div>
+                <div className="stat-content">
+                  <div className="stat-value">
+                    {filteredExams.reduce((acc, exam) => acc + (exam.attempt_count || 0), 0)}
+                  </div>
+                  <div className="stat-label">Tổng lượt thi</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -448,7 +448,7 @@
   color: white;
 }
 
-.social-links {
+/* .social-links {
   display: flex;
   gap: 15px;
   margin-top: 20px;
@@ -468,7 +468,7 @@
 
 .social-links a:hover {
   background: var(--primary);
-}
+} */
 
 .copyright {
   text-align: center;
@@ -565,16 +565,7 @@
   padding: 2rem 0;
 }
 
-.exam-header {
-  text-align: center;
-  color: white;
-  margin-bottom: 3rem;
-}
 
-.exam-header h1 {
-  font-size: 2.5rem;
-  margin-bottom: 1rem;
-}
 
 .exam-filters {
   display: flex;
@@ -742,12 +733,7 @@
   background: #f8f9fa;
 }
 
-.exam-header {
-  background: white;
-  padding: 1rem 0;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  border-bottom: 1px solid #e9ecef;
-}
+
 
 .exam-info {
   display: flex;

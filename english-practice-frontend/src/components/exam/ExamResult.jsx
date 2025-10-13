@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { toast } from "react-toastify";
 import api from "../../api";
+import "../assets/css/examresult.css";
 
 const ExamResult = () => {
   const { resultId } = useParams();
@@ -122,7 +123,7 @@ const ExamResult = () => {
 
   return (
     <div className="exam-result-container min-vh-100 bg-light py-4">
-      <div className="container">
+      <div className="container mt-5">
         {/* Header */}
         <div className="result-header text-center mb-5">
           <div className="card shadow-sm border-0">
@@ -167,7 +168,7 @@ const ExamResult = () => {
                       border: `4px solid var(--bs-${getPerformanceColor()})`
                     }}>
                     <div className="text-center">
-                      <h2 className={`mb-0 text-${getPerformanceColor()}`} style={{fontWeight: 'bold'}}>
+                      <h2 className={`mb-0 text-dark`} style={{fontWeight: 'bold'}}>
                         {calculatePercentage()}%
                       </h2>
                       <small className="text-muted">Điểm phần trăm</small>
@@ -193,36 +194,6 @@ const ExamResult = () => {
                     <strong>{formatTime(result.time_spent)}</strong>
                   </div>
                 </div>
-
-                {/* Progress Bars */}
-                <div className="progress-stats mb-4">
-                  <div className="d-flex justify-content-between mb-1">
-                    <small>Đúng: {result.correct_answers}</small>
-                    <small>{Math.round((result.correct_answers / result.total_questions) * 100)}%</small>
-                  </div>
-                  <div className="progress mb-3" style={{height: '8px'}}>
-                    <div 
-                      className="progress-bar bg-success" 
-                      style={{
-                        width: `${(result.correct_answers / result.total_questions) * 100}%`
-                      }}
-                    ></div>
-                  </div>
-                  
-                  <div className="d-flex justify-content-between mb-1">
-                    <small>Sai: {result.total_questions - result.correct_answers}</small>
-                    <small>{Math.round(((result.total_questions - result.correct_answers) / result.total_questions) * 100)}%</small>
-                  </div>
-                  <div className="progress" style={{height: '8px'}}>
-                    <div 
-                      className="progress-bar bg-danger" 
-                      style={{
-                        width: `${((result.total_questions - result.correct_answers) / result.total_questions) * 100}%`
-                      }}
-                    ></div>
-                  </div>
-                </div>
-
                 {/* Action Buttons */}
                 <div className="action-buttons">
                   <Link to="/exams" className="btn btn-outline-primary w-100 mb-2">

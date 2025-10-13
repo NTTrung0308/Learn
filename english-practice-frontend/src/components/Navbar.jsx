@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { NavLink, Link } from "react-router-dom";
+import { NavLink, Link, useNavigate } from "react-router-dom";
 import axios from "axios";
-import "bootstrap/dist/css/bootstrap.min.css";
-
+import "./assets/css/navbar.css";
 
 const Navbar = ({ isAuthenticated }) => {
   const [user, setUser] = useState(null);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchUserProfile = async () => {
@@ -26,139 +27,182 @@ const Navbar = ({ isAuthenticated }) => {
     fetchUserProfile();
   }, [isAuthenticated]);
 
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    window.location.reload();
+  };
+
+  const navItems = [
+    { path: "/", label: "Trang chủ", icon: "🏠" },
+    { path: "/courses", label: "Khóa học", icon: "📚" },
+    { path: "/exams", label: "Luyện thi", icon: "✍️" },
+    { path: "/grammar", label: "Ngữ pháp", icon: "🔤" },
+    { path: "/vocabulary-collections", label: "Từ vựng", icon: "📖" },
+    { path: "/about", label: "Về chúng tôi", icon: "👥" },
+  ];
+
   return (
-    <nav className="navbar navbar-expand-lg navbar-light bg-white shadow-sm sticky-top border-bottom">
-      <div className="container">
+    <nav className="navbar">
+      <div className="nav-container">
         {/* Logo */}
         <Link
-          className="navbar-brand fw-bold text-primary d-flex align-items-center"
+          className="nav-logo"
           to="/"
-          title="EnglishMaster - Trang chủ"
+          onClick={() => setIsMenuOpen(false)}
         >
-          <i className="fas fa-language me-2 text-primary fs-4"></i>
-          <span className="fs-4">English<span className="text-dark">Master</span></span>
+          <div className="logo-icon">🎯</div>
+          <div className="logo-text">
+            <span className="logo-primary">English</span>
+            <span className="logo-secondary">Master</span>
+          </div>
         </Link>
 
-        {/* Toggle for mobile */}
-        <button
-          className="navbar-toggler border-0"
-          type="button"
-          data-bs-toggle="collapse"
-          data-bs-target="#navbarNav"
-          aria-controls="navbarNav"
-          aria-expanded="false"
-          aria-label="Toggle navigation"
-        >
-          <span className="navbar-toggler-icon"></span>
-        </button>
+        {/* Navigation Menu */}
+        <div className={`nav-menu ${isMenuOpen ? "active" : ""}`}>
+          {navItems.map((item, idx) => (
+            <div className="nav-item" key={idx}>
+              <NavLink
+                end={item.path === "/"}
+                to={item.path}
+                className={({ isActive }) =>
+                  `nav-link ${isActive ? "active" : ""}`
+                }
+                onClick={() => setIsMenuOpen(false)}
+              >
+                <span className="nav-icon">{item.icon}</span>
+                <span className="nav-label">{item.label}</span>
+                <span className="nav-underline"></span>
+              </NavLink>
+            </div>
+          ))}
+        </div>
 
-        {/* Menu */}
-        <div className="collapse navbar-collapse" id="navbarNav">
-          <ul className="navbar-nav mx-auto mb-2 mb-lg-0">
-            {[
-              { path: "/", label: "Trang chủ" },
-              { path: "/courses", label: "Khóa học" },
-              { path: "/exams", label: "Luyện thi" },
-              { path: "/grammar", label: "Ngữ pháp" },
-              { path: "/vocabulary-collections", label: "Từ vựng" },
-              { path: "/about", label: "Về chúng tôi" },
-            ].map((item, idx) => (
-              <li className="nav-item px-2" key={idx}>
-                <NavLink
-                  end={item.path === "/"}
-                  to={item.path}
-                  className={({ isActive }) =>
-                    `nav-link position-relative fw-medium ${
-                      isActive ? "text-primary" : "text-dark"
-                    }`
-                  }
-                >
-                  {item.label}
-                  <span className="underline-hover"></span>
-                </NavLink>
-              </li>
-            ))}
-          </ul>
-
-          {/* Auth Buttons */}
-          <div className="d-flex">
-            {isAuthenticated ? (
-              <div className="dropdown">
-                <button
-                  className="btn btn-outline-primary rounded-pill px-3 dropdown-toggle d-flex align-items-center"
-                  type="button"
-                  id="userMenu"
-                  data-bs-toggle="dropdown"
-                  aria-expanded="false"
-                >
+        {/* User Actions */}
+        <div className="nav-actions">
+          {isAuthenticated ? (
+            <div className="user-dropdown dropdown">
+              <button
+                className="user-trigger dropdown-toggle"
+                type="button"
+                data-bs-toggle="dropdown"
+                aria-expanded="false"
+              >
+                <div className="user-avatar">
                   {user?.avatar ? (
                     <img
-                      src={user.avatar}
-                      alt="avatar"
-                      className="rounded-circle me-2"
-                      style={{ width: "30px", height: "30px", objectFit: "cover" }}
+                      src={user.avatar.startsWith("http") ? user.avatar : `http://localhost:5000${user.avatar}`}
+                      alt={user.display_name}
+                      className="avatar-image"
                     />
                   ) : (
-                    <i className="fas fa-user-circle me-2 fs-5"></i>
+                    <div className="avatar-placeholder">
+                      {user?.display_name?.charAt(0) || "U"}
+                    </div>
                   )}
+                </div>
+                <span className="user-name">
                   {user ? user.display_name : "Người dùng"}
-                </button>
-                <ul className="dropdown-menu dropdown-menu-end shadow" aria-labelledby="userMenu">
-                  <li>
-                    <Link className="dropdown-item" to="/profile">
-                      <i className="fas fa-id-card me-2"></i> Hồ sơ
-                    </Link>
-                  </li>
-                  <li>
-                    <Link className="dropdown-item" to="/settings">
-                      <i className="fas fa-cog me-2"></i> Cài đặt
-                    </Link>
-                  </li>
-                  <li>
-                    <button
-                      className="dropdown-item text-danger"
-                      onClick={() => {
-                        localStorage.removeItem("token");
-                        window.location.reload();
-                      }}
-                    >
-                      <i className="fas fa-sign-out-alt me-2"></i> Đăng xuất
-                    </button>
-                  </li>
-                </ul>
-              </div>
-            ) : (
-              <>
-                <Link to="/login" className="btn btn-outline-primary rounded-pill me-2 px-3">
-                  Đăng nhập
-                </Link>
-                <Link to="/register" className="btn btn-primary rounded-pill px-3">
-                  Đăng ký
-                </Link>
-              </>
-            )}
-          </div>
+                </span>
+                {/* <span className="dropdown-arrow">
+                  ▼
+                </span> */}
+              </button>
+
+              <div className="dropdown-menu">
+                  <div className="dropdown-header">
+                    <div className="user-info">
+                      <div className="user-avatar small">
+                        {user?.avatar ? (
+                          <img
+                            src={user.avatar.startsWith("http") ? user.avatar : `http://localhost:5000${user.avatar}`}
+                            alt={user.display_name}
+                            className="avatar-image"
+                          />
+                        ) : (
+                          <div className="avatar-placeholder">
+                            {user?.display_name?.charAt(0) || "U"}
+                          </div>
+                        )}
+                      </div>
+                      <div className="user-details">
+                        <div className="user-display-name">
+                          {user?.display_name || "Người dùng"}
+                        </div>
+                        <div className="user-email">
+                          {user?.email}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="dropdown-divider"></div>
+                  
+                  <Link 
+                    to="/profile" 
+                    className="dropdown-item"
+                  >
+                    <span className="item-icon">👤</span>
+                    <span className="item-text">Hồ sơ cá nhân</span>
+                  </Link>
+                  
+                  <Link 
+                    to="/settings" 
+                    className="dropdown-item"
+                  >
+                    <span className="item-icon">⚙️</span>
+                    <span className="item-text">Cài đặt</span>
+                  </Link>
+                  
+                  <div className="dropdown-divider"></div>
+                  
+                  <button 
+                    className="dropdown-item logout"
+                    onClick={handleLogout}
+                  >
+                    <span className="item-icon">🚪</span>
+                    <span className="item-text">Đăng xuất</span>
+                  </button>
+                </div>
+            </div>
+          ) : (
+            <div className="auth-buttons">
+              <Link 
+                to="/login" 
+                className="btn-login"
+              >
+                Đăng nhập
+              </Link>
+              <Link 
+                to="/register" 
+                className="btn-register"
+              >
+                Đăng ký
+              </Link>
+            </div>
+          )}
+
+          {/* Mobile Menu Toggle */}
+          <button 
+            className="menu-toggle"
+            onClick={() => setIsMenuOpen(!isMenuOpen)}
+          >
+            <span className={`hamburger ${isMenuOpen ? "active" : ""}`}>
+              <span></span>
+              <span></span>
+              <span></span>
+            </span>
+          </button>
         </div>
       </div>
 
-      {/* Custom CSS */}
-      <style>{`
-        .nav-link {
-          transition: all 0.2s ease;
-        }
-        .nav-link .underline-hover {
-          position: absolute;
-          left: 0;
-          bottom: 0;
-          height: 2px;
-          width: 0%;
-          background-color: #0d6efd;
-          transition: width 0.3s ease;
-        }
-        .nav-link:hover .underline-hover {
-          width: 100%;
-        }
-      `}</style>
+      {/* Mobile Menu Overlay */}
+      {isMenuOpen && (
+        <div 
+          className="mobile-overlay"
+          onClick={() => setIsMenuOpen(false)}
+        ></div>
+      )}
     </nav>
   );
 };

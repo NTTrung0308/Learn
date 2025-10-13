@@ -32,6 +32,7 @@ CREATE TABLE exams (
     exam_type ENUM('listening', 'reading', 'writing', 'speaking', 'full_test') NOT NULL,
     duration INT, -- Thời gian làm bài (phút)
     total_questions INT DEFAULT 0,
+    difficulty ENUM('easy', 'medium', 'hard') DEFAULT 'medium',
     created_by INT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,

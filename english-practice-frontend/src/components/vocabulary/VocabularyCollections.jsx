@@ -36,7 +36,7 @@ const VocabularyCollections = ({ isAuthenticated }) => {
       setLearningProgress(progressMap);
       setLoading(false);
     } catch (error) {
-      console.error("Error fetching collections:", error);
+      // console.error("Error fetching collections:", error);
       toast.error("Không thể tải danh sách bộ từ vựng");
       setLoading(false);
     }
@@ -71,7 +71,7 @@ const VocabularyCollections = ({ isAuthenticated }) => {
         <div className="container">
           <div className="loading-spinner">
             <i className="fas fa-spinner fa-spin"></i>
-            <p>Đang tải danh sách bộ từ vựng...</p>
+            {/* <p>Đang tải danh sách bộ từ vựng...</p> */}
           </div>
         </div>
       </div>

@@ -4,14 +4,15 @@ const Exam = {};
 
 Exam.create = async (examData) => {
   const sql = `
-    INSERT INTO exams (title, description, exam_type, duration, created_by) 
-    VALUES (?, ?, ?, ?, ?)
+    INSERT INTO exams (title, description, exam_type, duration, difficulty, created_by) 
+    VALUES (?, ?, ?, ?, ?, ?)
   `;
   return await db.execute(sql, [
     examData.title,
     examData.description,
     examData.exam_type,
     examData.duration,
+    examData.difficulty,
     examData.created_by,
   ]);
 };
@@ -34,7 +35,7 @@ Exam.findAll = async ({ limit, offset, search = "", exam_type = "" }) => {
     whereClauses.length > 0 ? `WHERE ${whereClauses.join(" AND ")}` : "";
 
   const sql = `
-    SELECT e.*, u.display_name as creator_name 
+    SELECT e.*, u.display_name as creator_name, (SELECT COUNT(*) FROM exam_results WHERE exam_id = e.id) AS attempt_count 
     FROM exams e 
     LEFT JOIN users u ON e.created_by = u.id 
     ${whereSql}
@@ -54,7 +55,7 @@ Exam.findAll = async ({ limit, offset, search = "", exam_type = "" }) => {
 
 Exam.findById = async (id) => {
   const sql = `
-    SELECT e.*, u.display_name as creator_name 
+    SELECT e.*, u.display_name as creator_name, (SELECT COUNT(*) FROM exam_results WHERE exam_id = e.id) AS attempt_count 
     FROM exams e 
     LEFT JOIN users u ON e.created_by = u.id 
     WHERE e.id = ?
@@ -65,7 +66,7 @@ Exam.findById = async (id) => {
 Exam.update = async (id, examData) => {
   const sql = `
     UPDATE exams 
-    SET title = ?, description = ?, exam_type = ?, duration = ?, updated_at = CURRENT_TIMESTAMP 
+    SET title = ?, description = ?, exam_type = ?, duration = ?, difficulty = ?, updated_at = CURRENT_TIMESTAMP 
     WHERE id = ?
   `;
   return await db.execute(sql, [
@@ -73,6 +74,7 @@ Exam.update = async (id, examData) => {
     examData.description,
     examData.exam_type,
     examData.duration,
+    examData.difficulty,
     id,
   ]);
 };

@@ -5053,7 +5053,7 @@ label.error {
   border: 1px solid #ffad46 !important;
 }
 .table-head-bg-danger thead {
-  border: 1px solid #f25961 !important;
+  border: 1px solid #f2596177 !important;
 }
 .table-head-bg-black thead th,
 .table-striped-bg-black tbody tr:nth-of-type(odd) {

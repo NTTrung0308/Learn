@@ -9,7 +9,7 @@ const {
 // Tạo đề thi mới
 
 exports.createExam = async (req, res) => {
-  const { title, description, exam_type, duration } = req.body;
+  const { title, description, exam_type, duration, difficulty } = req.body;
 
   const created_by = req.user.userId;
 
@@ -22,6 +22,8 @@ exports.createExam = async (req, res) => {
       exam_type,
 
       duration,
+
+      difficulty,
 
       created_by,
     });
@@ -155,7 +157,7 @@ exports.getExamDetail = async (req, res) => {
 exports.updateExam = async (req, res) => {
   const { id } = req.params;
 
-  const { title, description, exam_type, duration } = req.body;
+  const { title, description, exam_type, duration, difficulty } = req.body;
 
   try {
     const [results] = await Exam.update(id, {
@@ -166,6 +168,8 @@ exports.updateExam = async (req, res) => {
       exam_type,
 
       duration,
+
+      difficulty,
     });
 
     if (results.affectedRows === 0) {
@@ -642,7 +646,6 @@ exports.getExamHistory = async (req, res) => {
   }
 };
 
-
 exports.analyzeExamResult = async (req, res) => {
   const { detailedResults } = req.body;
 
@@ -654,26 +657,34 @@ exports.analyzeExamResult = async (req, res) => {
     const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
     const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
-    const incorrectAnswers = detailedResults.filter(q => !q.is_correct);
+    const incorrectAnswers = detailedResults.filter((q) => !q.is_correct);
 
     if (incorrectAnswers.length === 0) {
-      return res.json({ analysis: "Chúc mừng! Bạn đã trả lời đúng tất cả các câu hỏi. Không có gì cần phân tích thêm." });
+      return res.json({
+        analysis:
+          "Chúc mừng! Bạn đã trả lời đúng tất cả các câu hỏi. Không có gì cần phân tích thêm.",
+      });
     }
 
     const prompt = `
       Bạn là một giáo viên tiếng Anh chuyên nghiệp. Hãy phân tích kết quả bài làm của một học sinh và đưa ra nhận xét chi tiết bằng tiếng Việt.
       Dưới đây là danh sách các câu hỏi học sinh đã trả lời sai:
 
-      ${incorrectAnswers.map((q, index) => {
-        const userAnswerText = q.options[q.user_answer] || q.user_answer; // Fallback to user_answer if it's not an index
-        const correctAnswerText = q.options[q.correct_answer.answer] || JSON.stringify(q.correct_answer);
-        return `
+      ${incorrectAnswers
+        .map((q, index) => {
+          const userAnswerText = q.options[q.user_answer] || q.user_answer; // Fallback to user_answer if it's not an index
+          const correctAnswerText =
+            q.options[q.correct_answer.answer] ||
+            JSON.stringify(q.correct_answer);
+          return `
         Câu ${index + 1}:
         - Đề bài: ${q.question_text}
         - Các lựa chọn: ${JSON.stringify(q.options)}
         - Câu trả lời của học sinh: "${userAnswerText}"
         - Đáp án đúng: "${correctAnswerText}"
-      `}).join(`\n`)}
+      `;
+        })
+        .join(`\n`)}
 
       Yêu cầu:
       1. Với mỗi câu trả lời sai, hãy giải thích rõ ràng tại sao đáp án của học sinh lại sai và tại sao đáp án đúng lại đúng. Tập trung vào các quy tắc ngữ pháp, cách dùng từ vựng, hoặc ngữ cảnh của câu.
@@ -686,11 +697,13 @@ exports.analyzeExamResult = async (req, res) => {
     const analysis = await response.text();
 
     res.json({ analysis });
-
   } catch (error) {
     console.error("Error analyzing exam result with AI:", error);
-    res.status(500).json({ message: "Lỗi máy chủ khi phân tích kết quả với AI", error: error.message });
+    res
+      .status(500)
+      .json({
+        message: "Lỗi máy chủ khi phân tích kết quả với AI",
+        error: error.message,
+      });
   }
 };
-
-

@@ -32,9 +32,6 @@ const Header = ({ toggleSidebar, toggleSidebarOpen, handleLogout, user }) => {
               <i className="gg-menu-left"></i>
             </button>
           </div>
-          {/* <button className="topbar-toggler more" onClick={toggleSidebarOpen}>
-            <i className="gg-more-vertical-alt"></i>
-          </button> */}
         </div>
       </div>
       <nav className="navbar navbar-header navbar-header-transparent navbar-expand-lg border-bottom">
