@@ -391,7 +391,7 @@ const GrammarManagement = ({ handleLogout }) => {
         >
           <Tab eventKey="topics" title="Chủ đề Ngữ pháp">
             <Row>
-              <Col md={4}>
+              <Col md={12}>
                 <Card>
                   <Card.Header>
                     <h5 className="mb-0">Lọc theo Chủ đề</h5>
@@ -399,7 +399,8 @@ const GrammarManagement = ({ handleLogout }) => {
                   <Card.Body>
                     <Form.Group>
                       <Form.Label>Chọn chủ đề:</Form.Label>
-                      <Form.Select
+                      <Form.Select 
+                        className="w-50"
                         value={currentTopic?.id || ""}
                         onChange={(e) =>
                           handleTopicFilter(
@@ -418,7 +419,7 @@ const GrammarManagement = ({ handleLogout }) => {
                   </Card.Body>
                 </Card>
               </Col>
-              <Col md={8}>
+              <Col md={12}>
                 <Table striped bordered hover responsive>
                   <thead>
                     <tr>

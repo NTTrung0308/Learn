@@ -5,6 +5,26 @@ const GrammarLessonView = ({ lesson, onComplete }) => {
   const [currentSection, setCurrentSection] = useState("explanation");
   const [completedSections, setCompletedSections] = useState(new Set());
 
+  const getDifficultyColor = (difficulty) => {
+    const colors = {
+      easy: '#27ae60',
+      medium: '#f39c12',
+      hard: '#e74c3c',
+      expert: '#8e44ad'
+    };
+    return colors[difficulty] || '#6c757d';
+  };
+
+  const getDifficultyText = (difficulty) => {
+    const texts = {
+      easy: 'Cơ bản',
+      medium: 'Trung cấp',
+      hard: 'Nâng cao',
+      expert: 'Chuyên sâu'
+    };
+    return texts[difficulty] || 'Không xác định';
+  };
+
   const sections = [
     { id: "explanation", title: "Giải thích", icon: "fa-info-circle" },
     { id: "structure", title: "Cấu trúc", icon: "fa-code" },
@@ -174,11 +194,11 @@ const GrammarLessonView = ({ lesson, onComplete }) => {
         <h3 className="card-title mb-0">{lesson.title}</h3>
         <p className="text-muted mb-0 mt-1">
           Chủ đề: {lesson.topic_title} • Độ khó: 
-          <span className={`badge ms-2 ${
-            lesson.difficulty_level === 'easy' ? 'bg-success' :
-            lesson.difficulty_level === 'medium' ? 'bg-warning' : 'bg-danger'
-          }`}>
-            {lesson.difficulty_level}
+          <span 
+            className="badge ms-2"
+            style={{ backgroundColor: getDifficultyColor(lesson.difficulty_level) }}
+          >
+            {getDifficultyText(lesson.difficulty_level)}
           </span>
         </p>
       </div>

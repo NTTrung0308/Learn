@@ -100,7 +100,7 @@ const GrammarLesson = {
       lessonData.example_image || null,
       lessonData.meaning || null,
       JSON.stringify(lessonData.tags || []),
-      lessonData.difficulty_level || "medium",
+      lessonData.difficulty_level || "easy",
       lessonData.display_order || 0,
       lessonData.created_by,
     ]);
@@ -123,7 +123,24 @@ const GrammarLesson = {
   // Lấy tất cả bài học
   findAll: async (filters = {}) => {
     let sql = `
-      SELECT gl.*, gt.title as topic_title, u.display_name as creator_name 
+      SELECT 
+        gl.id, 
+        gl.topic_id, 
+        gl.title, 
+        gl.explanation, 
+        gl.structure, 
+        gl.usage, 
+        gl.pronunciation_audio, 
+        gl.example_sentence, 
+        gl.example_image, 
+        gl.meaning, 
+        gl.tags, 
+        gl.difficulty_level, 
+        gl.display_order, 
+        gl.created_by,
+        gl.created_at,
+        gt.title as topic_title, 
+        u.display_name as creator_name 
       FROM grammar_lessons gl 
       LEFT JOIN grammar_topics gt ON gl.topic_id = gt.id 
       LEFT JOIN users u ON gl.created_by = u.id 
@@ -222,7 +239,7 @@ const GrammarLesson = {
       lesson.example_sentence || null,
       lesson.meaning || null,
       JSON.stringify(lesson.tags || []),
-      lesson.difficulty_level || "medium",
+      lesson.difficulty_level || "easy",
       lesson.display_order || 0,
       lesson.created_by,
     ]);
@@ -394,7 +411,7 @@ const GrammarPractice = {
       practiceData.instructions,
       JSON.stringify(practiceData.content || {}),
       practiceData.practice_type,
-      practiceData.difficulty_level || "medium",
+      practiceData.difficulty_level || "easy",
       practiceData.time_limit || null,
       practiceData.points || 10,
       practiceData.display_order || 0,

@@ -411,7 +411,7 @@ exports.importLessonsCSV = async (req, res) => {
           example_sentence: data.example_sentence || null,
           meaning: data.meaning || null,
           tags: data.tags ? data.tags.split(",").map((tag) => tag.trim()) : [],
-          difficulty_level: data.difficulty_level || "medium",
+          difficulty_level: data.difficulty_level || "easy",
           display_order: parseInt(data.display_order) || 0,
           created_by,
         };
