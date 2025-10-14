@@ -2,14 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useParams, Link, useNavigate, useLocation } from "react-router-dom";
 import { toast } from "react-toastify";
 import api from "../../api";
-import {
-  Card,
-  Button,
-  ProgressBar,
-  Container,
-  Row,
-  Col,
-} from "react-bootstrap";
+import "../assets/css/selftestquiz.css"
 
 const SelfTestQuiz = () => {
   const { collectionId } = useParams();
@@ -82,7 +75,7 @@ const SelfTestQuiz = () => {
     setQuizResult(resultData);
 
     const quizAnswers = questions
-      .filter(question => question.flashcard_id)
+      .filter((question) => question.flashcard_id)
       .map((question) => ({
         flashcard_id: question.flashcard_id,
         is_correct: userAnswers[question.id] === question.correct_answer,
@@ -104,15 +97,12 @@ const SelfTestQuiz = () => {
     }
   };
 
-  // Helper functions for rendering results, adapted from ExamResult
+  // Helper functions for rendering results
   const calculatePercentage = () => {
     if (!quizResult || !quizResult.total_questions) return 0;
-
     const score = Number(quizResult.score);
     const total = Number(quizResult.total_questions);
-
     if (isNaN(score) || isNaN(total) || total === 0) return 0;
-
     return Math.round((score / total) * 100);
   };
 
@@ -133,16 +123,20 @@ const SelfTestQuiz = () => {
   };
 
   const handleAnalyze = async () => {
-    if (quizResult.detailed_results.filter(q => !q.is_correct).length === 0) {
+    if (quizResult.detailed_results.filter((q) => !q.is_correct).length === 0) {
       toast.info("Bạn đã trả lời đúng hết! Không cần phân tích thêm.");
-      setAnalysis("Chúc mừng! Bạn đã trả lời đúng tất cả các câu hỏi. Không có gì cần phân tích thêm.");
+      setAnalysis(
+        "Chúc mừng! Bạn đã trả lời đúng tất cả các câu hỏi. Không có gì cần phân tích thêm."
+      );
       return;
     }
 
     setIsAnalyzing(true);
     setAnalysis("");
     try {
-      const response = await api.post("/vocabulary/analyze", { detailedResults: quizResult.detailed_results });
+      const response = await api.post("/vocabulary/analyze", {
+        detailedResults: quizResult.detailed_results,
+      });
       setAnalysis(response.data.analysis);
     } catch (error) {
       console.error("Error analyzing quiz result:", error);
@@ -154,15 +148,9 @@ const SelfTestQuiz = () => {
 
   if (loading) {
     return (
-      <div className="min-vh-100 bg-light py-5">
-        <div className="container">
-          <div className="text-center py-5">
-            <div
-              className="spinner-border text-primary mb-3"
-              style={{ width: "3rem", height: "3rem" }}
-            ></div>
-            <h4 className="text-muted">Đang tải bài kiểm tra...</h4>
-          </div>
+      <div className="self-test-container">
+        <div className="loading-container">
+          <div className="loading-spinner"></div>
         </div>
       </div>
     );
@@ -207,7 +195,7 @@ const SelfTestQuiz = () => {
                 <div className="card-body">
                   <div className="text-center mb-4">
                     <div
-                      className={`score-circle mx-auto mb-3 bg-${getPerformanceColor()} bg-opacity-10`}
+                      className={`score-circle mx-auto mb-3  bg-opacity-10`}
                       style={{
                         width: "120px",
                         height: "120px",
@@ -287,7 +275,9 @@ const SelfTestQuiz = () => {
                     </li>
                     <li className="nav-item">
                       <button
-                        className={`nav-link ${activeTab === "analysis" ? "active" : ""}`}
+                        className={`nav-link ${
+                          activeTab === "analysis" ? "active" : ""
+                        }`}
                         onClick={() => setActiveTab("analysis")}
                       >
                         <i className="fas fa-chart-pie me-2"></i>Phân Tích Lỗi
@@ -419,44 +409,66 @@ const SelfTestQuiz = () => {
                             <i className="fas fa-robot text-primary me-2"></i>
                             Phân Tích Chuyên Sâu từ AI
                           </h4>
-                          <button 
+                          <button
                             className="btn btn-primary"
                             onClick={handleAnalyze}
                             disabled={isAnalyzing}
                           >
                             {isAnalyzing ? (
-                              <><span className="spinner-border spinner-border-sm me-2"></span> Đang phân tích...</>
+                              <>
+                                <span className="spinner-border spinner-border-sm me-2"></span>{" "}
+                                Đang phân tích...
+                              </>
                             ) : (
-                              <><i className="fas fa-magic me-2"></i> Nhận phân tích</>
+                              <>
+                                <i className="fas fa-magic me-2"></i> Nhận phân
+                                tích
+                              </>
                             )}
                           </button>
                         </div>
 
                         {isAnalyzing && (
                           <div className="text-center py-5">
-                            <div className="spinner-border text-primary mb-3" style={{width: '3rem', height: '3rem'}}></div>
-                            <h5 className="text-muted">AI đang phân tích bài làm của bạn...</h5>
-                            <p className="text-muted small">Quá trình này có thể mất một vài giây.</p>
+                            <div
+                              className="spinner-border text-primary mb-3"
+                              style={{ width: "3rem", height: "3rem" }}
+                            ></div>
+                            <h5 className="text-muted">
+                              AI đang phân tích bài làm của bạn...
+                            </h5>
+                            <p className="text-muted small">
+                              Quá trình này có thể mất một vài giây.
+                            </p>
                           </div>
                         )}
 
                         {analysis && (
                           <div className="ai-analysis-result mt-4 p-4 bg-light rounded border">
-                            <pre style={{ whiteSpace: 'pre-wrap', fontFamily: 'inherit', fontSize: 'inherit' }}>
+                            <pre
+                              style={{
+                                whiteSpace: "pre-wrap",
+                                fontFamily: "inherit",
+                                fontSize: "inherit",
+                              }}
+                            >
                               {analysis}
                             </pre>
                           </div>
                         )}
 
                         {!analysis && !isAnalyzing && (
-                           <div className="text-center py-5 bg-light rounded border">
-                              <i className="fas fa-robot fs-1 text-muted mb-3"></i>
-                              <h5 className="text-dark">Nhận phản hồi chi tiết</h5>
-                              <p className="text-muted">
-                                Nhấn nút "Nhận phân tích" để AI giúp bạn hiểu rõ các lỗi sai 
-                                <br/> và gợi ý cách cải thiện nhé!
-                              </p>
-                            </div>
+                          <div className="text-center py-5 bg-light rounded border">
+                            <i className="fas fa-robot fs-1 text-muted mb-3"></i>
+                            <h5 className="text-dark">
+                              Nhận phản hồi chi tiết
+                            </h5>
+                            <p className="text-muted">
+                              Nhấn nút "Nhận phân tích" để AI giúp bạn hiểu rõ
+                              các lỗi sai
+                              <br /> và gợi ý cách cải thiện nhé!
+                            </p>
+                          </div>
                         )}
                       </div>
                     </div>
@@ -475,69 +487,155 @@ const SelfTestQuiz = () => {
     currentQuestion && Array.isArray(currentQuestion.options)
       ? currentQuestion.options
       : [];
+  const progressPercentage =
+    ((currentQuestionIndex + 1) / questions.length) * 100;
 
   return (
-    <Container className="mt-5">
-      <Row className="justify-content-center">
-        <Col md={8}>
-          <Card>
-            <Card.Header as="h2">
-              {collection?.title} - Self-Test Quiz
-            </Card.Header>
-            <Card.Body>
-              {currentQuestion && (
-                <div>
-                  <Card.Title className="mb-4">
-                    {currentQuestion.question_text}
-                  </Card.Title>
-                  <div className="d-grid gap-2">
-                    {options.map((option, index) => (
-                      <Button
+    <div className="self-test-container">
+      <div className="container">
+        {/* Header */}
+        <div className="quiz-header">
+          <Link
+            to={`/vocabulary-collections/${collectionId}`}
+            className="back-btn-self-test"
+          >
+            <i className="fas fa-arrow-left"></i> Quay lại
+          </Link>
+          <h1 className="quiz-title">{collection?.title}</h1>
+          <p className="quiz-subtitle">Bài kiểm tra từ vựng</p>
+
+          {/* Progress Bar */}
+          <div className="quiz-progress">
+            <div className="progress-info">
+              <span>Tiến độ bài làm</span>
+              <span>
+                {currentQuestionIndex + 1}/{questions.length}
+              </span>
+            </div>
+            <div className="progress-bar-container">
+              <div
+                className="progress-bar-fill"
+                style={{ width: `${progressPercentage}%` }}
+              ></div>
+            </div>
+          </div>
+        </div>
+
+        {/* Quiz Card */}
+        <div className="quiz-card">
+          <div className="quiz-card-header">
+            <h2>Câu hỏi kiểm tra</h2>
+          </div>
+
+          <div className="quiz-card-body">
+            {currentQuestion && (
+              <>
+                <div className="question-counter">
+                  Câu {currentQuestionIndex + 1} / {questions.length}
+                </div>
+
+                <div className="question-text">
+                  {currentQuestion.question_text}
+                </div>
+
+                <div className="options-grid">
+                  {options.map((option, index) => {
+                    const letter = String.fromCharCode(65 + index); // A, B, C, D
+                    const isSelected =
+                      userAnswers[currentQuestion.id] === option;
+
+                    return (
+                      <button
                         key={index}
-                        variant={
-                          userAnswers[currentQuestion.id] === option
-                            ? "primary"
-                            : "outline-primary"
-                        }
+                        className={`option-btn ${isSelected ? "selected" : ""}`}
                         onClick={() =>
                           handleAnswerSelect(currentQuestion.id, option)
                         }
                       >
-                        {option}
-                      </Button>
-                    ))}
-                  </div>
+                        <div className="option-letter">{letter}</div>
+                        <div className="option-text">{option}</div>
+                      </button>
+                    );
+                  })}
                 </div>
+              </>
+            )}
+          </div>
+
+          <div className="quiz-card-footer">
+            <div className="navigation-buttons">
+              <button
+                className="nav-btn"
+                onClick={() =>
+                  setCurrentQuestionIndex(currentQuestionIndex - 1)
+                }
+                disabled={currentQuestionIndex === 0}
+              >
+                <i className="fas fa-arrow-left"></i> Câu trước
+              </button>
+
+              {currentQuestionIndex < questions.length - 1 ? (
+                <button
+                  className="nav-btn"
+                  onClick={() =>
+                    setCurrentQuestionIndex(currentQuestionIndex + 1)
+                  }
+                  disabled={!userAnswers[currentQuestion?.id]}
+                >
+                  Câu tiếp theo <i className="fas fa-arrow-right"></i>
+                </button>
+              ) : (
+                <button
+                  className="submit-btn"
+                  onClick={handleSubmitQuiz}
+                  disabled={isSubmitting || !userAnswers[currentQuestion?.id]}
+                >
+                  {isSubmitting ? (
+                    <>
+                      <div
+                        className="loading-spinner"
+                        style={{
+                          width: "16px",
+                          height: "16px",
+                          borderWidth: "2px",
+                        }}
+                      ></div>
+                      Đang nộp...
+                    </>
+                  ) : (
+                    <>
+                      <i className="fas fa-paper-plane"></i> Nộp bài
+                    </>
+                  )}
+                </button>
               )}
-            </Card.Body>
-            <Card.Footer className="d-flex justify-content-between align-items-center">
-              <div>
-                <ProgressBar
-                  now={((currentQuestionIndex + 1) / questions.length) * 100}
-                  label={`${currentQuestionIndex + 1}/${questions.length}`}
-                  className="w-100"
-                />
-              </div>
-              <div>
-                {currentQuestionIndex < questions.length - 1 ? (
-                  <Button
-                    onClick={() =>
-                      setCurrentQuestionIndex(currentQuestionIndex + 1)
-                    }
-                  >
-                    Next <i className="fas fa-arrow-right"></i>
-                  </Button>
-                ) : (
-                  <Button onClick={handleSubmitQuiz} disabled={isSubmitting}>
-                    {isSubmitting ? "Đang nộp..." : "Nộp bài"}
-                  </Button>
-                )}
-              </div>
-            </Card.Footer>
-          </Card>
-        </Col>
-      </Row>
-    </Container>
+            </div>
+
+            <div className="answered-count">
+              Đã trả lời: {Object.keys(userAnswers).length}/{questions.length}
+            </div>
+          </div>
+        </div>
+
+        {/* Quiz Stats */}
+        <div className="quiz-stats">
+          <div className="stat-item">
+            <div className="stat-label">Tổng câu hỏi</div>
+            <div className="stat-value">{questions.length}</div>
+          </div>
+          <div className="stat-item">
+            <div className="stat-label">Đã trả lời</div>
+            <div className="stat-value">{Object.keys(userAnswers).length}</div>
+          </div>
+          <div className="stat-item">
+            <div className="stat-label">Còn lại</div>
+            <div className="stat-value">
+              {questions.length - Object.keys(userAnswers).length}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 };
 

@@ -145,6 +145,13 @@ const Navbar = ({ isAuthenticated }) => {
                     <span className="item-icon">👤</span>
                     <span className="item-text">Hồ sơ cá nhân</span>
                   </Link>
+                  <Link 
+                    to="/progress-dashboard" 
+                    className="dropdown-item"
+                  >
+                    <span className="item-icon">📊</span>
+                    <span className="item-text">Theo dõi tiến độ</span>
+                  </Link>
                   
                   <Link 
                     to="/settings" 

@@ -20,8 +20,10 @@ import ExamTaking from "../components/exam/ExamTaking";
 import VocabularyCollections from "../components/vocabulary/VocabularyCollections";
 import FlashcardStudy from "../components/vocabulary/FlashcardStudy";
 import SelfTestQuiz from "../components/vocabulary/SelfTestQuiz";
+import VocabularyPreview from "../components/vocabulary/VocabularyPreview";
 import GrammarLearning from "../components/grammar/GrammarLearning";
 import GrammarList from "../components/grammar/GrammarList";
+import ProgressDashboard from "../components/ProgressDashboard";
 
 function AppRoutes({
   isAuthenticated,
@@ -83,6 +85,12 @@ function AppRoutes({
         path="/profile"
         element={isAuthenticated ? <Profile /> : <Navigate to="/login" />}
       />
+      <Route
+        path="/progress-dashboard"
+        element={
+          isAuthenticated ? <ProgressDashboard /> : <Navigate to="/login" />
+        }
+      />
 
       {/* Exam Routes */}
       <Route
@@ -131,6 +139,10 @@ function AppRoutes({
       <Route
         path="/vocabulary-collections/:collectionId/self-test"
         element={isAuthenticated ? <SelfTestQuiz /> : <Navigate to="/login" />}
+      />
+      <Route
+        path="/vocabulary-collections/:collectionId/preview"
+        element={isAuthenticated ? <VocabularyPreview /> : <Navigate to="/login" />}
       />
 
       <Route

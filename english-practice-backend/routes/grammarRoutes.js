@@ -30,6 +30,8 @@ const {
   submitPractice,
   getPracticeHistory,
   saveGrammarProgress,
+  getGrammarProgress,
+  getAllGrammarProgress,
   analyzeGrammarResult,
 } = require("../controllers/grammarController");
 
@@ -145,6 +147,8 @@ router.delete("/examples/:id", auth, deleteExample);
 
 // Route lưu tiến độ học ngữ pháp 
 router.post("/progress", auth, saveGrammarProgress);
+router.get("/progress/:lessonId", auth, getGrammarProgress);
+router.get("/progress", auth, getAllGrammarProgress);
 router.post("/progress/analyze", auth, analyzeGrammarResult);
 
 // Routes cho bài thực hành

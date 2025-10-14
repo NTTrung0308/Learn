@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import api from "../../api";
-
+import "../assets/css/flashcard.css";
 const FlashcardStudy = ({ isAuthenticated }) => {
   const { collectionId } = useParams();
   const navigate = useNavigate();
@@ -14,6 +14,16 @@ const FlashcardStudy = ({ isAuthenticated }) => {
   const [studyMode, setStudyMode] = useState("new"); // new, review, mastered
   const [sessionCards, setSessionCards] = useState([]);
   const [sessionProgress, setSessionProgress] = useState([]);
+
+  const getAudioSrc = (audioPath) => {
+    if (!audioPath) {
+      return "";
+    }
+    if (audioPath.startsWith("http")) {
+      return audioPath;
+    }
+    return `http://localhost:5000${audioPath}`;
+  };
 
   useEffect(() => {
     if (collectionId) {
@@ -158,6 +168,16 @@ const FlashcardStudy = ({ isAuthenticated }) => {
     };
   }, [isFlipped, currentIndex]);
 
+  useEffect(() => {
+    const card = sessionCards[currentIndex];
+    if (card && card.pronunciation_audio) {
+      const audio = new Audio(getAudioSrc(card.pronunciation_audio));
+      audio.addEventListener('loadeddata', () => {
+        audio.play().catch(err => console.error("Audio play failed", err));
+      });
+    }
+  }, [currentIndex, sessionCards]);
+
   if (loading) {
     return (
       <div className="flashcard-study-container">
@@ -196,16 +216,6 @@ const FlashcardStudy = ({ isAuthenticated }) => {
 
   const currentCard = sessionCards[currentIndex];
   const progress = ((currentIndex / sessionCards.length) * 100).toFixed(1);
-
-  const getAudioSrc = (audioPath) => {
-    if (!audioPath) {
-      return "";
-    }
-    if (audioPath.startsWith("http")) {
-      return audioPath;
-    }
-    return `http://localhost:5000${audioPath}`;
-  };
 
   const playAudio = (e) => {
     e.stopPropagation();

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { toast } from "react-toastify";
 import api from "../../api";
+import "../assets/css/vocabulary.css";
 
 const VocabularyCollections = ({ isAuthenticated }) => {
   const [collections, setCollections] = useState([]);
@@ -36,7 +37,6 @@ const VocabularyCollections = ({ isAuthenticated }) => {
       setLearningProgress(progressMap);
       setLoading(false);
     } catch (error) {
-      // console.error("Error fetching collections:", error);
       toast.error("Không thể tải danh sách bộ từ vựng");
       setLoading(false);
     }
@@ -65,6 +65,21 @@ const VocabularyCollections = ({ isAuthenticated }) => {
     return matchesSearch && matchesLevel;
   });
 
+  const getLevelBadge = (level) => {
+    const levelConfig = {
+      beginner: { label: "Cơ bản", class: "beginner" },
+      intermediate: { label: "Trung cấp", class: "intermediate" },
+      advanced: { label: "Nâng cao", class: "advanced" }
+    };
+    
+    const config = levelConfig[level] || { label: level, class: "beginner" };
+    return (
+      <span className={`collection-level-badge ${config.class}`}>
+        {config.label}
+      </span>
+    );
+  };
+
   if (loading) {
     return (
       <div className="vocabulary-collections-container">
@@ -81,111 +96,180 @@ const VocabularyCollections = ({ isAuthenticated }) => {
   return (
     <div className="vocabulary-collections-container">
       <div className="container">
+        {/* Header Section */}
         <div className="collections-header">
-          <h1>Học Từ Vựng với Flashcard</h1>
-          <p>Hệ thống Spaced Repetition giúp bạn ghi nhớ từ vựng hiệu quả</p>
-        </div>
-
-        <div className="collections-filters">
-          <div className="search-box">
-            <i className="fas fa-search"></i>
-            <input
-              type="text"
-              placeholder="Tìm kiếm bộ từ vựng..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
+          <div className="header-content-vocabulary">
+            <h1>Học Từ Vựng với Flashcard</h1>
+            <p>Hệ thống Spaced Repetition giúp bạn ghi nhớ từ vựng hiệu quả và lâu dài</p>
           </div>
-          <div className="filter-select">
-            <select
-              value={levelFilter}
-              onChange={(e) => setLevelFilter(e.target.value)}
-            >
-              <option value="">Tất cả trình độ</option>
-              <option value="beginner">Beginner</option>
-              <option value="intermediate">Intermediate</option>
-              <option value="advanced">Advanced</option>
-            </select>
+          <div className="header-badge">
+            <span>🎯 Phương pháp khoa học</span>
           </div>
         </div>
 
-        <div className="collections-grid">
+        {/* Filters Section */}
+        <div className="collections-filters-section">
+          <div className="filters-container">
+            <div className="search-box-wrapper">
+              <div className="search-box">
+                <i className="fas fa-search"></i>
+                <input
+                  type="text"
+                  placeholder="Tìm kiếm bộ từ vựng..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </div>
+            </div>
+            
+            <div className="filter-controls">
+              <div className="filter-select-wrapper">
+                <select
+                  value={levelFilter}
+                  onChange={(e) => setLevelFilter(e.target.value)}
+                  className="level-filter-select"
+                >
+                  <option value="">Tất cả trình độ</option>
+                  <option value="beginner">Cơ bản</option>
+                  <option value="intermediate">Trung cấp</option>
+                  <option value="advanced">Nâng cao</option>
+                </select>
+                <i className="fas fa-chevron-down"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Collections Grid */}
+        <div className="collections-content">
           {filteredCollections.length === 0 ? (
-            <div className="no-collections">
-              <i className="fas fa-book"></i>
+            <div className="no-collections-found">
+              <div className="no-collections-icon">
+                <i className="fas fa-book-open"></i>
+              </div>
               <h3>Không tìm thấy bộ từ vựng phù hợp</h3>
-              <p>Hãy thử thay đổi từ khóa tìm kiếm hoặc bộ lọc</p>
+              <p>Hãy thử thay đổi từ khóa tìm kiếm hoặc bộ lọc trình độ</p>
             </div>
           ) : (
-            filteredCollections.map((collection) => {
-              const stats = getProgressStats(collection.id);
+            <div className="collections-grid">
+              {filteredCollections.map((collection) => {
+                const stats = getProgressStats(collection.id);
 
-              return (
-                <div key={collection.id} className="collection-card">
-                  <div className="collection-card-header">
-                    <span className={`collection-level ${collection.level}`}>
-                      {collection.level}
-                    </span>
-                    <span className="collection-category">
-                      {collection.category}
-                    </span>
-                  </div>
-                  <div className="collection-card-body">
-                    <h3>{collection.title}</h3>
-                    <p>{collection.description}</p>
-
-                    {isAuthenticated && (
-                      <div className="progress-section">
-                        <div className="progress-bar">
-                          <div
-                            className="progress-fill"
-                            style={{ width: `${stats.progress}%` }}
-                          ></div>
+                return (
+                  <div key={collection.id} className="collection-card">
+                    <div className="card-header">
+                      <div className="card-badges">
+                        {getLevelBadge(collection.level)}
+                        <span className="collection-category-badge">
+                          {collection.category}
+                        </span>
+                      </div>
+                      {isAuthenticated && stats.learning > 0 && (
+                        <div className="active-learning-badge">
+                          📚 Đang học
                         </div>
-                        <div className="progress-stats">
-                          <span>{stats.progress}% đã thuộc</span>
-                          <span>
-                            {stats.mastered}/{stats.total} từ
-                          </span>
+                      )}
+                    </div>
+
+                    <div className="card-body">
+                      <div className="collection-icon">
+                        <i className="fas fa-book"></i>
+                      </div>
+                      <h3 className="collection-title">{collection.title}</h3>
+                      <p className="collection-description">{collection.description}</p>
+
+                      {isAuthenticated && (
+                        <div className="progress-section">
+                          <div className="progress-header">
+                            <span>Tiến độ học tập</span>
+                            <span className="progress-percent">{stats.progress}%</span>
+                          </div>
+                          <div className="progress-bar">
+                            <div
+                              className="progress-fill"
+                              style={{ width: `${stats.progress}%` }}
+                            ></div>
+                          </div>
+                          <div className="progress-stats">
+                            <span className="stats-item">
+                              <i className="fas fa-check-circle"></i>
+                              {stats.mastered} từ đã thuộc
+                            </span>
+                            <span className="stats-item">
+                              <i className="fas fa-clock"></i>
+                              {stats.learning} từ đang học
+                            </span>
+                          </div>
+                        </div>
+                      )}
+
+                      <div className="collection-meta">
+                        <div className="meta-item">
+                          <i className="fas fa-list"></i>
+                          <span>{collection.total_cards} từ vựng</span>
+                        </div>
+                        <div className="meta-item">
+                          <i className="fas fa-user"></i>
+                          <span>{collection.creator_name}</span>
                         </div>
                       </div>
-                    )}
+                    </div>
 
-                    <div className="collection-stats">
-                      <span>
-                        <i className="fas fa-list"></i> {collection.total_cards} từ
-                      </span>
-                      <span>
-                        <i className="fas fa-user"></i> {collection.creator_name}
-                      </span>
+                    <div className="card-footer">
+                      {isAuthenticated ? (
+                        <Link
+                          to={`/vocabulary-collections/${collection.id}/study`}
+                          className="btn btn-primary study-btn"
+                        >
+                          <i className="fas fa-play"></i>
+                          {stats.learning > 0
+                            ? `Tiếp tục học (${stats.learning})`
+                            : "Bắt đầu học"}
+                        </Link>
+                      ) : (
+                        <Link to="/login" className="btn btn-primary study-btn">
+                          <i className="fas fa-sign-in-alt"></i>
+                          Đăng nhập để học
+                        </Link>
+                      )}
+                      <Link
+                        to={`/vocabulary-collections/${collection.id}/preview`}
+                        className="btn btn-outline preview-btn"
+                      >
+                        <i className="fas fa-eye"></i>
+                        Xem trước
+                      </Link>
                     </div>
                   </div>
-                  <div className="collection-card-footer">
-                    {isAuthenticated ? (
-                      <Link
-                        to={`/vocabulary-collections/${collection.id}/study`}
-                        className="btn btn-primary"
-                      >
-                        {stats.learning > 0
-                          ? `Tiếp tục học (${stats.learning})`
-                          : "Bắt đầu học"}
-                      </Link>
-                    ) : (
-                      <Link to="/login" className="btn btn-primary">
-                        Đăng nhập để học
-                      </Link>
-                    )}
-                    <Link
-                      to={`/vocabulary-collections/${collection.id}/preview`}
-                      className="btn btn-outline"
-                    >
-                      Xem trước
-                    </Link>
-                  </div>
-                </div>
-              );
-            })
+                );
+              })}
+            </div>
           )}
+        </div>
+
+        {/* Info Section */}
+        <div className="collections-info pb-5">
+          <div className="info-card">
+            <div className="info-icon">🎯</div>
+            <div className="info-content">
+              <h4>Phương pháp Spaced Repetition</h4>
+              <p>Học từ vựng đúng thời điểm để ghi nhớ lâu dài với thuật toán thông minh</p>
+            </div>
+          </div>
+          <div className="info-card">
+            <div className="info-icon">📊</div>
+            <div className="info-content">
+              <h4>Theo dõi tiến độ</h4>
+              <p>Biết được từ nào bạn đã thuộc và từ nào cần ôn tập thêm</p>
+            </div>
+          </div>
+          <div className="info-card">
+            <div className="info-icon">⚡</div>
+            <div className="info-content">
+              <h4>Học mọi lúc mọi nơi</h4>
+              <p>Truy cập trên mọi thiết bị, học offline và đồng bộ khi có kết nối</p>
+            </div>
+          </div>
         </div>
       </div>
     </div>

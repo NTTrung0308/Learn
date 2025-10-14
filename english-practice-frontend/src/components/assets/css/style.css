@@ -702,17 +702,6 @@
   opacity: 0.7;
 }
 
-.loading-spinner {
-  text-align: center;
-  padding: 3rem;
-  color: white;
-}
-
-.loading-spinner i {
-  font-size: 2rem;
-  margin-bottom: 1rem;
-}
-
 @media (max-width: 768px) {
   .exam-filters {
     flex-direction: column;
@@ -931,12 +920,6 @@
 .submit-btn:hover {
   background: #218838;
   border-color: #1e7e34;
-}
-
-.loading-spinner {
-  text-align: center;
-  padding: 3rem;
-  color: #666;
 }
 
 @media (max-width: 968px) {

@@ -30,13 +30,22 @@ const GrammarLearning = () => {
   const fetchLessonData = async () => {
     try {
       setLoading(true);
-      const response = await api.get(`/grammar/lessons/${lessonId}`);
-      setLesson(response.data);
+      const [lessonResponse, progressResponse] = await Promise.all([
+        api.get(`/grammar/lessons/${lessonId}`),
+        api.get(`/grammar/progress/${lessonId}`)
+      ]);
+      
+      const lessonData = lessonResponse.data;
+      setLesson(lessonData);
+      
+      if (progressResponse.data) {
+        setProgress(progressResponse.data);
+      }
       
       // Create quiz from lesson's practices
-      if (response.data.practices && response.data.practices.length > 0) {
+      if (lessonData.practices && lessonData.practices.length > 0) {
         let allQuestions = [];
-        response.data.practices.forEach((practice) => {
+        lessonData.practices.forEach((practice) => {
           try {
             const content = JSON.parse(practice.content);
             if (content && Array.isArray(content.questions)) {
@@ -55,17 +64,17 @@ const GrammarLearning = () => {
           }
         });
 
-        const firstPractice = response.data.practices[0];
+        const firstPractice = lessonData.practices[0];
         setQuiz({
-          title: firstPractice.title || `Luyện tập: ${response.data.title}`,
+          title: firstPractice.title || `Luyện tập: ${lessonData.title}`,
           instructions: firstPractice.instructions,
           timeLimit: firstPractice.time_limit || 10, // Default to 10 minutes
           exercises: allQuestions,
         });
       }
     } catch (error) {
-      console.error("Error fetching lesson:", error);
-      toast.error("Không thể tải bài học");
+      console.error("Error fetching lesson data:", error);
+      toast.error("Không thể tải dữ liệu bài học");
     } finally {
       setLoading(false);
     }
@@ -172,7 +181,7 @@ const GrammarLearning = () => {
 
   if (loading) {
     return (
-      <div className="grammar-learning-container min-vh-100 bg-gradient-primary">
+      <div className="grammar-learning-container  bg-gradient-primary">
         <div className="container">
           <div className="text-center py-5">
             <div className="spinner-border text-white mb-3" style={{width: '3rem', height: '3rem'}}></div>
@@ -185,7 +194,7 @@ const GrammarLearning = () => {
 
   if (!lesson) {
     return (
-      <div className="grammar-learning-container min-vh-100 bg-gradient-primary">
+      <div className="grammar-learning-container  bg-gradient-primary">
         <div className="container">
           <div className="text-center py-5">
             <i className="fas fa-book text-white mb-3" style={{fontSize: '4rem'}}></i>
@@ -201,7 +210,7 @@ const GrammarLearning = () => {
   }
 
   return (
-    <div className="grammar-learning-container min-vh-100 bg-light">
+    <div className="grammar-learning-container  bg-light">
       {/* Progress Header */}
       <div className="bg-white shadow-sm border-bottom">
         <div className="container py-3">
@@ -304,7 +313,7 @@ const QuizResult = ({ result, lesson, quiz, onRetry, onNext, onAnalyze, analysis
         {/* Score Circle */}
         <div className="text-center mb-4">
           <div className="position-relative d-inline-block">
-            <div className={`score-circle mx-auto mb-3 bg-${getPerformanceColor()} bg-opacity-10`}
+            <div className={`score-circle mx-auto mb-3  bg-opacity-10`}
               style={{
                 width: '140px',
                 height: '140px',
@@ -357,7 +366,7 @@ const QuizResult = ({ result, lesson, quiz, onRetry, onNext, onAnalyze, analysis
           <div className="row g-2">
             {result.results.map((item, index) => (
               <div key={index} className="col-12">
-                <div className={`d-flex align-items-center p-3 rounded ${item.isCorrect ? 'bg-success bg-opacity-10' : 'bg-danger bg-opacity-10'}`}>
+                <div className={`d-flex align-items-center p-3 rounded ${item.isCorrect ? ' bg-opacity-10' : 'bg-danger bg-opacity-10'}`}>
                   <div className="flex-shrink-0">
                     <i className={`fas ${item.isCorrect ? 'fa-check-circle text-success' : 'fa-times-circle text-danger'} me-3`} style={{fontSize: '1.2rem'}}></i>
                   </div>

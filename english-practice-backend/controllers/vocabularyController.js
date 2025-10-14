@@ -503,7 +503,7 @@ exports.completeSession = async (req, res) => {
     const progressMap = new Map();
 
     // 1. Process study_progress first
-    study_progress.forEach(progress => {
+    study_progress.forEach((progress) => {
       if (progress.flashcard_id) {
         progressMap.set(progress.flashcard_id, {
           user_id,
@@ -517,7 +517,7 @@ exports.completeSession = async (req, res) => {
     });
 
     // 2. Process quiz_answers, updating or adding to the map
-    quiz_answers.forEach(answer => {
+    quiz_answers.forEach((answer) => {
       if (answer.flashcard_id) {
         const isCorrect = answer.is_correct;
         const existingProgress = progressMap.get(answer.flashcard_id);
@@ -526,9 +526,9 @@ exports.completeSession = async (req, res) => {
         let newConfidence;
         if (existingProgress) {
           // If it exists, adjust confidence based on quiz answer
-          newConfidence = isCorrect 
+          newConfidence = isCorrect
             ? Math.min(100, existingProgress.confidence_level + 20) // Increase confidence
-            : Math.max(0, existingProgress.confidence_level - 20);   // Decrease confidence
+            : Math.max(0, existingProgress.confidence_level - 20); // Decrease confidence
         } else {
           // If it's a new card encountered in the quiz
           newConfidence = isCorrect ? 85 : 25;
@@ -538,7 +538,7 @@ exports.completeSession = async (req, res) => {
           user_id,
           collection_id,
           flashcard_id: answer.flashcard_id,
-          status: newConfidence >= 80 ? 'mastered' : 'learning',
+          status: newConfidence >= 80 ? "mastered" : "learning",
           confidence_level: newConfidence,
           next_review_date: calculateNextReviewDate(newConfidence),
         });
@@ -546,8 +546,11 @@ exports.completeSession = async (req, res) => {
     });
 
     const allProgress = Array.from(progressMap.values());
-    
-    console.log("Final combined progress:", JSON.stringify(allProgress, null, 2));
+
+    console.log(
+      "Final combined progress:",
+      JSON.stringify(allProgress, null, 2)
+    );
 
     if (allProgress.length > 0) {
       await UserVocabularyLearning.saveBulkProgress(allProgress);
@@ -723,26 +726,32 @@ exports.analyzeQuizResult = async (req, res) => {
     const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
     const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
-    const incorrectAnswers = detailedResults.filter(q => !q.is_correct);
+    const incorrectAnswers = detailedResults.filter((q) => !q.is_correct);
 
     if (incorrectAnswers.length === 0) {
-      return res.json({ analysis: "Chúc mừng! Bạn đã trả lời đúng tất cả các câu hỏi. Không có gì cần phân tích thêm." });
+      return res.json({
+        analysis:
+          "Chúc mừng! Bạn đã trả lời đúng tất cả các câu hỏi. Không có gì cần phân tích thêm.",
+      });
     }
 
     const prompt = `
       Bạn là một giáo viên tiếng Anh chuyên nghiệp. Hãy phân tích kết quả bài kiểm tra từ vựng của một học sinh và đưa ra nhận xét chi tiết bằng tiếng Việt.
       Dưới đây là danh sách các câu hỏi học sinh đã trả lời sai:
 
-      ${incorrectAnswers.map((q, index) => {
-        const userAnswerText = q.user_answer;
-        const correctAnswerText = q.correct_answer;
-        return `
+      ${incorrectAnswers
+        .map((q, index) => {
+          const userAnswerText = q.user_answer;
+          const correctAnswerText = q.correct_answer;
+          return `
         Câu ${index + 1}:
         - Câu hỏi: ${q.question_text}
         - Các lựa chọn: ${JSON.stringify(q.options)}
         - Câu trả lời của học sinh: "${userAnswerText}"
         - Đáp án đúng: "${correctAnswerText}"
-      `}).join(`\n`)}
+      `;
+        })
+        .join(`\n`)}
 
       Yêu cầu:
       1. Với mỗi câu trả lời sai, hãy giải thích rõ ràng tại sao đáp án của học sinh lại sai và tại sao đáp án đúng lại đúng. Tập trung vào ý nghĩa và cách dùng của từ vựng.
@@ -755,10 +764,14 @@ exports.analyzeQuizResult = async (req, res) => {
     const analysis = await response.text();
 
     res.json({ analysis });
-
   } catch (error) {
     console.error("Error analyzing quiz result with AI:", error);
-    res.status(500).json({ message: "Lỗi máy chủ khi phân tích kết quả với AI", error: error.message });
+    res
+      .status(500)
+      .json({
+        message: "Lỗi máy chủ khi phân tích kết quả với AI",
+        error: error.message,
+      });
   }
 };
 
@@ -959,26 +972,32 @@ exports.analyzeQuizResult = async (req, res) => {
     const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
     const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
-    const incorrectAnswers = detailedResults.filter(q => !q.is_correct);
+    const incorrectAnswers = detailedResults.filter((q) => !q.is_correct);
 
     if (incorrectAnswers.length === 0) {
-      return res.json({ analysis: "Chúc mừng! Bạn đã trả lời đúng tất cả các câu hỏi. Không có gì cần phân tích thêm." });
+      return res.json({
+        analysis:
+          "Chúc mừng! Bạn đã trả lời đúng tất cả các câu hỏi. Không có gì cần phân tích thêm.",
+      });
     }
 
     const prompt = `
       Bạn là một giáo viên tiếng Anh chuyên nghiệp. Hãy phân tích kết quả bài kiểm tra từ vựng của một học sinh và đưa ra nhận xét chi tiết bằng tiếng Việt.
       Dưới đây là danh sách các câu hỏi học sinh đã trả lời sai:
 
-      ${incorrectAnswers.map((q, index) => {
-        const userAnswerText = q.user_answer;
-        const correctAnswerText = q.correct_answer;
-        return `
+      ${incorrectAnswers
+        .map((q, index) => {
+          const userAnswerText = q.user_answer;
+          const correctAnswerText = q.correct_answer;
+          return `
         Câu ${index + 1}:
         - Câu hỏi: ${q.question_text}
         - Các lựa chọn: ${JSON.stringify(q.options)}
         - Câu trả lời của học sinh: "${userAnswerText}"
         - Đáp án đúng: "${correctAnswerText}"
-      `}).join(`\n`)}
+      `;
+        })
+        .join(`\n`)}
 
       Yêu cầu:
       1. Với mỗi câu trả lời sai, hãy giải thích rõ ràng tại sao đáp án của học sinh lại sai và tại sao đáp án đúng lại đúng. Tập trung vào ý nghĩa và cách dùng của từ vựng.
@@ -991,9 +1010,13 @@ exports.analyzeQuizResult = async (req, res) => {
     const analysis = await response.text();
 
     res.json({ analysis });
-
   } catch (error) {
     console.error("Error analyzing quiz result with AI:", error);
-    res.status(500).json({ message: "Lỗi máy chủ khi phân tích kết quả với AI", error: error.message });
+    res
+      .status(500)
+      .json({
+        message: "Lỗi máy chủ khi phân tích kết quả với AI",
+        error: error.message,
+      });
   }
 };

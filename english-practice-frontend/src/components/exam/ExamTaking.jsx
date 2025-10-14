@@ -202,7 +202,7 @@ const ExamTaking = () => {
       {/* Header */}
       <div className="exam-header d-flex align-items-center">
         <div className="container">
-          <div className="header-content">
+          <div className="header-content-taking">
             <div className="exam-title-section">
               <h1 className="exam-title">{exam.title}</h1>
               <div className="exam-meta">

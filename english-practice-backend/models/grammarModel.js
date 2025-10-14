@@ -531,6 +531,24 @@ const UserGrammarProgress = {
     ]);
     return result;
   },
+
+  findByUserAndLesson: async (userId, lessonId) => {
+    const sql = `
+      SELECT * FROM user_grammar_progress
+      WHERE user_id = ? AND lesson_id = ?
+    `;
+    const [rows] = await pool.execute(sql, [userId, lessonId]);
+    return rows;
+  },
+
+  findByUser: async (userId) => {
+    const sql = `
+      SELECT * FROM user_grammar_progress
+      WHERE user_id = ?
+    `;
+    const [rows] = await pool.execute(sql, [userId]);
+    return rows;
+  },
 };
 
 // Thêm vào

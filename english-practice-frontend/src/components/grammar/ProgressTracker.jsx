@@ -59,7 +59,7 @@ const ProgressTracker = ({ lesson, currentStep, progress }) => {
 
         {/* Progress Badge */}
         {progress.completed && (
-          <div className="badge bg-success">
+          <div className="badge">
             <i className="fas fa-check me-1"></i>
             Đã hoàn thành
           </div>

@@ -45,4 +45,7 @@ router.put("/change-password", auth, userController.changePassword);
 // Lấy lịch sử học tập
 router.get("/learning-history", auth, userController.getLearningHistory);
 
+// Phân tích điểm yếu
+router.get("/weaknesses", auth, userController.getWeaknesses);
+
 module.exports = router;

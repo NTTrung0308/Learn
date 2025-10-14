@@ -13,25 +13,36 @@ const GrammarList = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [topicsRes, lessonsRes] = await Promise.all([
+        const [topicsRes, lessonsRes, progressRes] = await Promise.all([
           api.get('/grammar/topics'),
-          api.get('/grammar/lessons')
+          api.get('/grammar/lessons'),
+          api.get('/grammar/progress')
         ]);
 
         const topicsData = topicsRes.data.topics || [];
         const lessonsData = lessonsRes.data.lessons || [];
+        const progressData = progressRes.data || [];
 
-        const topicsWithLessonsAndDifficulty = topicsData.map(topic => {
+        const progressMap = {};
+        progressData.forEach(p => {
+          if (p.completed) {
+            progressMap[p.lesson_id] = true;
+          }
+        });
+
+        const topicsWithLessonsAndProgress = topicsData.map(topic => {
           const lessons = lessonsData.filter(lesson => lesson.topic_id === topic.id);
+          const completed_lessons = lessons.filter(lesson => progressMap[lesson.id]).length;
           const difficulties = [...new Set(lessons.map(lesson => lesson.difficulty_level))].filter(Boolean);
           return {
             ...topic,
             lessons,
             difficulties,
+            completed_lessons,
           };
         });
 
-        setTopics(topicsWithLessonsAndDifficulty);
+        setTopics(topicsWithLessonsAndProgress);
 
       } catch (error) {
         console.error('Error fetching grammar data:', error);

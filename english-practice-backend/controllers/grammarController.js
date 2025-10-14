@@ -826,6 +826,39 @@ exports.saveGrammarProgress = async (req, res) => {
   }
 };
 
+exports.getGrammarProgress = async (req, res) => {
+  const { lessonId } = req.params;
+  const user_id = req.user.userId;
+
+  try {
+    const progress = await UserGrammarProgress.findByUserAndLesson(user_id, lessonId);
+    if (progress.length > 0) {
+      const progressData = progress[0];
+      res.json({
+        ...progressData,
+        completed: !!progressData.completed
+      });
+    } else {
+      res.json({ completed: false, score: 0, time_spent: 0 });
+    }
+  } catch (err) {
+    console.error("Error fetching grammar progress:", err);
+    res.status(500).json({ message: "Lỗi server", error: err.message });
+  }
+};
+
+exports.getAllGrammarProgress = async (req, res) => {
+  const user_id = req.user.userId;
+
+  try {
+    const progress = await UserGrammarProgress.findByUser(user_id);
+    res.json(progress);
+  } catch (err) {
+    console.error("Error fetching all grammar progress:", err);
+    res.status(500).json({ message: "Lỗi server", error: err.message });
+  }
+};
+
 exports.analyzeGrammarResult = async (req, res) => {
   const { quiz, results } = req.body;
 
