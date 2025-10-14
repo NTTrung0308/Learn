@@ -3,6 +3,7 @@ import React from "react";
 import { Link } from "react-router-dom";
 
 const ProgressTracker = ({ lesson, currentStep, progress }) => {
+  // Xác định trạng thái bước hiện tại
   const getStepStatus = (step) => {
     if (step === currentStep) return "current";
     if (
@@ -13,6 +14,7 @@ const ProgressTracker = ({ lesson, currentStep, progress }) => {
     return "pending";
   };
 
+  // Dữ liệu bài học
   const steps = [
     { id: "lesson", label: "Học lý thuyết", icon: "fa-book" },
     { id: "quiz", label: "Làm quiz", icon: "fa-question-circle" },

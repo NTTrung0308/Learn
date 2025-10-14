@@ -159,7 +159,7 @@ const Home = ({ isAuthenticated, userRole, userId }) => {
                 <span className="course-category">Giao tiếp</span>
               </div>
               <div className="course-content">
-                <h3>Tiếng Anh giao tiếp cơ bản</h3>
+                <h3>T.Anh giao tiếp cơ bản</h3>
                 <p>Làm chủ các tình huống giao tiếp hàng ngày với người bản xứ, tự tin trong mọi hoàn cảnh.</p>
                 <div className="course-features">
                   <span>📝 50+ bài học</span>
@@ -172,9 +172,7 @@ const Home = ({ isAuthenticated, userRole, userId }) => {
                   <span className="duration">⏱️ 30 giờ</span>
                   <span className="level">🟢 Cơ bản</span>
                 </div>
-                <div className="course-price">
-                  <span className="price-free">Miễn phí</span>
-                </div>
+          
               </div>
             </div>
             
@@ -198,10 +196,6 @@ const Home = ({ isAuthenticated, userRole, userId }) => {
                   <span className="duration">⏱️ 60 giờ</span>
                   <span className="level">🟡 Trung cấp</span>
                 </div>
-                <div className="course-price">
-                  <span className="price-old">1.200.000₫</span>
-                  <span className="price-new">699.000₫</span>
-                </div>
               </div>
             </div>
             
@@ -224,9 +218,6 @@ const Home = ({ isAuthenticated, userRole, userId }) => {
                   <span className="duration">⏱️ 45 giờ</span>
                   <span className="level">🟡 Trung cấp</span>
                 </div>
-                <div className="course-price">
-                  <span className="price">499.000₫</span>
-                </div>
               </div>
             </div>
           </div>
@@ -243,7 +234,7 @@ const Home = ({ isAuthenticated, userRole, userId }) => {
       {/* Stats Section */}
       <section className="stats-section">
         <div className="container">
-          <div className="stats-grid">
+          <div className="stats-grid-home">
             <div className="stat-card">
               <div className="stat-number">50,000+</div>
               <div className="stat-label">Học viên tham gia</div>

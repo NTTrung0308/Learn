@@ -8,6 +8,7 @@ const Navbar = ({ isAuthenticated }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const navigate = useNavigate();
 
+  // Lấy thông tin người dùng khi component được mount
   useEffect(() => {
     const fetchUserProfile = async () => {
       if (isAuthenticated) {
@@ -27,12 +28,14 @@ const Navbar = ({ isAuthenticated }) => {
     fetchUserProfile();
   }, [isAuthenticated]);
 
+  // Xử lý đăng xuất
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
     window.location.reload();
   };
 
+  // Các mục điều hướng
   const navItems = [
     { path: "/", label: "Trang chủ", icon: "🏠" },
     { path: "/courses", label: "Khóa học", icon: "📚" },

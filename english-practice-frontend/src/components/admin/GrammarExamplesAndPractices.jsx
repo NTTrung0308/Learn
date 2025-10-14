@@ -17,6 +17,7 @@ import {
 import { toast } from "react-toastify";
 import Layout from "../layout/admin/Layout";
 
+// Component quản lý ví dụ và bài tập ngữ pháp cho một bài học cụ thể
 const GrammarExamplesAndPractices = ({ lessonId, lessonTitle }) => {
   const [examples, setExamples] = useState([]);
   const [practices, setPractices] = useState([]);
@@ -46,6 +47,7 @@ const GrammarExamplesAndPractices = ({ lessonId, lessonTitle }) => {
     display_order: 0,
   });
 
+  // Tải ví dụ và bài tập khi lessonId thay đổi
   useEffect(() => {
     if (lessonId) {
       fetchExamples();
@@ -53,6 +55,7 @@ const GrammarExamplesAndPractices = ({ lessonId, lessonTitle }) => {
     }
   }, [lessonId]);
 
+  // Hàm tải ví dụ từ API
   const fetchExamples = async () => {
     console.log("Fetching examples for lessonId:", lessonId);
     try {
@@ -71,6 +74,7 @@ const GrammarExamplesAndPractices = ({ lessonId, lessonTitle }) => {
     }
   };
 
+  // Hàm tải bài tập từ API
   const fetchPractices = async () => {
     try {
       const token = localStorage.getItem("token");
@@ -86,6 +90,7 @@ const GrammarExamplesAndPractices = ({ lessonId, lessonTitle }) => {
     }
   };
 
+  // Xử lý gửi form ví dụ
   const handleExampleSubmit = async (e) => {
     e.preventDefault();
     try {
@@ -137,6 +142,7 @@ const GrammarExamplesAndPractices = ({ lessonId, lessonTitle }) => {
     }
   };
 
+  // Xử lý gửi form bài tập
   const handlePracticeSubmit = async (e) => {
     e.preventDefault();
     try {
@@ -189,51 +195,78 @@ const GrammarExamplesAndPractices = ({ lessonId, lessonTitle }) => {
     }
   };
 
-  // Handlers for dynamic question form
+  // Hàm xử lý thay đổi trong câu hỏi
   const handleQuestionChange = (qIndex, field, value) => {
     const newQuestions = [...practiceForm.content.questions];
     newQuestions[qIndex][field] = value;
-    if (field === 'question_type') {
-        newQuestions[qIndex].options = [];
-        newQuestions[qIndex].correctAnswer = '';
+    if (field === "question_type") {
+      newQuestions[qIndex].options = [];
+      newQuestions[qIndex].correctAnswer = "";
     }
-    setPracticeForm({ ...practiceForm, content: { ...practiceForm.content, questions: newQuestions } });
+    setPracticeForm({
+      ...practiceForm,
+      content: { ...practiceForm.content, questions: newQuestions },
+    });
   };
 
+  // Hàm xử lý thay đổi trong tài liệu
   const handleQuestionAdd = () => {
-    const newQuestions = [...practiceForm.content.questions, {
-      question_type: 'multiple_choice',
-      question_text: '',
-      options: [],
-      correctAnswer: ''
-    }];
-    setPracticeForm({ ...practiceForm, content: { ...practiceForm.content, questions: newQuestions } });
+    const newQuestions = [
+      ...practiceForm.content.questions,
+      {
+        question_type: "multiple_choice",
+        question_text: "",
+        options: [],
+        correctAnswer: "",
+      },
+    ];
+    setPracticeForm({
+      ...practiceForm,
+      content: { ...practiceForm.content, questions: newQuestions },
+    });
   };
 
+  // Hàm xóa câu hỏi
   const handleQuestionDelete = (qIndex) => {
     const newQuestions = [...practiceForm.content.questions];
     newQuestions.splice(qIndex, 1);
-    setPracticeForm({ ...practiceForm, content: { ...practiceForm.content, questions: newQuestions } });
+    setPracticeForm({
+      ...practiceForm,
+      content: { ...practiceForm.content, questions: newQuestions },
+    });
   };
 
+  // Hàm xử lý thay đổi trong các lựa chọn của câu hỏi trắc nghiệm
   const handleOptionChange = (qIndex, optIndex, value) => {
     const newQuestions = [...practiceForm.content.questions];
     newQuestions[qIndex].options[optIndex] = value;
-    setPracticeForm({ ...practiceForm, content: { ...practiceForm.content, questions: newQuestions } });
+    setPracticeForm({
+      ...practiceForm,
+      content: { ...practiceForm.content, questions: newQuestions },
+    });
   };
 
+  // Hàm thêm lựa chọn mới cho câu hỏi trắc nghiệm
   const handleOptionAdd = (qIndex) => {
     const newQuestions = [...practiceForm.content.questions];
-    newQuestions[qIndex].options.push('');
-    setPracticeForm({ ...practiceForm, content: { ...practiceForm.content, questions: newQuestions } });
+    newQuestions[qIndex].options.push("");
+    setPracticeForm({
+      ...practiceForm,
+      content: { ...practiceForm.content, questions: newQuestions },
+    });
   };
 
+  // Hàm xóa lựa chọn khỏi câu hỏi trắc nghiệm
   const handleOptionDelete = (qIndex, optIndex) => {
     const newQuestions = [...practiceForm.content.questions];
     newQuestions[qIndex].options.splice(optIndex, 1);
-    setPracticeForm({ ...practiceForm, content: { ...practiceForm.content, questions: newQuestions } });
+    setPracticeForm({
+      ...practiceForm,
+      content: { ...practiceForm.content, questions: newQuestions },
+    });
   };
 
+  // Mở modal ví dụ, nếu có truyền ví dụ thì là sửa
   const openExampleModal = (example = null) => {
     if (example) {
       setEditingExample(example);
@@ -255,13 +288,14 @@ const GrammarExamplesAndPractices = ({ lessonId, lessonTitle }) => {
     setShowExampleModal(true);
   };
 
+  // Mở modal bài tập, nếu có truyền bài tập thì là sửa
   const openPracticeModal = (practice = null) => {
     if (practice) {
       setEditingPractice(practice);
       let practiceContent = { questions: [] };
       try {
         // content from DB is a JSON string
-        if (practice.content && typeof practice.content === 'string') {
+        if (practice.content && typeof practice.content === "string") {
           practiceContent = JSON.parse(practice.content);
         }
       } catch (error) {
@@ -306,17 +340,20 @@ const GrammarExamplesAndPractices = ({ lessonId, lessonTitle }) => {
 
   return (
     <div className="page-inner">
-      <div className="d-flex justify-content-between align-items-center mb-4">
-        <h4>Quản lý Ví dụ & Bài tập - {lessonTitle}</h4>
-        <div>
-          <Button
-            variant="outline-primary"
-            className="me-2"
-            onClick={() => openExampleModal()}
-          >
+      <div className="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-4">
+        <h4 className="fw-bold text-secondary mb-3 mb-md-0">
+          Quản lý Ví dụ & Bài tập
+          <span className="text-primary"> – {lessonTitle}</span>
+        </h4>
+
+        <div className="d-flex flex-wrap gap-2">
+          <Button variant="outline-primary" onClick={() => openExampleModal()}>
+            <i className="bi bi-plus-circle me-1"></i>
             Thêm Ví dụ
           </Button>
+
           <Button variant="primary" onClick={() => openPracticeModal()}>
+            <i className="bi bi-journal-text me-1"></i>
             Thêm Bài tập
           </Button>
         </div>
@@ -337,14 +374,14 @@ const GrammarExamplesAndPractices = ({ lessonId, lessonTitle }) => {
                       {example.example_sentence}
                     </Card.Title>
                     {example.meaning && (
-                      <Card.Text className="text-muted">
+                      <p className="text-muted">
                         {example.meaning}
-                      </Card.Text>
+                      </p>
                     )}
                     {example.notes && (
-                      <Card.Text className="small">
+                      <p className="small">
                         <strong>Ghi chú:</strong> {example.notes}
-                      </Card.Text>
+                      </p>
                     )}
                     <div className="d-flex justify-content-end mt-3">
                       <Button
@@ -381,9 +418,9 @@ const GrammarExamplesAndPractices = ({ lessonId, lessonTitle }) => {
                       <Card.Title className="h6">{practice.title}</Card.Title>
                       <Badge bg="info">{practice.practice_type}</Badge>
                     </div>
-                    <Card.Text className="small">
+                    <p className="small">
                       {practice.instructions}
-                    </Card.Text>
+                    </p>
                     <div className="mt-auto">
                       <Badge bg="secondary" className="me-2">
                         {practice.points} điểm
@@ -534,27 +571,30 @@ const GrammarExamplesAndPractices = ({ lessonId, lessonTitle }) => {
                 rows={2}
                 value={practiceForm.instructions}
                 onChange={(e) =>
-                  setPracticeForm({ ...practiceForm, instructions: e.target.value })
+                  setPracticeForm({
+                    ...practiceForm,
+                    instructions: e.target.value,
+                  })
                 }
               />
             </Form.Group>
             <Row>
-                <Col md={6}>
-                    <Form.Group className="mb-3">
-                    <Form.Label>Loại bài tập</Form.Label>
-                    <Form.Select
-                        value={practiceForm.practice_type}
-                        onChange={(e) =>
-                        setPracticeForm({
-                            ...practiceForm,
-                            practice_type: e.target.value,
-                        })
-                        }
-                    >
-                        <option value="multiple_choice">Trắc nghiệm</option>
-                        <option value="fill_in_blank">Điền vào chỗ trống</option>
-                    </Form.Select>
-                    </Form.Group>
+              <Col md={6}>
+                <Form.Group className="mb-3">
+                  <Form.Label>Loại bài tập</Form.Label>
+                  <Form.Select
+                    value={practiceForm.practice_type}
+                    onChange={(e) =>
+                      setPracticeForm({
+                        ...practiceForm,
+                        practice_type: e.target.value,
+                      })
+                    }
+                  >
+                    <option value="multiple_choice">Trắc nghiệm</option>
+                    <option value="fill_in_blank">Điền vào chỗ trống</option>
+                  </Form.Select>
+                </Form.Group>
               </Col>
               <Col md={6}>
                 <Form.Group className="mb-3">
@@ -584,55 +624,118 @@ const GrammarExamplesAndPractices = ({ lessonId, lessonTitle }) => {
                 <Card.Body>
                   <div className="d-flex justify-content-between mb-3">
                     <strong>Câu hỏi {qIndex + 1}</strong>
-                    <Button variant="outline-danger" size="sm" onClick={() => handleQuestionDelete(qIndex)}>
+                    <Button
+                      variant="outline-danger"
+                      size="sm"
+                      onClick={() => handleQuestionDelete(qIndex)}
+                    >
                       Xóa câu hỏi
                     </Button>
                   </div>
                   <Form.Group className="mb-3">
                     <Form.Label>Loại câu hỏi</Form.Label>
-                    <Form.Select value={q.question_type} onChange={(e) => handleQuestionChange(qIndex, 'question_type', e.target.value)}>
+                    <Form.Select
+                      value={q.question_type}
+                      onChange={(e) =>
+                        handleQuestionChange(
+                          qIndex,
+                          "question_type",
+                          e.target.value
+                        )
+                      }
+                    >
                       <option value="multiple_choice">Trắc nghiệm</option>
                       <option value="fill_in_blank">Điền vào chỗ trống</option>
                     </Form.Select>
                   </Form.Group>
                   <Form.Group className="mb-3">
                     <Form.Label>Nội dung câu hỏi</Form.Label>
-                    <Form.Control as="textarea" rows={2} value={q.question_text} onChange={(e) => handleQuestionChange(qIndex, 'question_text', e.target.value)} placeholder="Ví dụ: The sun ___ in the east."/>
+                    <Form.Control
+                      as="textarea"
+                      rows={2}
+                      value={q.question_text}
+                      onChange={(e) =>
+                        handleQuestionChange(
+                          qIndex,
+                          "question_text",
+                          e.target.value
+                        )
+                      }
+                      placeholder="Ví dụ: The sun ___ in the east."
+                    />
                   </Form.Group>
 
-                  {q.question_type === 'multiple_choice' && (
+                  {q.question_type === "multiple_choice" && (
                     <div>
                       <strong>Các lựa chọn</strong>
                       {q.options.map((opt, optIndex) => (
                         <InputGroup key={optIndex} className="mb-2">
-                           <InputGroup.Text>
+                          <InputGroup.Text>
                             <Form.Check
                               type="radio"
                               name={`correctAnswer-${qIndex}`}
                               id={`correctAnswer-${qIndex}-${optIndex}`}
                               checked={q.correctAnswer === optIndex.toString()}
-                              onChange={() => handleQuestionChange(qIndex, 'correctAnswer', optIndex.toString())}
+                              onChange={() =>
+                                handleQuestionChange(
+                                  qIndex,
+                                  "correctAnswer",
+                                  optIndex.toString()
+                                )
+                              }
                             />
                           </InputGroup.Text>
-                          <Form.Control value={opt} onChange={(e) => handleOptionChange(qIndex, optIndex, e.target.value)} />
-                          <Button variant="outline-danger" size="sm" onClick={() => handleOptionDelete(qIndex, optIndex)}>Xóa</Button>
+                          <Form.Control
+                            value={opt}
+                            onChange={(e) =>
+                              handleOptionChange(
+                                qIndex,
+                                optIndex,
+                                e.target.value
+                              )
+                            }
+                          />
+                          <Button
+                            variant="outline-danger"
+                            size="sm"
+                            onClick={() => handleOptionDelete(qIndex, optIndex)}
+                          >
+                            Xóa
+                          </Button>
                         </InputGroup>
                       ))}
-                      <Button variant="outline-primary" size="sm" onClick={() => handleOptionAdd(qIndex)}>Thêm lựa chọn</Button>
+                      <Button
+                        variant="outline-primary"
+                        size="sm"
+                        onClick={() => handleOptionAdd(qIndex)}
+                      >
+                        Thêm lựa chọn
+                      </Button>
                     </div>
                   )}
 
-                  {q.question_type === 'fill_in_blank' && (
-                     <Form.Group className="mb-3">
-                        <Form.Label>Đáp án đúng</Form.Label>
-                        <Form.Control type="text" value={q.correctAnswer} onChange={(e) => handleQuestionChange(qIndex, 'correctAnswer', e.target.value)} />
+                  {q.question_type === "fill_in_blank" && (
+                    <Form.Group className="mb-3">
+                      <Form.Label>Đáp án đúng</Form.Label>
+                      <Form.Control
+                        type="text"
+                        value={q.correctAnswer}
+                        onChange={(e) =>
+                          handleQuestionChange(
+                            qIndex,
+                            "correctAnswer",
+                            e.target.value
+                          )
+                        }
+                      />
                     </Form.Group>
                   )}
                 </Card.Body>
               </Card>
             ))}
-            <Button variant="primary" onClick={handleQuestionAdd}>Thêm câu hỏi</Button>
-
+            <Button variant="primary" onClick={handleQuestionAdd}>
+              Thêm câu hỏi
+            </Button>
           </Modal.Body>
           <Modal.Footer>
             <Button

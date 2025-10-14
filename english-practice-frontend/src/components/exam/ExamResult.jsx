@@ -18,6 +18,7 @@ const ExamResult = () => {
     fetchExamResult();
   }, [resultId]);
 
+  // Lấy kết quả thi từ API
   const fetchExamResult = async () => {
     try {
       const response = await api.get(`/exams/result/${resultId}`);
@@ -31,11 +32,13 @@ const ExamResult = () => {
     }
   };
 
+  // Tính toán phần trăm điểm
   const calculatePercentage = () => {
     if (!result) return 0;
     return Math.round((result.score / result.total_points) * 100);
   };
 
+  // Lấy thông điệp hiệu suất dựa trên phần trăm
   const getPerformanceMessage = () => {
     const percentage = calculatePercentage();
     if (percentage >= 90) return "Xuất sắc! 🎉";
@@ -45,6 +48,7 @@ const ExamResult = () => {
     return "Cần cố gắng thêm 💪";
   };
 
+  // Lấy màu sắc dựa trên hiệu suất
   const getPerformanceColor = () => {
     const percentage = calculatePercentage();
     if (percentage >= 80) return "success";
@@ -52,6 +56,7 @@ const ExamResult = () => {
     return "danger";
   };
 
+  // Lấy màu sắc dựa trên điểm số
   const getGradeColor = () => {
     const percentage = calculatePercentage();
     if (percentage >= 80) return "text-success";
@@ -59,6 +64,7 @@ const ExamResult = () => {
     return "text-danger";
   };
 
+  // Định dạng thời gian từ giây sang mm:ss
   const formatTime = (seconds) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
@@ -67,13 +73,14 @@ const ExamResult = () => {
       .padStart(2, "0")}`;
   };
 
+  // Xử lý khi người dùng nhấn nút phân tích
   const handleAnalyze = async () => {
     if (detailedResults.filter(q => !q.is_correct).length === 0) {
       toast.info("Bạn đã trả lời đúng hết! Không cần phân tích thêm.");
       setAnalysis("Chúc mừng! Bạn đã trả lời đúng tất cả các câu hỏi. Không có gì cần phân tích thêm.");
       return;
     }
-
+    
     setIsAnalyzing(true);
     setAnalysis("");
     try {

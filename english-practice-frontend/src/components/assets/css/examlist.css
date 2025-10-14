@@ -228,7 +228,7 @@
 }
 
 .results-count {
-  color: #dadada;
+  color: #3b3b3b;
   font-size: 1rem;
 }
 
@@ -359,7 +359,6 @@
 }
 
 .action-buttons {
-  display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 10px;
 }

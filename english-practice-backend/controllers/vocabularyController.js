@@ -55,6 +55,7 @@ exports.createCollection = async (req, res) => {
   }
 };
 
+// Lấy tất cả bộ từ vựng với phân trang và lọc
 exports.getAllCollections = async (req, res) => {
   const { level, category, created_by, is_public } = req.query;
 
@@ -73,6 +74,7 @@ exports.getAllCollections = async (req, res) => {
   }
 };
 
+// Lấy chi tiết bộ từ vựng
 exports.getCollectionDetail = async (req, res) => {
   const { id } = req.params;
 
@@ -104,6 +106,7 @@ exports.getCollectionDetail = async (req, res) => {
   }
 };
 
+// Cập nhật bộ từ vựng
 exports.updateCollection = async (req, res) => {
   const { id } = req.params;
   const {
@@ -147,6 +150,7 @@ exports.updateCollection = async (req, res) => {
   }
 };
 
+// Xóa bộ từ vựng
 exports.deleteCollection = async (req, res) => {
   const { id } = req.params;
 
@@ -259,6 +263,7 @@ exports.addFlashcard = async (req, res) => {
   }
 };
 
+// Lấy tất cả flashcards trong bộ từ vựng
 exports.getFlashcards = async (req, res) => {
   const { collection_id } = req.query;
 
@@ -283,6 +288,7 @@ exports.getFlashcards = async (req, res) => {
   }
 };
 
+// Hàm gọi API để lấy audio phát âm
 exports.updateFlashcard = async (req, res) => {
   const { id } = req.params;
   const {
@@ -387,6 +393,7 @@ exports.updateFlashcard = async (req, res) => {
   }
 };
 
+// Xóa flashcard
 exports.deleteFlashcard = async (req, res) => {
   const { id } = req.params;
 
@@ -460,6 +467,7 @@ exports.saveLearningProgress = async (req, res) => {
   }
 };
 
+// Lưu tiến độ làm quiz
 exports.saveQuizProgress = async (req, res) => {
   const { collection_id, answers } = req.body;
   const user_id = req.user.userId;
@@ -490,6 +498,7 @@ exports.saveQuizProgress = async (req, res) => {
   }
 };
 
+// Hoàn thành phiên học
 exports.completeSession = async (req, res) => {
   const { collection_id, study_progress = [], quiz_answers = [] } = req.body;
   const user_id = req.user.userId;
@@ -565,6 +574,7 @@ exports.completeSession = async (req, res) => {
   }
 };
 
+// Lấy tiến độ học tập
 exports.getLearningProgress = async (req, res) => {
   const user_id = req.user.userId;
   const { collection_id } = req.query;
@@ -621,6 +631,7 @@ exports.createVocabularyQuestion = async (req, res) => {
   }
 };
 
+//  Lấy câu hỏi trong bộ từ vựng
 exports.getVocabularyQuestions = async (req, res) => {
   const { collection_id } = req.query;
 
@@ -659,6 +670,7 @@ exports.getVocabularyQuestions = async (req, res) => {
   }
 };
 
+// Cập nhật câu hỏi
 exports.updateVocabularyQuestion = async (req, res) => {
   const { id } = req.params;
   const {
@@ -680,7 +692,7 @@ exports.updateVocabularyQuestion = async (req, res) => {
     }
 
     const results = await VocabularyQuestion.update(id, {
-      flashcard_id,
+      flashcard_id: flashcard_id || null,
       question_type,
       question_text,
       options: parsedOptions,
@@ -698,6 +710,7 @@ exports.updateVocabularyQuestion = async (req, res) => {
   }
 };
 
+// Xóa câu hỏi
 exports.deleteVocabularyQuestion = async (req, res) => {
   const { id } = req.params;
 
@@ -715,6 +728,7 @@ exports.deleteVocabularyQuestion = async (req, res) => {
   }
 };
 
+// Phân tích kết quả bài quiz với AI
 exports.analyzeQuizResult = async (req, res) => {
   const { detailedResults } = req.body;
 
@@ -810,6 +824,7 @@ exports.exportFlashcardsCSV = async (req, res) => {
   }
 };
 
+// Import flashcards từ CSV
 exports.importFlashcardsCSV = async (req, res) => {
   if (!req.file) {
     return res.status(400).json({ message: "Vui lòng chọn file CSV" });
@@ -961,6 +976,7 @@ function calculateNextReviewDate(confidenceLevel) {
   return today.toISOString().split("T")[0]; // Trả về YYYY-MM-DD
 }
 
+// Phân tích kết quả bài quiz với AI
 exports.analyzeQuizResult = async (req, res) => {
   const { detailedResults } = req.body;
 

@@ -12,8 +12,8 @@ const {
   addQuestion,
   updateQuestion,
   deleteQuestion,
-  submitExam, // Added back
-  getExamResult, // Added back
+  submitExam, 
+  getExamResult, 
   getExamHistory,
   analyzeExamResult,
 } = require("../controllers/examController");
@@ -71,8 +71,8 @@ router.get("/history", auth, getExamHistory);
 router.get("/:id", getExamDetail);
 router.put("/:id", auth, updateExam);
 router.delete("/:id", auth, deleteExam);
-router.post("/:id/submit", auth, submitExam); // Added back
-router.get("/result/:resultId", auth, getExamResult); // Changed route
+router.post("/:id/submit", auth, submitExam); 
+router.get("/result/:resultId", auth, getExamResult); 
 router.post("/analyze", auth, analyzeExamResult);
 
 // Routes cho câu hỏi

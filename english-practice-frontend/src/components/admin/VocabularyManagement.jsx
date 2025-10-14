@@ -17,6 +17,7 @@ import { toast } from "react-toastify";
 import Swal from "sweetalert2";
 import Layout from "../layout/admin/Layout";
 
+// Quản lý từ vựng: bộ từ vựng, flashcards, câu hỏi
 const VocabularyManagement = ({ handleLogout }) => {
   const [collections, setCollections] = useState([]);
   const [flashcards, setFlashcards] = useState([]);
@@ -64,10 +65,12 @@ const VocabularyManagement = ({ handleLogout }) => {
     correct_answer: "",
   });
 
+  // Tải danh sách bộ từ vựng khi component được mount
   useEffect(() => {
     fetchCollections();
   }, []);
 
+  // Hàm tải bộ từ vựng từ API với tùy chọn lọc
   const fetchCollections = async (filters = {}) => {
     try {
       const token = localStorage.getItem("token");
@@ -88,6 +91,7 @@ const VocabularyManagement = ({ handleLogout }) => {
     }
   };
 
+  // Hàm tải flashcards từ API dựa trên bộ từ vựng đã chọn
   const fetchFlashcards = async (collectionId) => {
     try {
       const token = localStorage.getItem("token");
@@ -103,6 +107,7 @@ const VocabularyManagement = ({ handleLogout }) => {
     }
   };
 
+  // Hàm tải câu hỏi từ API dựa trên bộ từ vựng đã chọn
   const fetchQuestions = async (collectionId) => {
     try {
       const token = localStorage.getItem("token");
@@ -118,6 +123,7 @@ const VocabularyManagement = ({ handleLogout }) => {
     }
   };
 
+  // Hàm tìm kiếm từ vựng
   const searchVocabulary = async (term) => {
     try {
       const token = localStorage.getItem("token");
@@ -136,6 +142,7 @@ const VocabularyManagement = ({ handleLogout }) => {
     }
   };
 
+  // Xử lý submit form tạo/sửa bộ từ vựng
   const handleCollectionSubmit = async (e) => {
     e.preventDefault();
     try {
@@ -178,6 +185,7 @@ const VocabularyManagement = ({ handleLogout }) => {
     }
   };
 
+  // Xử lý submit form tạo/sửa flashcard
   const handleFlashcardSubmit = async (e) => {
     e.preventDefault();
     try {
@@ -198,7 +206,7 @@ const VocabularyManagement = ({ handleLogout }) => {
         }
       });
 
-      // Append files
+      // Thêm tệp nếu được chọn
       const audioFile = e.target.elements.audio.files[0];
       if (audioFile) {
         formData.append("audio", audioFile);
@@ -260,6 +268,7 @@ const VocabularyManagement = ({ handleLogout }) => {
     }
   };
 
+  // Xử lý submit form tạo/sửa câu hỏi
   const handleQuestionSubmit = async (e) => {
     e.preventDefault();
     try {
@@ -301,6 +310,7 @@ const VocabularyManagement = ({ handleLogout }) => {
     }
   };
 
+  // Xóa bộ từ vựng
   const deleteCollection = (id) => {
     Swal.fire({
       title: "Bạn có chắc chắn?",
@@ -330,6 +340,7 @@ const VocabularyManagement = ({ handleLogout }) => {
     });
   };
 
+  // Xóa flashcard
   const deleteFlashcard = (id) => {
     Swal.fire({
       title: "Bạn có chắc chắn?",
@@ -361,6 +372,7 @@ const VocabularyManagement = ({ handleLogout }) => {
     });
   };
 
+  // Xóa câu hỏi
   const deleteQuestion = (id) => {
     Swal.fire({
       title: "Bạn có chắc chắn?",
@@ -392,6 +404,7 @@ const VocabularyManagement = ({ handleLogout }) => {
     });
   };
 
+  // Mở modal tạo/sửa bộ từ vựng
   const openCollectionModal = (collection = null) => {
     if (collection) {
       setEditingCollection(collection);
@@ -421,6 +434,7 @@ const VocabularyManagement = ({ handleLogout }) => {
     setShowCollectionModal(true);
   };
 
+  // Mở modal tạo/sửa flashcard
   const openFlashcardModal = (flashcard = null) => {
     if (flashcard) {
       setEditingFlashcard(flashcard);
@@ -462,6 +476,7 @@ const VocabularyManagement = ({ handleLogout }) => {
     setShowFlashcardModal(true);
   };
 
+  // Mở modal tạo/sửa câu hỏi
   const openQuestionModal = (question = null) => {
     if (question) {
       setEditingQuestion(question);
@@ -485,6 +500,7 @@ const VocabularyManagement = ({ handleLogout }) => {
     setShowQuestionModal(true);
   };
 
+  // Chọn bộ từ vựng để xem flashcards và câu hỏi
   const handleCollectionSelect = (collection) => {
     setCurrentCollection(collection);
     fetchFlashcards(collection.id);
@@ -492,6 +508,7 @@ const VocabularyManagement = ({ handleLogout }) => {
     setActiveTab("flashcards");
   };
 
+  // Lấy màu badge theo level
   const getLevelBadgeVariant = (level) => {
     switch (level) {
       case "beginner":
@@ -505,6 +522,7 @@ const VocabularyManagement = ({ handleLogout }) => {
     }
   };
 
+  // Lấy màu badge theo part of speech
   const getPartOfSpeechBadge = (pos) => {
     const variants = {
       noun: "primary",
@@ -518,6 +536,7 @@ const VocabularyManagement = ({ handleLogout }) => {
     return variants[pos] || "secondary";
   };
 
+  // Tìm kiếm từ vựng
   const handleSearch = async (e) => {
     e.preventDefault();
     if (searchTerm.trim()) {
@@ -526,6 +545,7 @@ const VocabularyManagement = ({ handleLogout }) => {
     }
   };
 
+  // Xuất bộ từ vựng hiện tại ra file CSV
   const exportCSV = async () => {
     if (!currentCollection) {
       toast.error("Vui lòng chọn một bộ từ vựng");
@@ -561,6 +581,7 @@ const VocabularyManagement = ({ handleLogout }) => {
     }
   };
 
+  // Tìm kiếm từ điển
   const searchDictionary = async () => {
     if (!dictionarySearchTerm) return;
     try {
@@ -581,6 +602,7 @@ const VocabularyManagement = ({ handleLogout }) => {
     }
   };
 
+  // Điền form flashcard từ định nghĩa từ điển
   const fillFormFromDictionary = () => {
     if (!dictionaryDefinition) return;
 
@@ -621,29 +643,31 @@ const VocabularyManagement = ({ handleLogout }) => {
 
   return (
     <Layout handleLogout={handleLogout}>
-      <div className="page-inner mt-3">
-        <div className="d-flex justify-content-between align-items-center mb-4">
-          <h2>Quản lý Từ vựng</h2>
-          <div>
-            <Button
-              variant="outline-primary"
-              className="me-2"
-              onClick={() => openCollectionModal()}
-            >
+      <div className="page-inner">
+        <div className="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-4">
+          <h2 className="mb-3 mb-md-0 fw-bold text-primary">Quản lý Từ vựng</h2>
+
+          <div className="d-flex flex-wrap gap-2">
+            <Button variant="outline-primary" onClick={() => openCollectionModal()}>
+              <i className="bi bi-folder-plus me-1"></i>
               Tạo Bộ Từ vựng
             </Button>
+
             <Button
               variant="primary"
               onClick={() => openFlashcardModal()}
               disabled={!currentCollection}
             >
+              <i className="bi bi-layers me-1"></i>
               Thêm Flashcard
             </Button>
+
             <Button
               variant="success"
               onClick={() => openQuestionModal()}
               disabled={!currentCollection}
             >
+              <i className="bi bi-question-circle me-1"></i>
               Thêm Câu hỏi
             </Button>
           </div>
@@ -669,9 +693,9 @@ const VocabularyManagement = ({ handleLogout }) => {
                         </Badge>
                       </div>
 
-                      <Card.Text className="text-muted small mb-2">
+                      <p className="text-muted small mb-2">
                         {collection.description}
-                      </Card.Text>
+                      </p>
 
                       <div className="mb-2">
                         <Badge bg="info" className="me-1">
@@ -800,26 +824,26 @@ const VocabularyManagement = ({ handleLogout }) => {
                         </Badge>
                       </div>
 
-                      <Card.Text className="mb-2">
+                      <p className="mb-2">
                         <strong>Nghĩa:</strong> {flashcard.meaning}
-                      </Card.Text>
+                      </p>
 
                       {flashcard.pronunciation && (
-                        <Card.Text className="text-muted small mb-2">
+                        <p className="text-muted small mb-2">
                           <strong>Phát âm:</strong> /{flashcard.pronunciation}/
-                        </Card.Text>
+                        </p>
                       )}
 
                       {flashcard.example_sentence && (
-                        <Card.Text className="mb-2">
+                        <p className="mb-2">
                           <strong>Ví dụ:</strong> {flashcard.example_sentence}
-                        </Card.Text>
+                        </p>
                       )}
 
                       {flashcard.example_meaning && (
-                        <Card.Text className="text-muted small mb-2">
+                        <p className="text-muted small mb-2">
                           {flashcard.example_meaning}
-                        </Card.Text>
+                        </p>
                       )}
 
                       {(flashcard.synonyms.length > 0 ||
@@ -1144,7 +1168,7 @@ const VocabularyManagement = ({ handleLogout }) => {
                     <Card.Title>
                       Kết quả từ Oxford: {dictionaryDefinition.word}
                     </Card.Title>
-                    <Card.Text className="d-flex align-items-center">
+                    <p className="d-flex align-items-center">
                       <strong className="me-2">Phát âm:</strong>{" "}
                       {dictionaryDefinition.phonetic}
                       {dictionaryDefinition.audio && (
@@ -1157,7 +1181,7 @@ const VocabularyManagement = ({ handleLogout }) => {
                           Your browser does not support the audio element.
                         </audio>
                       )}
-                    </Card.Text>
+                    </p>
                     {dictionaryDefinition.meanings.map((def, index) => (
                       <div key={index}>
                         <strong>{def.partOfSpeech}</strong>

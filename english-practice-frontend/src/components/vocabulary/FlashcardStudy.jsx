@@ -15,6 +15,7 @@ const FlashcardStudy = ({ isAuthenticated }) => {
   const [sessionCards, setSessionCards] = useState([]);
   const [sessionProgress, setSessionProgress] = useState([]);
 
+  // Hàm lấy đường dẫn audio đúng
   const getAudioSrc = (audioPath) => {
     if (!audioPath) {
       return "";
@@ -25,12 +26,14 @@ const FlashcardStudy = ({ isAuthenticated }) => {
     return `http://localhost:5000${audioPath}`;
   };
 
+  // Tải bộ thẻ và tiến độ học
   useEffect(() => {
     if (collectionId) {
       fetchCollectionAndCards();
     }
   }, [collectionId]);
 
+  // Hàm tải bộ thẻ và tiến độ học
   const fetchCollectionAndCards = async () => {
     try {
       const [collectionRes, progressRes] = await Promise.all([
@@ -84,10 +87,12 @@ const FlashcardStudy = ({ isAuthenticated }) => {
     }
   };
 
+  // Xử lý lật thẻ
   const handleFlip = () => {
     setIsFlipped(!isFlipped);
   };
 
+  // Xử lý đánh giá mức độ nhớ
   const handleRating = async (difficulty) => {
     if (!isAuthenticated) {
       toast.info("Đăng nhập để lưu tiến độ học tập");
@@ -96,6 +101,7 @@ const FlashcardStudy = ({ isAuthenticated }) => {
       return;
     }
 
+    // Cập nhật tiến độ học
     const currentCard = sessionCards[currentIndex];
     let confidenceLevel = 50;
 
@@ -126,6 +132,7 @@ const FlashcardStudy = ({ isAuthenticated }) => {
     goToNextCard(newProgress);
   };
 
+  // Chuyển đến thẻ tiếp theo hoặc kết thúc buổi học
   const goToNextCard = (currentProgress) => {
     if (currentIndex < sessionCards.length - 1) {
       setCurrentIndex(currentIndex + 1);
@@ -139,6 +146,7 @@ const FlashcardStudy = ({ isAuthenticated }) => {
     }
   };
 
+  // Xử lý phím tắt
   const handleKeyPress = (e) => {
     if (e.code === "Space") {
       e.preventDefault();
@@ -161,6 +169,7 @@ const FlashcardStudy = ({ isAuthenticated }) => {
     }
   };
 
+  // Đăng ký sự kiện phím tắt
   useEffect(() => {
     document.addEventListener("keydown", handleKeyPress);
     return () => {

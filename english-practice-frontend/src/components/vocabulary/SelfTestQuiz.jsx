@@ -26,6 +26,7 @@ const SelfTestQuiz = () => {
     fetchQuizData();
   }, [collectionId]);
 
+  // Hàm tải dữ liệu bài kiểm tra
   const fetchQuizData = async () => {
     try {
       const [collectionRes, questionsRes] = await Promise.all([
@@ -42,6 +43,7 @@ const SelfTestQuiz = () => {
     }
   };
 
+  //  Xử lý chọn câu trả lời
   const handleAnswerSelect = (questionId, answer) => {
     setUserAnswers({
       ...userAnswers,
@@ -49,6 +51,7 @@ const SelfTestQuiz = () => {
     });
   };
 
+  // Xử lý nộp bài kiểm tra
   const handleSubmitQuiz = async () => {
     setIsSubmitting(true);
 
@@ -97,7 +100,7 @@ const SelfTestQuiz = () => {
     }
   };
 
-  // Helper functions for rendering results
+  // Tính phần trăm điểm đạt được
   const calculatePercentage = () => {
     if (!quizResult || !quizResult.total_questions) return 0;
     const score = Number(quizResult.score);
@@ -106,6 +109,7 @@ const SelfTestQuiz = () => {
     return Math.round((score / total) * 100);
   };
 
+  // Thông điệp đánh giá dựa trên điểm số
   const getPerformanceMessage = () => {
     const percentage = calculatePercentage();
     if (percentage >= 90) return "Xuất sắc! 🎉";
@@ -115,6 +119,7 @@ const SelfTestQuiz = () => {
     return "Cần cố gắng thêm 💪";
   };
 
+  // Màu sắc đánh giá dựa trên điểm số
   const getPerformanceColor = () => {
     const percentage = calculatePercentage();
     if (percentage >= 80) return "success";
@@ -122,6 +127,7 @@ const SelfTestQuiz = () => {
     return "danger";
   };
 
+  // Hàm phân tích bài kiểm tra
   const handleAnalyze = async () => {
     if (quizResult.detailed_results.filter((q) => !q.is_correct).length === 0) {
       toast.info("Bạn đã trả lời đúng hết! Không cần phân tích thêm.");
@@ -156,6 +162,7 @@ const SelfTestQuiz = () => {
     );
   }
 
+  // Hiển thị kết quả bài kiểm tra
   if (showResults && quizResult) {
     const correctPercentage = Math.round(
       (quizResult.correct_answers / quizResult.total_questions) * 100

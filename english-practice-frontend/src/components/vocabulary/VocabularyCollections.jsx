@@ -15,6 +15,7 @@ const VocabularyCollections = ({ isAuthenticated }) => {
     fetchCollections();
   }, []);
 
+  // Hàm tải danh sách bộ từ vựng và tiến độ học tập
   const fetchCollections = async () => {
     try {
       const [collectionsRes, progressRes] = await Promise.all([
@@ -42,6 +43,7 @@ const VocabularyCollections = ({ isAuthenticated }) => {
     }
   };
 
+  // Hàm tính toán tiến độ học tập cho mỗi bộ
   const getProgressStats = (collectionId) => {
     const progress = learningProgress[collectionId] || [];
     const totalCards =
@@ -57,6 +59,7 @@ const VocabularyCollections = ({ isAuthenticated }) => {
     };
   };
 
+  // Lọc bộ từ vựng theo từ khóa và trình độ
   const filteredCollections = collections.filter((collection) => {
     const matchesSearch =
       collection.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -65,6 +68,7 @@ const VocabularyCollections = ({ isAuthenticated }) => {
     return matchesSearch && matchesLevel;
   });
 
+  // Hàm hiển thị nhãn trình độ
   const getLevelBadge = (level) => {
     const levelConfig = {
       beginner: { label: "Cơ bản", class: "beginner" },
@@ -72,6 +76,7 @@ const VocabularyCollections = ({ isAuthenticated }) => {
       advanced: { label: "Nâng cao", class: "advanced" }
     };
     
+    // Nếu level không hợp lệ, trả về nhãn mặc định
     const config = levelConfig[level] || { label: level, class: "beginner" };
     return (
       <span className={`collection-level-badge ${config.class}`}>

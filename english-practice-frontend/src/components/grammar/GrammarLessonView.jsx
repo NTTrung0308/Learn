@@ -5,6 +5,7 @@ const GrammarLessonView = ({ lesson, onComplete }) => {
   const [currentSection, setCurrentSection] = useState("explanation");
   const [completedSections, setCompletedSections] = useState(new Set());
 
+  // Hàm lấy màu theo độ khó
   const getDifficultyColor = (difficulty) => {
     const colors = {
       easy: '#27ae60',
@@ -15,6 +16,7 @@ const GrammarLessonView = ({ lesson, onComplete }) => {
     return colors[difficulty] || '#6c757d';
   };
 
+  // Hàm lấy text theo độ khó
   const getDifficultyText = (difficulty) => {
     const texts = {
       easy: 'Cơ bản',
@@ -32,16 +34,19 @@ const GrammarLessonView = ({ lesson, onComplete }) => {
     { id: "examples", title: "Ví dụ", icon: "fa-list" }
   ];
 
+  // Đánh dấu phần đã hoàn thành
   const markSectionComplete = (sectionId) => {
     const newCompleted = new Set(completedSections);
     newCompleted.add(sectionId);
     setCompletedSections(newCompleted);
   };
 
+  // Kiểm tra nếu tất cả phần đã hoàn thành
   const isAllSectionsCompleted = () => {
     return sections.every(section => completedSections.has(section.id));
   };
 
+  // Render nội dung phần hiện tại
   const renderSectionContent = () => {
     switch (currentSection) {
       case "explanation":

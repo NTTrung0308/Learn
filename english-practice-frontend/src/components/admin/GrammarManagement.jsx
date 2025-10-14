@@ -17,6 +17,7 @@ import Swal from "sweetalert2";
 import GrammarExamplesAndPractices from "./GrammarExamplesAndPractices";
 import Layout from "../layout/admin/Layout";
 
+// Quản lý ngữ pháp: chủ đề và bài học
 const GrammarManagement = ({ handleLogout }) => {
   const [topics, setTopics] = useState([]);
   const [lessons, setLessons] = useState([]);
@@ -54,11 +55,13 @@ const GrammarManagement = ({ handleLogout }) => {
     display_order: 0,
   });
 
+  // Tải danh sách chủ đề và bài học khi component được mount hoặc khi trang hiện tại thay đổi
   useEffect(() => {
     fetchTopics();
     fetchLessons();
   }, [currentTopicPage, currentLessonPage]);
 
+  // Hàm tải danh sách chủ đề
   const fetchTopics = async () => {
     try {
       const token = localStorage.getItem("token");
@@ -76,6 +79,7 @@ const GrammarManagement = ({ handleLogout }) => {
     }
   };
 
+  // Hàm tải danh sách bài học với bộ lọc
   const fetchLessons = async (filters = {}) => {
     try {
       const token = localStorage.getItem("token");
@@ -100,6 +104,7 @@ const GrammarManagement = ({ handleLogout }) => {
     }
   };
 
+  // Hàm tải chi tiết bài học
   const fetchLessonDetail = async (lessonId) => {
     try {
       const token = localStorage.getItem("token");
@@ -116,12 +121,13 @@ const GrammarManagement = ({ handleLogout }) => {
     }
   };
 
+  // Hàm xử lý submit form chủ đề
   const handleTopicSubmit = async (e) => {
     e.preventDefault();
     try {
       const token = localStorage.getItem("token");
 
-      if (editingTopic) {
+      if (editingTopic && editingTopic.id) {
         await axios.put(
           `http://localhost:5000/api/grammar/topics/${editingTopic.id}`,
           topicForm,
@@ -155,6 +161,7 @@ const GrammarManagement = ({ handleLogout }) => {
     }
   };
 
+  // Hàm xử lý submit form bài học
   const handleLessonSubmit = async (e) => {
     e.preventDefault();
     try {
@@ -226,6 +233,7 @@ const GrammarManagement = ({ handleLogout }) => {
     }
   };
 
+  // Xóa chủ đề
   const deleteTopic = (id) => {
     Swal.fire({
       title: "Bạn có chắc chắn?",
@@ -252,6 +260,7 @@ const GrammarManagement = ({ handleLogout }) => {
     });
   };
 
+  // Xóa bài học
   const deleteLesson = (id) => {
     Swal.fire({
       title: "Bạn có chắc chắn?",
@@ -266,9 +275,12 @@ const GrammarManagement = ({ handleLogout }) => {
       if (result.isConfirmed) {
         try {
           const token = localStorage.getItem("token");
-          await axios.delete(`http://localhost:5000/api/grammar/lessons/${id}`, {
-            headers: { Authorization: `Bearer ${token}` },
-          });
+          await axios.delete(
+            `http://localhost:5000/api/grammar/lessons/${id}`,
+            {
+              headers: { Authorization: `Bearer ${token}` },
+            }
+          );
           Swal.fire("Đã xóa!", "Bài học của bạn đã được xóa.", "success");
           fetchLessons();
         } catch (error) {
@@ -278,6 +290,7 @@ const GrammarManagement = ({ handleLogout }) => {
     });
   };
 
+  // Mở modal chủ đề, nếu có truyền chủ đề thì là sửa
   const openTopicModal = (topic = null) => {
     if (topic) {
       setEditingTopic(topic);
@@ -299,6 +312,7 @@ const GrammarManagement = ({ handleLogout }) => {
     setShowTopicModal(true);
   };
 
+  // Mở modal bài học, nếu có truyền bài học thì là sửa
   const openLessonModal = (lesson = null) => {
     if (lesson) {
       setEditingLesson(lesson);
@@ -330,11 +344,15 @@ const GrammarManagement = ({ handleLogout }) => {
     setShowLessonModal(true);
   };
 
+  // Xử lý lọc bài học theo chủ đề
   const handleTopicFilter = (topicId) => {
     setCurrentTopic(topicId ? topics.find((t) => t.id === topicId) : null);
-    fetchLessons(topicId ? { topic_id: topicId } : {});
+    if (activeTab === "lessons") {
+      fetchLessons(topicId ? { topic_id: topicId } : {});
+    }
   };
 
+  // Hàm lấy màu badge theo level
   const getLevelBadgeVariant = (level) => {
     switch (level) {
       case "beginner":
@@ -348,6 +366,7 @@ const GrammarManagement = ({ handleLogout }) => {
     }
   };
 
+  //  Hàm lấy màu badge theo độ khó
   const getDifficultyBadgeVariant = (difficulty) => {
     switch (difficulty) {
       case "easy":
@@ -361,28 +380,35 @@ const GrammarManagement = ({ handleLogout }) => {
     }
   };
 
+  const filteredTopics = currentTopic
+    ? topics.filter((t) => t.id === currentTopic.id)
+    : topics;
+
   return (
     <Layout handleLogout={handleLogout}>
-      <div className="page-inner mt-3">
-        <div className="d-flex justify-content-between align-items-center mb-4">
-          <h2>Quản lý Ngữ pháp</h2>
-          <div>
-            <Button
-              variant="outline-primary"
-              className="me-2"
-              onClick={() => openTopicModal()}
-            >
+      <div className="page-inner">
+        <div className="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-4">
+          <h2 className="mb-3 mb-md-0 fw-bold text-primary">
+            Quản lý Ngữ pháp
+          </h2>
+
+          <div className="d-flex flex-wrap gap-2">
+            <Button variant="outline-primary" onClick={() => openTopicModal()}>
+              <i className="bi bi-folder-plus me-1"></i>
               Tạo Chủ đề Mới
             </Button>
+
             <Button
               variant="primary"
               onClick={() => openLessonModal()}
               disabled={!currentTopic && topics.length > 0}
             >
+              <i className="bi bi-file-earmark-plus me-1"></i>
               Tạo Bài học Mới
             </Button>
           </div>
         </div>
+
         <Tabs
           activeKey={activeTab}
           onSelect={(tab) => setActiveTab(tab)}
@@ -399,7 +425,7 @@ const GrammarManagement = ({ handleLogout }) => {
                   <Card.Body>
                     <Form.Group>
                       <Form.Label>Chọn chủ đề:</Form.Label>
-                      <Form.Select 
+                      <Form.Select
                         className="w-50"
                         value={currentTopic?.id || ""}
                         onChange={(e) =>
@@ -431,14 +457,14 @@ const GrammarManagement = ({ handleLogout }) => {
                     </tr>
                   </thead>
                   <tbody>
-                    {topics.length === 0 ? (
+                    {filteredTopics.length === 0 ? (
                       <tr>
                         <td colSpan="5" className="text-center py-4">
                           Chưa có chủ đề nào.
                         </td>
                       </tr>
                     ) : (
-                      topics.map((topic) => (
+                      filteredTopics.map((topic) => (
                         <tr key={topic.id}>
                           <td>
                             <strong>{topic.title}</strong>
@@ -544,15 +570,15 @@ const GrammarManagement = ({ handleLogout }) => {
                         </Badge>
                       </div>
 
-                      <Card.Text className="text-muted small mb-2">
+                      <p className="text-muted small mb-2">
                         {lesson.topic_title}
-                      </Card.Text>
+                      </p>
 
-                      <Card.Text className="small">
+                      <p className="small">
                         {lesson.explanation.length > 100
                           ? `${lesson.explanation.substring(0, 100)}...`
                           : lesson.explanation}
-                      </Card.Text>
+                      </p>
 
                       {lesson.tags && lesson.tags.length > 0 && (
                         <div className="mb-2">

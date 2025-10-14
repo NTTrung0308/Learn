@@ -27,6 +27,7 @@ const GrammarLearning = () => {
     fetchLessonData();
   }, [lessonId]);
 
+  // Lấy dữ liệu bài học và tiến độ
   const fetchLessonData = async () => {
     try {
       setLoading(true);
@@ -80,11 +81,13 @@ const GrammarLearning = () => {
     }
   };
 
+  // Xử lý hoàn thành bài học
   const handleLessonComplete = () => {
     setCurrentStep("quiz");
     toast.info("Bắt đầu làm quiz!");
   };
 
+  // Xử lý nộp bài quiz
   const handleQuizSubmit = async (answers, timeSpent) => {
     try {
       // Tính điểm
@@ -132,6 +135,7 @@ const GrammarLearning = () => {
     }
   };
 
+  // Lưu tiến độ học tập
   const saveProgress = async (score, timeSpent) => {
     try {
       await api.post("/grammar/progress", {
@@ -153,6 +157,7 @@ const GrammarLearning = () => {
     }
   };
 
+  // Xử lý làm lại quiz
   const handleRetryQuiz = () => {
     setCurrentStep("quiz");
     setUserAnswers([]);
@@ -163,6 +168,7 @@ const GrammarLearning = () => {
     navigate("/grammar");
   };
 
+  // Xử lý phân tích kết quả với AI
   const handleAnalyzeResult = async () => {
     try {
       setAnalyzing(true);

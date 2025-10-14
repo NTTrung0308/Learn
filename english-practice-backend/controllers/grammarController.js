@@ -36,6 +36,7 @@ exports.createTopic = async (req, res) => {
   }
 };
 
+// Lấy danh sách chủ đề ngữ pháp với phân trang
 exports.getAllTopics = async (req, res) => {
   const page = parseInt(req.query.page) || 1;
   const limit = parseInt(req.query.limit) || 10;
@@ -57,6 +58,7 @@ exports.getAllTopics = async (req, res) => {
   }
 };
 
+// Cập nhật chủ đề ngữ pháp
 exports.updateTopic = async (req, res) => {
   const { id } = req.params;
   const { title, description, level, display_order } = req.body;
@@ -80,6 +82,7 @@ exports.updateTopic = async (req, res) => {
   }
 };
 
+// Xóa chủ đề ngữ pháp
 exports.deleteTopic = async (req, res) => {
   const { id } = req.params;
 
@@ -162,6 +165,7 @@ exports.createLesson = async (req, res) => {
   }
 };
 
+// Lấy danh sách bài học với phân trang và lọc
 exports.getLessons = async (req, res) => {
   const { topic_id, level, difficulty, page = 1, limit = 10 } = req.query;
   const offset = (parseInt(page) - 1) * parseInt(limit);
@@ -191,6 +195,7 @@ exports.getLessons = async (req, res) => {
   }
 };
 
+// Lấy chi tiết bài học
 exports.getLessonDetail = async (req, res) => {
   const { id } = req.params;
 
@@ -227,6 +232,7 @@ exports.getLessonDetail = async (req, res) => {
   }
 };
 
+// Cập nhật bài học
 exports.updateLesson = async (req, res) => {
   const { id } = req.params;
   const {
@@ -291,6 +297,7 @@ exports.updateLesson = async (req, res) => {
   }
 };
 
+// Xóa bài học
 exports.deleteLesson = async (req, res) => {
   const { id } = req.params;
 
@@ -342,6 +349,7 @@ exports.addExercise = async (req, res) => {
   }
 };
 
+// Lấy danh sách bài tập theo lesson_id
 exports.deleteExercise = async (req, res) => {
   const { id } = req.params;
 
@@ -389,6 +397,7 @@ exports.exportLessonsCSV = async (req, res) => {
   }
 };
 
+// Import CSV bài học
 exports.importLessonsCSV = async (req, res) => {
   if (!req.file) {
     return res.status(400).json({ message: "Vui lòng chọn file CSV" });
@@ -527,6 +536,7 @@ exports.addExample = async (req, res) => {
   }
 };
 
+// Lấy danh sách ví dụ theo lesson_id
 exports.getExamples = async (req, res) => {
   const { lesson_id } = req.query;
 
@@ -543,6 +553,7 @@ exports.getExamples = async (req, res) => {
   }
 };
 
+// Cập nhật ví dụ
 exports.updateExample = async (req, res) => {
   const { id } = req.params;
   const { example_sentence, meaning, notes, display_order } = req.body;
@@ -584,6 +595,7 @@ exports.updateExample = async (req, res) => {
   }
 };
 
+// Xóa ví dụ
 exports.deleteExample = async (req, res) => {
   const { id } = req.params;
 
@@ -647,6 +659,7 @@ exports.addPractice = async (req, res) => {
   }
 };
 
+// Lấy danh sách bài tập theo lesson_id
 exports.getPractices = async (req, res) => {
   const { lesson_id } = req.query;
 
@@ -670,6 +683,7 @@ exports.getPractices = async (req, res) => {
   }
 };
 
+// Lấy chi tiết bài tập
 exports.getPracticeDetail = async (req, res) => {
   const { id } = req.params;
 
@@ -693,6 +707,7 @@ exports.getPracticeDetail = async (req, res) => {
   }
 };
 
+// Cập nhật bài tập
 exports.updatePractice = async (req, res) => {
   const { id } = req.params;
   const {
@@ -826,6 +841,7 @@ exports.saveGrammarProgress = async (req, res) => {
   }
 };
 
+// Lấy tiến độ học ngữ pháp cho một bài học
 exports.getGrammarProgress = async (req, res) => {
   const { lessonId } = req.params;
   const user_id = req.user.userId;
@@ -847,6 +863,7 @@ exports.getGrammarProgress = async (req, res) => {
   }
 };
 
+// Lấy tất cả tiến độ học ngữ pháp của người dùng
 exports.getAllGrammarProgress = async (req, res) => {
   const user_id = req.user.userId;
 
@@ -859,6 +876,7 @@ exports.getAllGrammarProgress = async (req, res) => {
   }
 };
 
+// Phân tích kết quả ngữ pháp với AI
 exports.analyzeGrammarResult = async (req, res) => {
   const { quiz, results } = req.body;
 

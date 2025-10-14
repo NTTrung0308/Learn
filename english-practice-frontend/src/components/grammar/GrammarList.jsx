@@ -55,6 +55,7 @@ const GrammarList = () => {
     fetchData();
   }, []);
 
+  // Hàm lấy màu theo độ khó
   const getDifficultyColor = (difficulty) => {
     const colors = {
       easy: '#27ae60',
@@ -65,6 +66,7 @@ const GrammarList = () => {
     return colors[difficulty] || '#6c757d';
   };
 
+  // Hàm lấy text theo độ khó
   const getDifficultyText = (difficulty) => {
     const texts = {
       easy: 'Cơ bản',
@@ -75,6 +77,7 @@ const GrammarList = () => {
     return texts[difficulty] || 'Không xác định';
   };
 
+  // Hàm lấy icon theo chủ đề
   const getTopicIcon = (topicTitle) => {
     const icons = {
       'Tenses': '⏰',
@@ -110,6 +113,7 @@ const GrammarList = () => {
     return matchesSearch && matchesDifficulty;
   });
 
+  // Hàm tính tổng số bài học
   const getTotalLessons = () => {
     return topics.reduce((total, topic) => total + (topic.lessons?.length || 0), 0);
   };

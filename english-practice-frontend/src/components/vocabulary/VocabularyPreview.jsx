@@ -11,6 +11,7 @@ const VocabularyPreview = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // Hàm tải chi tiết bộ từ vựng
     const fetchCollection = async () => {
       try {
         const response = await api.get(`/vocabulary/collections/${collectionId}`);

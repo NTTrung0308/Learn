@@ -33,6 +33,7 @@ const ProgressDashboard = () => {
     const [timeRange, setTimeRange] = useState('all');
 
     useEffect(() => {
+        // Hàm tải dữ liệu tiến độ học tập
         const fetchData = async () => {
             try {
                 const token = localStorage.getItem('token');
@@ -238,7 +239,7 @@ const ProgressDashboard = () => {
                                     1 Tháng
                                 </button>
                                 <button 
-                                    className={`timeFilter ${timeRange === 'all' ? 'active' : ''}`}
+                                    className={`timeFilter ${timeRange === 'all' ? 'active' : ''} btn btn-outline-primary`}
                                     onClick={() => setTimeRange('all')}
                                 >
                                     Tất Cả
@@ -305,7 +306,7 @@ const ProgressDashboard = () => {
                     <div className="section-header">
                         <h2 className="section-title">Lịch Sử Làm Bài</h2>
                         <div className="section-actions">
-                            <span className="text-muted">
+                            <span className="text-muted mx-3">
                                 Hiển thị {examHistory.length} bài thi
                             </span>
                         </div>

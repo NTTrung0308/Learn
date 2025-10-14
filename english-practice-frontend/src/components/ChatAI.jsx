@@ -3,7 +3,9 @@ import "./assets/css/ChatAI.css";
 import api from "../api";
 
 const ChatAI = () => {
+  // Trạng thái của chat bot
   const [isOpen, setIsOpen] = useState(false);
+  // Danh sách tin nhắn
   const [messages, setMessages] = useState([
     {
       text: "Xin chào! Tôi là trợ lý tiếng Anh của bạn. Tôi có thể giúp bạn thực hành tiếng Anh, giải thích ngữ pháp, cung cấp từ vựng, sửa lỗi câu, và nhiều hơn thế nữa.",
@@ -15,14 +17,17 @@ const ChatAI = () => {
   const [isRecording, setIsRecording] = useState(false);
   const recognitionRef = useRef(null);
 
+  // Chuyển đổi trạng thái mở/đóng chat bot
   const toggleChat = () => {
     setIsOpen(!isOpen);
   };
 
+  // Xử lý thay đổi input
   const handleInputChange = (e) => {
     setInput(e.target.value);
   };
 
+  // Xử lý nhấn phím Enter để gửi tin nhắn
   const handleKeyPress = (e) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
@@ -30,6 +35,7 @@ const ChatAI = () => {
     }
   };
 
+  // Xử lý gửi tin nhắn
   const handleSendMessage = async () => {
     if (input.trim() === "") return;
 
@@ -54,6 +60,7 @@ const ChatAI = () => {
     }
   };
 
+  // Xử lý ghi âm giọng nói
   const handleToggleRecording = () => {
     if (isRecording) {
       stopRecording();
@@ -62,12 +69,14 @@ const ChatAI = () => {
     }
   };
 
+  // Hàm bắt đầu ghi âm
   const startRecording = () => {
     if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
       alert("Trình duyệt của bạn không hỗ trợ nhận dạng giọng nói. Vui lòng sử dụng Chrome hoặc Edge.");
       return;
     }
 
+    // Khởi tạo đối tượng nhận dạng giọng nói
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     recognitionRef.current = new SpeechRecognition();
     
@@ -95,6 +104,7 @@ const ChatAI = () => {
       setInput(finalTranscript || interimTranscript);
     };
 
+    // Xử lý lỗi và kết thúc ghi âm
     recognitionRef.current.onerror = (event) => {
       console.error('Speech recognition error:', event.error);
       setIsRecording(false);
@@ -104,6 +114,7 @@ const ChatAI = () => {
       }
     };
 
+    // Khi kết thúc ghi âm, gửi tin nhắn nếu có nội dung
     recognitionRef.current.onend = () => {
       setIsRecording(false);
       if (input.trim()) {
@@ -114,6 +125,7 @@ const ChatAI = () => {
     recognitionRef.current.start();
   };
 
+  // Hàm dừng ghi âm
   const stopRecording = () => {
     if (recognitionRef.current) {
       recognitionRef.current.stop();
@@ -121,6 +133,7 @@ const ChatAI = () => {
     setIsRecording(false);
   };
 
+  // Xử lý gửi tin nhắn thoại
   const handleSendVoiceMessage = async (voiceText) => {
     if (!voiceText.trim()) return;
 
@@ -147,6 +160,7 @@ const ChatAI = () => {
     }
   };
 
+  // Tự động cuộn xuống dưới khi có tin nhắn mới
   useEffect(() => {
     const messagesContainer = document.querySelector(".chat-ai-messages");
     if (messagesContainer) {
@@ -157,6 +171,7 @@ const ChatAI = () => {
     }
   }, [messages, isLoading]);
 
+  // Xóa toàn bộ cuộc trò chuyện
   const clearChat = () => {
     setMessages([
       {

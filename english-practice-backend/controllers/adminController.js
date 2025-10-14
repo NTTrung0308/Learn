@@ -223,7 +223,7 @@ const adminController = {
         user: updatedUsers[0]
       });
     } catch (error) {
-      console.error("Error updating user:", error);
+      console.error("Lỗi cập nhật người dùng:", error);
       res.status(500).json({ message: "Lỗi server", error: error.message });
     }
   },

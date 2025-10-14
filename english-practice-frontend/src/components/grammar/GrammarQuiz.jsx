@@ -24,17 +24,20 @@ const GrammarQuiz = ({ quiz, onSubmit, onBack }) => {
     return () => clearInterval(timer);
   }, [quiz]);
 
+  // Xử lý thay đổi câu trả lời
   const handleAnswerChange = (questionIndex, answer) => {
     const newAnswers = [...userAnswers];
     newAnswers[questionIndex] = answer;
     setUserAnswers(newAnswers);
   };
 
+  // Xử lý nộp bài
   const handleSubmit = () => {
     const timeSpent = quiz.timeLimit * 60 - timeLeft;
     onSubmit(userAnswers, timeSpent);
   };
 
+  // Định dạng thời gian hiển thị
   const formatTime = (seconds) => {
     const minutes = Math.floor(seconds / 60);
     const secs = seconds % 60;

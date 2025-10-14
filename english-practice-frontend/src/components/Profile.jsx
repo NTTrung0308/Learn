@@ -4,6 +4,7 @@ import { toast } from "react-toastify";
 import "./assets/css/profile.css"; // Thêm file CSS riêng
 
 const Profile = () => {
+  // Trạng thái người dùng
   const [user, setUser] = useState({
     display_name: "",
     email: "",
@@ -32,12 +33,14 @@ const Profile = () => {
     fetchUserProfile();
   }, []);
 
+  // Fetch lịch sử học tập khi chuyển sang tab Lịch sử
   useEffect(() => {
     if (activeTab === "history") {
       fetchLearningHistory();
     }
   }, [activeTab]);
 
+  // Lấy thông tin người dùng
   const fetchUserProfile = async () => {
     try {
       const token = localStorage.getItem("token");
@@ -48,6 +51,7 @@ const Profile = () => {
         }
       );
 
+      // Đảm bảo không bị lỗi khi response.data là undefined
       const data = response.data || {};
       setUser({
         display_name: data.display_name || "",
@@ -62,11 +66,13 @@ const Profile = () => {
     }
   };
 
+  //  Xử lý thay đổi input
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setUser({ ...user, [name]: value });
   };
 
+  // Xử lý thay đổi file ảnh
   const handleFileChange = (e) => {
     setSelectedFile(e.target.files[0]);
     // Xem trước ảnh ngay
@@ -76,6 +82,7 @@ const Profile = () => {
     }
   };
 
+  // Xử lý submit form
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -117,10 +124,12 @@ const Profile = () => {
     }
   };
 
+  // Xử lý thay đổi mật khẩu
   const handlePwChange = (e) => {
     setChangePw({ ...changePw, [e.target.name]: e.target.value });
   };
 
+  // Xử lý submit đổi mật khẩu
   const handleChangePassword = async (e) => {
     e.preventDefault();
     if (changePw.newPassword !== changePw.confirmPassword) {
@@ -149,6 +158,7 @@ const Profile = () => {
     }
   };
 
+  // Lấy lịch sử học tập
   const fetchLearningHistory = async () => {
     try {
       const token = localStorage.getItem("token");
@@ -170,6 +180,7 @@ const Profile = () => {
     }
   };
 
+  // Render lịch sử học tập
   const renderLearningHistory = () => (
     <div className="history-container">
       <h3 className="section-title">Lịch sử học tập</h3>

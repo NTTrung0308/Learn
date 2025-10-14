@@ -22,6 +22,7 @@ const ExamTaking = () => {
     };
   }, [id]);
 
+  // Lấy thông tin đề thi từ API
   const fetchExam = async () => {
     try {
       const response = await api.get(`/exams/${id}`);
@@ -69,6 +70,7 @@ const ExamTaking = () => {
     }
   };
 
+  // Bắt đầu đồng hồ đếm ngược
   const startTimer = () => {
     timerRef.current = setInterval(() => {
       setTimeLeft((prev) => {
@@ -82,12 +84,14 @@ const ExamTaking = () => {
     }, 1000);
   };
 
+  // Định dạng thời gian hiển thị
   const formatTime = (seconds) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
   };
 
+  // Lấy trạng thái thời gian để thay đổi màu sắc
   const getTimeStatus = () => {
     if (timeLeft === 0) return "ended";
     if (timeLeft < 300) return "warning"; // 5 minutes
@@ -95,6 +99,7 @@ const ExamTaking = () => {
     return "normal";
   };
 
+  // Xử lý khi chọn đáp án
   const handleAnswerSelect = (questionId, answer) => {
     setAnswers((prev) => ({
       ...prev,
@@ -102,41 +107,49 @@ const ExamTaking = () => {
     }));
   };
 
+  // Chuyển đến câu hỏi tiếp theo/ trước đó
   const handleNextQuestion = () => {
     if (currentQuestion < exam.questions.length - 1) {
       setCurrentQuestion(currentQuestion + 1);
     }
   };
 
+  //  Chuyển đến câu hỏi tiếp theo/ trước đó
   const handlePrevQuestion = () => {
     if (currentQuestion > 0) {
       setCurrentQuestion(currentQuestion - 1);
     }
   };
 
+  // Chuyển đến câu hỏi cụ thể
   const handleQuestionNav = (index) => {
     setCurrentQuestion(index);
   };
 
+  // Tự động nộp bài khi hết giờ
   const handleAutoSubmit = async () => {
     if (isSubmitting) return;
     setIsSubmitting(true);
     await submitExam();
   };
 
+  // Xử lý khi người dùng nhấn nút nộp bài
   const handleSubmitClick = () => {
     setShowSubmitConfirm(true);
   };
 
+  // Xác nhận nộp bài
   const handleConfirmSubmit = async () => {
     setShowSubmitConfirm(false);
     await handleAutoSubmit();
   };
 
+  // Hủy nộp bài
   const handleCancelSubmit = () => {
     setShowSubmitConfirm(false);
   };
 
+  // Gửi bài thi lên server
   const submitExam = async () => {
     try {
       const formattedAnswers = Object.keys(answers).map((questionId) => ({
@@ -159,10 +172,12 @@ const ExamTaking = () => {
     }
   };
 
+  // Đếm số câu đã trả lời
   const getAnsweredCount = () => {
     return Object.keys(answers).length;
   };
 
+  // Tính toán phần trăm hoàn thành
   const getProgressPercentage = () => {
     return exam ? (getAnsweredCount() / exam.questions.length) * 100 : 0;
   };
@@ -354,7 +369,7 @@ const ExamTaking = () => {
                         <span>Audio</span>
                       </div>
                       <audio controls className="audio-element">
-                        <source src={question.audio_url} type="audio/mpeg" />
+                        <source src={`http://localhost:5000${question.audio_url}`} type="audio/mpeg" />
                         Trình duyệt của bạn không hỗ trợ phát audio.
                       </audio>
                     </div>
@@ -363,7 +378,7 @@ const ExamTaking = () => {
                   {question.image_url && (
                     <div className="question-image">
                       <img 
-                        src={question.image_url} 
+                        src={`http://localhost:5000${question.image_url}`} 
                         alt="Minh họa câu hỏi" 
                         className="image-element"
                       />

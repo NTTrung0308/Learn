@@ -7,7 +7,7 @@ import withReactContent from "sweetalert2-react-content";
 import Layout from "../layout/admin/Layout";
 
 const MySwal = withReactContent(Swal);
-
+// Quản lý người dùng
 const UserManagement = ({ handleLogout }) => {
   const [users, setUsers] = useState([]);
   const [showModal, setShowModal] = useState(false);
@@ -29,11 +29,12 @@ const UserManagement = ({ handleLogout }) => {
     role: "user",
     is_premium: false,
   });
-
+  // Tải danh sách người dùng
   useEffect(() => {
     fetchUsers();
   }, [currentPage, search, role, isVerified]);
 
+  // Hàm tải người dùng từ API
   const fetchUsers = async () => {
     try {
       const token = localStorage.getItem("token");
@@ -49,6 +50,7 @@ const UserManagement = ({ handleLogout }) => {
     }
   };
 
+  // Hàm xử lý submit form tạo/sửa người dùng
   const handleFormSubmit = async (e) => {
     e.preventDefault();
     try {
@@ -67,10 +69,15 @@ const UserManagement = ({ handleLogout }) => {
       setShowModal(false);
       fetchUsers();
     } catch (error) {
-      toast.error("Lỗi khi lưu người dùng");
+      if (error.response && error.response.data && error.response.data.message) {
+        toast.error(error.response.data.message);
+      } else {
+        toast.error("Lỗi khi lưu người dùng");
+      }
     }
   };
 
+  // Xóa người dùng
   const deleteUser = async (user) => {
     if (user.role === 'superadmin') {
       toast.error('Không thể xóa superadmin');
@@ -101,6 +108,7 @@ const UserManagement = ({ handleLogout }) => {
     });
   };
 
+  // Chuyển đổi trạng thái premium
   const togglePremiumStatus = async (user) => {
     try {
       const token = localStorage.getItem("token");
@@ -114,12 +122,14 @@ const UserManagement = ({ handleLogout }) => {
     }
   };
 
+  // Mở modal tạo/sửa người dùng
   const openEditModal = (user) => {
     setEditingUser(user);
     setUserForm(user);
     setShowModal(true);
   };
 
+  // Mở modal tạo người dùng mới
   const openCreateModal = () => {
     setEditingUser(null);
     setUserForm({
@@ -133,6 +143,7 @@ const UserManagement = ({ handleLogout }) => {
     setShowModal(true);
   };
 
+  // Mở modal chi tiết người dùng
   const openDetailsModal = (user) => {
     setSelectedUser(user);
     setShowDetailsModal(true);
@@ -140,9 +151,9 @@ const UserManagement = ({ handleLogout }) => {
 
   return (
     <Layout>
-      <div className="page-inner mt-3">
+      <div className="page-inner">
         <div className="d-flex justify-content-between align-items-center mb-4">
-          <h2>Quản lý Người dùng</h2>
+          <h2 className="mb-3 mb-md-0 fw-bold text-primary">Quản lý Người dùng</h2>
           <Button variant="primary" onClick={openCreateModal}>
             Tạo Người dùng Mới
           </Button>

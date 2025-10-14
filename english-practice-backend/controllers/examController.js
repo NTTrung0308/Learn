@@ -404,7 +404,7 @@ exports.deleteQuestion = async (req, res) => {
   }
 };
 
-// Nộp bà
+// Nộp bài
 exports.submitExam = async (req, res) => {
   const { id: exam_id } = req.params;
   const user_id = req.user.userId;
@@ -635,6 +635,7 @@ exports.getExamResult = async (req, res) => {
   }
 };
 
+// Lấy lịch sử làm bài thi của người dùng
 exports.getExamHistory = async (req, res) => {
   const user_id = req.user.userId;
   try {
@@ -646,6 +647,7 @@ exports.getExamHistory = async (req, res) => {
   }
 };
 
+// Phân tích kết quả bài thi với AI
 exports.analyzeExamResult = async (req, res) => {
   const { detailedResults } = req.body;
 

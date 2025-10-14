@@ -15,8 +15,9 @@ import Swal from "sweetalert2";
 import withReactContent from "sweetalert2-react-content";
 import Layout from "../layout/admin/Layout";
 
+// Khởi tạo SweetAlert với React
 const MySwal = withReactContent(Swal);
-
+// Component chính quản lý đề thi và câu hỏi
 const ExamManagement = ({ handleLogout }) => {
   const [exams, setExams] = useState([]);
   const [showModal, setShowModal] = useState(false);
@@ -53,6 +54,7 @@ const ExamManagement = ({ handleLogout }) => {
     fetchExams();
   }, [currentPage, search, examType]);
 
+  // Hàm để lấy danh sách đề thi với phân trang, tìm kiếm và lọc
   const fetchExams = async () => {
     try {
       const token = localStorage.getItem("token");
@@ -72,6 +74,7 @@ const ExamManagement = ({ handleLogout }) => {
     }
   };
 
+  // Hàm để lấy câu hỏi của một đề thi cụ thể
   const fetchExamQuestions = async (examId) => {
     try {
       const token = localStorage.getItem("token");
@@ -87,6 +90,7 @@ const ExamManagement = ({ handleLogout }) => {
     }
   };
 
+  // Hàm xử lý gửi form đề thi
   const handleExamSubmit = async (e) => {
     e.preventDefault();
     try {
@@ -123,6 +127,7 @@ const ExamManagement = ({ handleLogout }) => {
     }
   };
 
+  // Hàm xử lý gửi form câu hỏi
   const handleQuestionSubmit = async (e) => {
     e.preventDefault();
     const form = e.currentTarget;
@@ -205,6 +210,7 @@ const ExamManagement = ({ handleLogout }) => {
     }
   };
 
+  // Hàm xóa đề thi với xác nhận
   const deleteExam = async (id) => {
     MySwal.fire({
       title: "Bạn có chắc chắn?",
@@ -231,6 +237,7 @@ const ExamManagement = ({ handleLogout }) => {
     });
   };
 
+  // Hàm để xóa câu hỏi
   const deleteQuestion = async (id) => {
     MySwal.fire({
       title: "Bạn có chắc chắn?",
@@ -260,6 +267,7 @@ const ExamManagement = ({ handleLogout }) => {
     });
   };
 
+  // Hàm để mở modal thêm câu hỏi và đặt exam hiện tại
   const openQuestionModal = (exam) => {
     setCurrentExam(exam);
     setEditingQuestion(null);
@@ -275,6 +283,7 @@ const ExamManagement = ({ handleLogout }) => {
     fetchExamQuestions(exam.id);
   };
 
+  // Hàm để mở modal chỉnh sửa câu hỏi và điền dữ liệu câu hỏi hiện tại vào form
   const openEditQuestionModal = (question) => {
     setEditingQuestion(question);
 
@@ -289,6 +298,7 @@ const ExamManagement = ({ handleLogout }) => {
       options = question.options;
     }
 
+    // Phân tích cú pháp correct_answer
     let correctAnswerValue = "";
     if (question.correct_answer) {
       if (typeof question.correct_answer === "string") {
@@ -303,6 +313,7 @@ const ExamManagement = ({ handleLogout }) => {
       }
     }
 
+    // 
     setQuestionForm({
       ...question,
       options: options,
@@ -314,9 +325,9 @@ const ExamManagement = ({ handleLogout }) => {
 
   return (
     <Layout handleLogout={handleLogout}>
-      <div className="page-inner mt-3">
+      <div className="page-inner">
         <div className="d-flex justify-content-between align-items-center mb-4">
-          <h2>Quản lý Đề thi IELTS</h2>
+          <h2 className="mb-3 mb-md-0 fw-bold text-primary">Quản lý Đề thi IELTS</h2>
           <Button variant="primary" onClick={() => setShowModal(true)}>
             Tạo Đề thi Mới
           </Button>
@@ -651,7 +662,8 @@ const ExamManagement = ({ handleLogout }) => {
                 />
               </Form.Group>
 
-              {questionForm.question_type === "multiple_choice" && (
+              {(questionForm.question_type === "multiple_choice" ||
+                questionForm.question_type === "matching", "fill_blanks", "essay", "short_answer")  && (
                 <>
                   <Form.Group className="mb-3">
                     <Form.Label>Lựa chọn</Form.Label>

@@ -102,7 +102,7 @@ router.get(
 // Register route
 router.post("/register", authController.register);
 
-// Login route (THÊM DÒNG NAY)
+// Login route 
 router.post("/login", authController.login);
 
 // Verify email route

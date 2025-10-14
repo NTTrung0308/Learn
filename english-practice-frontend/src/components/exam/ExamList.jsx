@@ -21,6 +21,7 @@ const ExamList = ({ isAuthenticated }) => {
     filterExams();
   }, [exams, searchTerm, examType, difficulty]);
 
+  // Lấy bài kiểm tra từ API
   const fetchExams = async () => {
     try {
       const response = await axios.get("http://localhost:5000/api/exams");
@@ -33,6 +34,7 @@ const ExamList = ({ isAuthenticated }) => {
     }
   };
 
+  // Lọc bài kiểm tra dựa trên từ khóa và bộ lọc
   const filterExams = () => {
     let filtered = exams;
 
@@ -53,6 +55,7 @@ const ExamList = ({ isAuthenticated }) => {
     setFilteredExams(filtered);
   };
 
+  // Lấy biểu tượng loại đề thi
   const getExamTypeIcon = (type) => {
     const icons = {
       ielts: "🎓",
@@ -64,6 +67,7 @@ const ExamList = ({ isAuthenticated }) => {
     return icons[type] || "📝";
   };
 
+  // Lấy nhãn độ khó
   const getDifficultyBadge = (level) => {
     const levels = {
       easy: { text: "Dễ", color: "#27ae60", bg: "#d5f4e6" },
@@ -287,21 +291,15 @@ const ExamList = ({ isAuthenticated }) => {
                       </Link>
                     )}
                     
-                    <div className="action-buttons">
+                    <div className="action-buttons w-100 ">
                       <Link
                         to={`/exams/${exam.id}/preview`}
-                        className="btn-secondary"
+                        className="btn-secondary w-100"
                       >
                         <span className="btn-icon">👁️</span>
                         Xem trước
                       </Link>
-                      <Link
-                        to={`/exams/${exam.id}/results`}
-                        className="btn-outline"
-                      >
-                        <span className="btn-icon">📊</span>
-                        Kết quả
-                      </Link>
+            
                     </div>
                   </div>
                 </div>

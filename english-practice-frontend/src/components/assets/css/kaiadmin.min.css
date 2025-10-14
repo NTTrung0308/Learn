@@ -427,7 +427,6 @@ body {
 }
 .main-panel > .container {
   min-height: calc(100% - 123px);
-  margin-top: 69px;
   overflow: hidden;
   width: 100%;
   max-width: unset;
@@ -530,6 +529,7 @@ body {
   }
 }
 .page-inner {
+  margin-top: 5rem;
   padding: 24px 0;
 }
 @media (min-width: 576px) {
