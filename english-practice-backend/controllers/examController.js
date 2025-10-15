@@ -701,11 +701,9 @@ exports.analyzeExamResult = async (req, res) => {
     res.json({ analysis });
   } catch (error) {
     console.error("Error analyzing exam result with AI:", error);
-    res
-      .status(500)
-      .json({
-        message: "Lỗi máy chủ khi phân tích kết quả với AI",
-        error: error.message,
-      });
+    res.status(500).json({
+      message: "Lỗi máy chủ khi phân tích kết quả với AI",
+      error: error.message,
+    });
   }
 };

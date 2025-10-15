@@ -1,204 +1,398 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Layout from "../layout/admin/Layout";
+import axios from "axios";
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend,
+  ArcElement,
+} from "chart.js";
+import { Bar, Doughnut } from "react-chartjs-2";
+import "../assets/css/dashboard.css";
+
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend,
+  ArcElement
+);
 
 const Dashboard = ({ handleLogout }) => {
   const navigate = useNavigate();
   const userRole = localStorage.getItem("userRole");
+  const [stats, setStats] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [recentActivities, setRecentActivities] = useState([]);
+  const [timeRange, setTimeRange] = useState('week');
 
   useEffect(() => {
-    // Kiểm tra nếu không phải admin thì chuyển hướng về home
     if (userRole !== "superadmin" && userRole !== "admin") {
       navigate("/");
+    } else {
+      const fetchStats = async () => {
+        try {
+          setLoading(true);
+          const token = localStorage.getItem("token");
+          const response = await axios.get(
+            "http://localhost:5000/api/admin/users/stats",
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            }
+          );
+          setStats(response.data.stats);
+          setRecentActivities(response.data.recentUsers);
+        } catch (error) {
+          console.error("Error fetching user stats:", error);
+        } finally {
+          setLoading(false);
+        }
+      };
+      fetchStats();
     }
   }, [userRole, navigate]);
 
   if (userRole !== "superadmin" && userRole !== "admin") {
-    return null; // Hoặc hiển thị loading
+    return null;
   }
+
+  // Chart data với thiết kế cải tiến
+  const roleChartData = {
+    labels: ["Người dùng thường", "Quản trị viên", "Super Admin"],
+    datasets: [
+      {
+        data: [
+          stats?.regular_users || 0,
+          stats?.admin_users || 0,
+          stats?.superadmin_users || 0,
+        ],
+        backgroundColor: [
+          "rgba(102, 126, 234, 0.8)",
+          "rgba(72, 187, 120, 0.8)",
+          "rgba(237, 137, 54, 0.8)",
+        ],
+        borderColor: [
+          "rgba(102, 126, 234, 1)",
+          "rgba(72, 187, 120, 1)",
+          "rgba(237, 137, 54, 1)",
+        ],
+        borderWidth: 2,
+      },
+    ],
+  };
+
+  const userStatsChartData = {
+    labels: ["Xác thực", "Người dùng mới"],
+    datasets: [
+      {
+        label: "Đã xác thực",
+        data: [stats?.verified_users || 0, 0],
+        backgroundColor: "rgba(72, 187, 120, 0.8)",
+        borderColor: "rgba(72, 187, 120, 1)",
+        borderWidth: 2,
+      },
+      {
+        label: "Chưa xác thực",
+        data: [stats?.unverified_users || 0, 0],
+        backgroundColor: "rgba(237, 137, 54, 0.8)",
+        borderColor: "rgba(237, 137, 54, 1)",
+        borderWidth: 2,
+      },
+      {
+        label: "Mới hôm nay",
+        data: [0, stats?.new_today || 0],
+        backgroundColor: "rgba(102, 126, 234, 0.8)",
+        borderColor: "rgba(102, 126, 234, 1)",
+        borderWidth: 2,
+      },
+      {
+        label: "Mới tuần này",
+        data: [0, stats?.new_this_week || 0],
+        backgroundColor: "rgba(153, 102, 255, 0.8)",
+        borderColor: "rgba(153, 102, 255, 1)",
+        borderWidth: 2,
+      },
+    ],
+  };
+
+  const chartOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        position: 'top',
+        labels: {
+          color: '#4a5568',
+          font: {
+            size: 12
+          }
+        }
+      },
+      tooltip: {
+        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+        titleColor: '#fff',
+        bodyColor: '#fff',
+        borderColor: '#667eea',
+        borderWidth: 1,
+        cornerRadius: 8,
+      }
+    },
+    scales: {
+      y: {
+        beginAtZero: true,
+        grid: {
+          color: 'rgba(0, 0, 0, 0.1)',
+        },
+        ticks: {
+          color: '#718096',
+        }
+      },
+      x: {
+        grid: {
+          color: 'rgba(0, 0, 0, 0.05)',
+        },
+        ticks: {
+          color: '#718096'
+        }
+      }
+    }
+  };
+
+  const doughnutOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        position: 'bottom',
+        labels: {
+          color: '#4a5568',
+          font: {
+            size: 11
+          },
+          padding: 20
+        }
+      }
+    },
+    cutout: '65%'
+  };
 
   return (
     <Layout handleLogout={handleLogout}>
-      <div className="page-inner">
-        <div className="d-flex align-items-left align-items-md-center flex-column flex-md-row  pb-4">
-          <div>
-            <h3 className="fw-bold mb-3">Dashboard</h3>
-            <h6 className="op-7 mb-2">Free Bootstrap 5 Admin Dashboard</h6>
+      <div className="admin-dashboard">
+        <div className="container">
+          {/* Header */}
+          <div className="dashboard-header">
+            <h1 className="dashboard-title">Dashboard Quản Trị</h1>
+            <p className="dashboard-subtitle">
+              Tổng quan thống kê và quản lý người dùng
+            </p>
           </div>
-          <div className="ms-md-auto py-2 py-md-0">
-            <Link href="#" className="btn btn-label-info btn-round me-2">
-              Manage
-            </Link>
-            <Link href="#" className="btn btn-primary btn-round">
-              Add Customer
-            </Link>
-          </div>
-        </div>
-        <div className="row">
-          <div className="col-sm-6 col-md-3">
-            <div className="card card-stats card-round">
-              <div className="card-body">
-                <div className="row align-items-center">
-                  <div className="col-icon">
-                    <div className="icon-big text-center icon-primary bubble-shadow-small">
-                      <i className="fas fa-users"></i>
-                    </div>
+
+          {/* Stats Grid */}
+          <div className="stats-grid-dashboard">
+            <div className="stat-card primary">
+              <div className="stat-header">
+                <div className="stat-icon">
+                  <i className="fas fa-users"></i>
+                </div>
+                <div className="stat-content">
+                  <h3>{loading ? "..." : stats?.total_users}</h3>
+                  <p>Tổng người dùng</p>
+                  <div className="stat-trend trend-up">
+                    <i className="fas fa-arrow-up"></i>
+                    <span>+{stats?.new_this_week || 0} tuần này</span>
                   </div>
-                  <div className="col col-stats ms-3 ms-sm-0">
-                    <div className="numbers">
-                      <p className="card-category">Visitors</p>
-                      <h4 className="card-title">1,294</h4>
-                    </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="stat-card success">
+              <div className="stat-header">
+                <div className="stat-icon">
+                  <i className="fas fa-user-check"></i>
+                </div>
+                <div className="stat-content">
+                  <h3>{loading ? "..." : stats?.verified_users}</h3>
+                  <p>Đã xác thực</p>
+                  <div className="stat-content">
+                    <small className="text-muted">
+                      {stats ? Math.round((stats.verified_users / stats.total_users) * 100) : 0}% tổng số
+                    </small>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="stat-card info">
+              <div className="stat-header">
+                <div className="stat-icon">
+                  <i className="fas fa-user-plus"></i>
+                </div>
+                <div className="stat-content">
+                  <h3>{loading ? "..." : stats?.new_this_week}</h3>
+                  <p>Mới tuần này</p>
+                  <div className="stat-trend trend-up">
+                    <i className="fas fa-arrow-up"></i>
+                    <span>+{stats?.new_today || 0} hôm nay</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="stat-card warning">
+              <div className="stat-header">
+                <div className="stat-icon">
+                  <i className="far fa-clock"></i>
+                </div>
+                <div className="stat-content">
+                  <h3>{loading ? "..." : stats?.new_today}</h3>
+                  <p>Mới hôm nay</p>
+                  <div className="stat-trend trend-neutral">
+                    <i className="fas fa-minus"></i>
+                    <span>So với hôm qua</span>
                   </div>
                 </div>
               </div>
             </div>
           </div>
-          <div className="col-sm-6 col-md-3">
-            <div className="card card-stats card-round">
-              <div className="card-body">
-                <div className="row align-items-center">
-                  <div className="col-icon">
-                    <div className="icon-big text-center icon-info bubble-shadow-small">
-                      <i className="fas fa-user-check"></i>
-                    </div>
-                  </div>
-                  <div className="col col-stats ms-3 ms-sm-0">
-                    <div className="numbers">
-                      <p className="card-category">Subscribers</p>
-                      <h4 className="card-title">1303</h4>
-                    </div>
-                  </div>
+
+          {/* Charts Section */}
+          <div className="charts-section">
+            {/* Main Chart */}
+            <div className="chart-card">
+              <div className="chart-header">
+                <h2 className="chart-title">Thống Kê Người Dùng</h2>
+                <div className="chart-actions">
+                  <button 
+                    className={`time-filter ${timeRange === 'day' ? 'active' : ''}`}
+                    onClick={() => setTimeRange('day')}
+                  >
+                    Ngày
+                  </button>
+                  <button 
+                    className={`time-filter ${timeRange === 'week' ? 'active' : ''}`}
+                    onClick={() => setTimeRange('week')}
+                  >
+                    Tuần
+                  </button>
+                  <button 
+                    className={`time-filter ${timeRange === 'month' ? 'active' : ''}`}
+                    onClick={() => setTimeRange('month')}
+                  >
+                    Tháng
+                  </button>
                 </div>
+              </div>
+              <div className="chart-container">
+                {loading ? (
+                  <div className="loading-container">
+                    <div className="loading-spinner"></div>
+                    <p>Đang tải biểu đồ...</p>
+                  </div>
+                ) : (
+                  <Bar data={userStatsChartData} options={chartOptions} />
+                )}
               </div>
             </div>
-          </div>
-          <div className="col-sm-6 col-md-3">
-            <div className="card card-stats card-round">
-              <div className="card-body">
-                <div className="row align-items-center">
-                  <div className="col-icon">
-                    <div className="icon-big text-center icon-success bubble-shadow-small">
-                      <i className="fas fa-luggage-cart"></i>
-                    </div>
-                  </div>
-                  <div className="col col-stats ms-3 ms-sm-0">
-                    <div className="numbers">
-                      <p className="card-category">Sales</p>
-                      <h4 className="card-title">$ 1,345</h4>
-                    </div>
-                  </div>
-                </div>
+
+            {/* Doughnut Chart */}
+            <div className="chart-card">
+              <div className="chart-header">
+                <h2 className="chart-title">Phân Phối Vai Trò</h2>
               </div>
-            </div>
-          </div>
-          <div className="col-sm-6 col-md-3">
-            <div className="card card-stats card-round">
-              <div className="card-body">
-                <div className="row align-items-center">
-                  <div className="col-icon">
-                    <div className="icon-big text-center icon-secondary bubble-shadow-small">
-                      <i className="far fa-check-circle"></i>
-                    </div>
+              <div className="doughnut-container">
+                {loading ? (
+                  <div className="loading-container">
+                    <div className="loading-spinner"></div>
+                    <p>Đang tải biểu đồ...</p>
                   </div>
-                  <div className="col col-stats ms-3 ms-sm-0">
-                    <div className="numbers">
-                      <p className="card-category">Order</p>
-                      <h4 className="card-title">576</h4>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div className="row">
-          <div className="col-md-8">
-            <div className="card card-round">
-              <div className="card-header">
-                <div className="card-head-row">
-                  <div className="card-title">User Statistics</div>
-                  <div className="card-tools">
-                    <Link
-                      href="#"
-                      className="btn btn-label-success btn-round btn-sm me-2"
-                    >
-                      <span className="btn-label">
-                        <i className="fa fa-pencil"></i>
-                      </span>
-                      Export
-                    </Link>
-                    <Link href="#" className="btn btn-label-info btn-round btn-sm">
-                      <span className="btn-label">
-                        <i className="fa fa-print"></i>
-                      </span>
-                      Print
-                    </Link>
-                  </div>
-                </div>
-              </div>
-              <div className="card-body">
-                <div className="chart-container">
-                  <canvas id="statisticsChart"></canvas>
-                </div>
-                <div id="myChartLegend"></div>
-              </div>
-            </div>
-          </div>
-          <div className="col-md-4">
-            <div className="card card-primary card-round">
-              <div className="card-header">
-                <div className="card-head-row">
-                  <div className="card-title">Daily Sales</div>
-                  <div className="card-tools">
-                    <div className="dropdown">
-                      <button
-                        className="btn btn-sm btn-label-light dropdown-toggle"
-                        type="button"
-                        id="dropdownMenuButton"
-                        data-bs-toggle="dropdown"
-                        aria-haspopup="true"
-                        aria-expanded="false"
-                      >
-                        Export
-                      </button>
-                      <div
-                        className="dropdown-menu"
-                        aria-labelledby="dropdownMenuButton"
-                      >
-                        <Link className="dropdown-item" href="#">
-                          Action
-                        </Link>
-                        <Link className="dropdown-item" href="#">
-                          Another action
-                        </Link>
-                        <Link className="dropdown-item" href="#">
-                          Something else here
-                        </Link>
+                ) : (
+                  <>
+                    <Doughnut data={roleChartData} options={doughnutOptions} />
+                    <div className="chart-legend">
+                      <div className="legend-item">
+                        <div className="legend-color" style={{backgroundColor: 'rgba(102, 126, 234, 0.8)'}}></div>
+                        <span>Người dùng thường</span>
+                      </div>
+                      <div className="legend-item">
+                        <div className="legend-color" style={{backgroundColor: 'rgba(72, 187, 120, 0.8)'}}></div>
+                        <span>Quản trị viên</span>
+                      </div>
+                      <div className="legend-item">
+                        <div className="legend-color" style={{backgroundColor: 'rgba(237, 137, 54, 0.8)'}}></div>
+                        <span>Super Admin</span>
                       </div>
                     </div>
-                  </div>
-                </div>
-                <div className="card-category">March 25 - April 02</div>
-              </div>
-              <div className="card-body pb-0">
-                <div className="mb-4 mt-2">
-                  <h1>$4,578.58</h1>
-                </div>
-                <div className="pull-in">
-                  <canvas id="dailySalesChart"></canvas>
-                </div>
+                  </>
+                )}
               </div>
             </div>
-            <div className="card card-round">
-              <div className="card-body pb-0">
-                <div className="h1 fw-bold float-end text-primary">+5%</div>
-                <h2 className="mb-2">17</h2>
-                <p className="text-muted">Users online</p>
-                <div className="pull-in sparkline-fix">
-                  <div id="lineChart"></div>
+          </div>
+
+          {/* Quick Actions */}
+          <div className="quick-actions">
+            <h2 className="chart-title">Thao Tác Nhanh</h2>
+            <div className="actions-grid">
+              <Link to="/admin/users" className="action-btn">
+                <div className="action-icon">
+                  <i className="fas fa-users"></i>
                 </div>
-              </div>
+                <div className="action-text">Quản lý người dùng</div>
+              </Link>
+              <Link to="/admin/analytics" className="action-btn">
+                <div className="action-icon">
+                  <i className="fas fa-chart-bar"></i>
+                </div>
+                <div className="action-text">Phân tích chi tiết</div>
+              </Link>
+              <Link to="/admin/settings" className="action-btn">
+                <div className="action-icon">
+                  <i className="fas fa-cog"></i>
+                </div>
+                <div className="action-text">Cài đặt hệ thống</div>
+              </Link>
+              <Link to="/admin/reports" className="action-btn">
+                <div className="action-icon">
+                  <i className="fas fa-file-alt"></i>
+                </div>
+                <div className="action-text">Báo cáo & Thống kê</div>
+              </Link>
+            </div>
+          </div>
+
+          {/* Recent Activity */}
+          <div className="recent-activity">
+            <h2 className="chart-title">Hoạt Động Gần Đây</h2>
+            <div className="activity-list">
+              {loading ? (
+                <p>Đang tải...</p>
+              ) : (
+                recentActivities.map((activity) => (
+                  <div key={activity.id} className="activity-item">
+                    <div className="activity-icon">
+                      <i className={"fas fa-user-plus"}></i>
+                    </div>
+                    <div className="activity-content">
+                      <div className="activity-title">Người dùng mới</div>
+                      <p className="activity-description">
+                        {activity.display_name || activity.email} đã đăng ký.
+                      </p>
+                    </div>
+                    <div className="activity-time">
+                      {new Date(activity.created_at).toLocaleString()}
+                    </div>
+                  </div>
+                ))
+              )}
             </div>
           </div>
         </div>

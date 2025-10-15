@@ -5740,10 +5740,7 @@ label.error {
   border-bottom: 0;
   border-left: 0.3em solid transparent;
 }
-.quick-actions {
-  width: 350px;
-  padding: 0;
-}
+
 .quick-actions:after {
   border-bottom-color: #1572e8 !important;
 }
