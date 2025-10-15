@@ -162,7 +162,7 @@ const ProgressDashboard = () => {
                 </div>
 
                 {/* Stats Grid */}
-                <div className="stats-grid">
+                <div className="stats-grid-progress">
                     <div className="stat-card primary">
                         <div className="stat-icon">
                             <i className="fas fa-clipboard-list"></i>
