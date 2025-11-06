@@ -187,27 +187,15 @@ const FlashcardStudy = ({ isAuthenticated }) => {
     }
   }, [currentIndex, sessionCards]);
 
-  if (loading) {
-    return (
-      <div className="flashcard-study-container">
-        <div className="container">
-          <div className="loading-spinner">
-            <i className="fas fa-spinner fa-spin"></i>
-            <p>Đang tải dữ liệu học tập...</p>
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   if (!collection || sessionCards.length === 0) {
     return (
       <div className="flashcard-study-container">
         <div className="container">
-          <div className="no-cards">
+          <div className="no-cards text-center">
             <i className="fas fa-check-circle"></i>
             <h3>Không có thẻ nào cần học</h3>
-            <p>
+            <p className="text-white text-center">
               Tất cả các từ trong bộ này đã được ôn tập hoặc không có thẻ nào để
               học.
             </p>

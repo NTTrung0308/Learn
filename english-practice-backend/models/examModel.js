@@ -4,9 +4,10 @@ const Exam = {};
 
 Exam.create = async (examData) => {
   const sql = `
-    INSERT INTO exams (title, description, exam_type, duration, difficulty, created_by) 
-    VALUES (?, ?, ?, ?, ?, ?)
+    INSERT INTO exams (title, description, exam_type, duration, difficulty, created_by, shared_audio_url) 
+    VALUES (?, ?, ?, ?, ?, ?, ?)
   `;
+
   return await db.execute(sql, [
     examData.title,
     examData.description,
@@ -14,6 +15,7 @@ Exam.create = async (examData) => {
     examData.duration,
     examData.difficulty,
     examData.created_by,
+    examData.shared_audio_url || null,
   ]);
 };
 
@@ -64,19 +66,35 @@ Exam.findById = async (id) => {
 };
 
 Exam.update = async (id, examData) => {
-  const sql = `
+  // Create base query without shared_audio_url
+  let sql = `
     UPDATE exams 
-    SET title = ?, description = ?, exam_type = ?, duration = ?, difficulty = ?, updated_at = CURRENT_TIMESTAMP 
-    WHERE id = ?
+    SET title = ?, 
+        description = ?, 
+        exam_type = ?, 
+        duration = ?, 
+        difficulty = ?,
+        updated_at = CURRENT_TIMESTAMP 
   `;
-  return await db.execute(sql, [
+
+  // Add shared_audio_url to query only if it exists in examData
+  const params = [
     examData.title,
     examData.description,
     examData.exam_type,
     examData.duration,
     examData.difficulty,
-    id,
-  ]);
+  ];
+
+  if ("shared_audio_url" in examData) {
+    sql = sql.replace("difficulty = ?", "difficulty = ?, shared_audio_url = ?");
+    params.push(examData.shared_audio_url);
+  }
+
+  sql += ` WHERE id = ?`;
+  params.push(id);
+
+  return await db.execute(sql, params);
 };
 
 Exam.delete = async (id) => {

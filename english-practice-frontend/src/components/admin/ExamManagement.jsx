@@ -48,6 +48,7 @@ const ExamManagement = ({ handleLogout }) => {
     options: ["", "", "", ""],
     correct_answer: "",
     points: 1,
+    shared_audio: null, // Thêm trường này
   });
 
   useEffect(() => {
@@ -140,7 +141,6 @@ const ExamManagement = ({ handleLogout }) => {
         if (key === "options") {
           formData.append(key, JSON.stringify(questionForm.options));
         } else if (key === "correct_answer") {
-          // Ensure correct_answer is an object before stringifying
           formData.append(
             key,
             JSON.stringify({ answer: questionForm.correct_answer })
@@ -150,22 +150,28 @@ const ExamManagement = ({ handleLogout }) => {
           key !== "created_at" &&
           key !== "updated_at" &&
           key !== "audio_url" &&
-          key !== "image_url"
+          key !== "image_url" &&
+          key !== "shared_audio"
         ) {
           formData.append(key, questionForm[key]);
         }
       });
 
-      // Append files if they exist
-      if (form.audio.files[0]) {
-        formData.append("audio", form.audio.files[0]);
+      // Append shared audio for listening exam type
+      if (currentExam.exam_type === "listening" && form.audio.files[0]) {
+        formData.append("shared_audio", form.audio.files[0]);
+      } else if (currentExam.exam_type === "listening" && questionForm.shared_audio) {
+        formData.append("shared_audio", questionForm.shared_audio);
       }
+
+      // Append image if exists
       if (form.image.files[0]) {
         formData.append("image", form.image.files[0]);
       }
 
+      let response;
       if (editingQuestion) {
-        await axios.put(
+        response = await axios.put(
           `http://localhost:5000/api/exams/questions/${editingQuestion.id}`,
           formData,
           {
@@ -178,7 +184,7 @@ const ExamManagement = ({ handleLogout }) => {
         toast.success("Câu hỏi đã được cập nhật");
       } else {
         formData.append("exam_id", currentExam.id);
-        await axios.post(
+        response = await axios.post(
           `http://localhost:5000/api/exams/${currentExam.id}/questions`,
           formData,
           {
@@ -191,6 +197,14 @@ const ExamManagement = ({ handleLogout }) => {
         toast.success("Câu hỏi đã được thêm");
       }
 
+      // Update currentExam with the new shared_audio_url if it was updated
+      if (response.data.shared_audio_url) {
+        setCurrentExam((prevExam) => ({
+          ...prevExam,
+          shared_audio_url: response.data.shared_audio_url,
+        }));
+      }
+
       setShowQuestionModal(false);
       setEditingQuestion(null);
       setQuestionForm({
@@ -200,6 +214,7 @@ const ExamManagement = ({ handleLogout }) => {
         options: ["", "", "", ""],
         correct_answer: "",
         points: 1,
+        shared_audio: null,
       });
       fetchExamQuestions(currentExam.id);
     } catch (error) {
@@ -321,6 +336,16 @@ const ExamManagement = ({ handleLogout }) => {
     });
 
     setShowQuestionModal(true);
+  };
+
+  // Thêm hàm mới để xử lý shared audio
+  const handleSharedAudioChange = (e) => {
+    if (e.target.files[0]) {
+      setQuestionForm({
+        ...questionForm,
+        shared_audio: e.target.files[0]
+      });
+    }
   };
 
   return (
@@ -612,6 +637,50 @@ const ExamManagement = ({ handleLogout }) => {
           </Modal.Header>
           <Form onSubmit={handleQuestionSubmit}>
             <Modal.Body>
+              {currentExam && currentExam.exam_type === "listening" && (
+                <Form.Group className="mb-3">
+                  <Form.Label>Audio cho tất cả câu hỏi</Form.Label>
+                  {currentExam.shared_audio_url ? (
+                    <div>
+                      <p className="text-success">
+                        Đã có audio chung cho đề thi này:{" "}
+                        <a
+                          href={currentExam.shared_audio_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          {currentExam.shared_audio_url.split("/").pop()}
+                        </a>
+                      </p>
+                      <Form.Text className="text-muted">
+                        Bạn có thể tải lên audio mới để thay thế.
+                      </Form.Text>
+                      <Form.Control
+                        type="file"
+                        accept="audio/*"
+                        name="shared_audio"
+                        onChange={handleSharedAudioChange}
+                        required={false}
+                      />
+                    </div>
+                  ) : (
+                    <>
+                      <Form.Control
+                        type="file"
+                        accept="audio/*"
+                        name="shared_audio"
+                        onChange={handleSharedAudioChange}
+                        required={!editingQuestion && !currentExam.shared_audio_url}
+                      />
+                      <Form.Text className="text-muted">
+                        Audio này sẽ được áp dụng cho tất cả câu hỏi trong phần
+                        listening
+                      </Form.Text>
+                    </>
+                  )}
+                </Form.Group>
+              )}
+              
               <Form.Group className="mb-3">
                 <Form.Label>Loại câu hỏi</Form.Label>
                 <Form.Select
@@ -724,7 +793,17 @@ const ExamManagement = ({ handleLogout }) => {
 
               <Form.Group className="mb-3">
                 <Form.Label>Upload Audio (cho Listening)</Form.Label>
-                <Form.Control type="file" accept="audio/*" name="audio" />
+                <Form.Control 
+                  type="file" 
+                  accept="audio/*" 
+                  name="audio" 
+                  required={currentExam?.exam_type === "listening" && !editingQuestion && !questionForm.shared_audio && !currentExam.shared_audio_url}
+                />
+                <Form.Text className="text-muted">
+                  {currentExam?.exam_type === "listening" && questionForm.shared_audio ? 
+                    "Đã có audio chung cho tất cả câu hỏi" : 
+                    "Upload audio riêng cho câu hỏi này"}
+                </Form.Text>
               </Form.Group>
 
               <Form.Group className="mb-3">

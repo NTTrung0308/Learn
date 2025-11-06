@@ -50,7 +50,7 @@ const ExamPreview = () => {
   }
 
   return (
-    <div className="container my-5">
+    <div className="container mt-5">
       <div className="card shadow-sm exam-preview-card">
         <div className="card-header bg-primary text-white">
           <h1 className="mb-0">{exam.title}</h1>

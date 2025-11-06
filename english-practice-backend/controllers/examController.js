@@ -209,39 +209,81 @@ exports.deleteExam = async (req, res) => {
 exports.addQuestion = async (req, res) => {
   const {
     exam_id,
-
     question_type,
-
     question_text,
-
     question_order,
-
     options,
-
     correct_answer,
-
     points,
   } = req.body;
 
-  // Xử lý file upload nếu có
-
-  const audio_url =
-    req.files && req.files.audio
-      ? `/uploads/audio/${req.files.audio[0].filename}`
-      : null;
-
-  const image_url =
-    req.files && req.files.image
-      ? `/uploads/images/${req.files.image[0].filename}`
-      : null;
-
   try {
+    // Check if exam exists and get exam details
+    const [examResults] = await Exam.findById(exam_id);
+    if (examResults.length === 0) {
+      return res.status(404).json({ message: "Đề thi không tồn tại" });
+    }
+
+    const exam = examResults[0];
+    let examSharedAudioUrl = exam.shared_audio_url;
+
+    // Handle audio for listening exam type
+    if (exam.exam_type === "listening") {
+      // Case 1: New shared audio is being uploaded
+      if (req.files && req.files.shared_audio) {
+        examSharedAudioUrl = `/uploads/audio/${req.files.shared_audio[0].filename}`;
+        // Update exam with new shared audio
+        await Exam.update(exam_id, {
+          ...exam,
+          shared_audio_url: examSharedAudioUrl,
+        });
+
+        // Update all existing questions to use new shared audio
+        const [existingQuestions] = await Question.findByExamId(exam_id);
+        for (const question of existingQuestions) {
+          await Question.update(question.id, {
+            ...question,
+            audio_url: examSharedAudioUrl,
+          });
+        }
+      }
+      // Case 2: Individual audio uploaded but no shared audio exists
+      else if (!examSharedAudioUrl && req.files && req.files.audio) {
+        examSharedAudioUrl = `/uploads/audio/${req.files.audio[0].filename}`;
+        // Set this as the shared audio for the exam
+        await Exam.update(exam_id, {
+          ...exam,
+          shared_audio_url: examSharedAudioUrl,
+        });
+      }
+      // Case 3: No new audio, but shared audio exists
+      else if (!req.files && examSharedAudioUrl) {
+        // Continue using existing shared audio
+      }
+      // Case 4: No audio provided for listening exam
+      else if (
+        !examSharedAudioUrl &&
+        (!req.files || (!req.files.shared_audio && !req.files.audio))
+      ) {
+        return res.status(400).json({
+          message: "Audio file is required for listening exam questions",
+        });
+      }
+    }
+
+    // Handle image if provided
+    const image_url =
+      req.files && req.files.image
+        ? `/uploads/images/${req.files.image[0].filename}`
+        : null;
+
+    // Parse options and correct_answer
     let parsedOptions = options;
     if (typeof options === "string") {
       try {
         parsedOptions = JSON.parse(options);
       } catch (e) {
-        console.error("Error parsing options in addQuestion:", e);
+        console.error("Error parsing options:", e);
       }
     }
 
@@ -250,42 +292,33 @@ exports.addQuestion = async (req, res) => {
       try {
         parsedCorrectAnswer = JSON.parse(correct_answer);
       } catch (e) {
-        console.error("Error parsing correct_answer in addQuestion:", e);
+        console.error("Error parsing correct_answer:", e);
       }
     }
 
+    // Create the new question
     const [results] = await Question.create({
       exam_id,
-
       question_type,
-
       question_text,
-
       question_order,
-
-      audio_url,
-
+      audio_url: exam.exam_type === "listening" ? examSharedAudioUrl : null,
       image_url,
-
       options: parsedOptions,
-
       correct_answer: parsedCorrectAnswer,
-
       points,
     });
 
-    // Cập nhật tổng số câu hỏi
-
+    // Update total questions count
     await Exam.updateTotalQuestions(exam_id);
 
     res.status(201).json({
       message: "Câu hỏi đã được thêm",
-
       questionId: results.insertId,
+      shared_audio_url: examSharedAudioUrl,
     });
   } catch (err) {
     console.error("Error adding question:", err);
-
     res.status(500).json({ message: "Lỗi server", error: err });
   }
 };
