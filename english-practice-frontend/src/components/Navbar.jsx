@@ -157,11 +157,11 @@ const Navbar = ({ isAuthenticated }) => {
                   </Link>
                   
                   <Link 
-                    to="/settings" 
+                    to="/speaking-practice" 
                     className="dropdown-item"
                   >
-                    <span className="item-icon">⚙️</span>
-                    <span className="item-text">Cài đặt</span>
+                    <span className="item-icon">🎙</span>
+                    <span className="item-text">Luyện nói với AI</span>
                   </Link>
                   
                   <div className="dropdown-divider"></div>

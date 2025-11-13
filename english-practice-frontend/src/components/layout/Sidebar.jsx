@@ -123,6 +123,16 @@ const Sidebar = ({
                   <p>Quản lý người dùng</p>
                 </Link>
               </li>
+              <li
+                className={`nav-item ${
+                  location.pathname === "/speaking-practice" ? "active" : ""
+                }`}
+              >
+                <Link to={"/speaking-practice"} onClick={handleMenuItemClick}>
+                  <i className="fa-solid fa-microphone-lines"></i>
+                  <p>Luyện nói AI</p>
+                </Link>
+              </li>
               <li className="nav-section">
                 <span className="sidebar-mini-icon">
                   <i className="fa fa-ellipsis-h"></i>

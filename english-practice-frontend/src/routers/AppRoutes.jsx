@@ -26,6 +26,7 @@ import GrammarList from "../components/grammar/GrammarList";
 import ProgressDashboard from "../components/ProgressDashboard";
 import CourseList from "../components/course/CourseList";
 import About from "../components/About";
+import SpeakingPractice from "../components/speaking/SpeakingPractice";
 
 function AppRoutes({
   isAuthenticated,
@@ -161,6 +162,13 @@ function AppRoutes({
       <Route
         path="/courses"
         element={isAuthenticated ? <CourseList /> : <Navigate to="/login" />}
+      />
+
+      <Route
+        path="/speaking-practice"
+        element={
+          isAuthenticated ? <SpeakingPractice /> : <Navigate to="/login" />
+        }
       />
 
       {/* Admin Routes */}
