@@ -38,10 +38,10 @@ const Navbar = ({ isAuthenticated }) => {
   // Các mục điều hướng
   const navItems = [
     { path: "/", label: "Trang chủ", icon: "🏠" },
-    { path: "/courses", label: "Khóa học", icon: "📚" },
-    { path: "/exams", label: "Luyện thi", icon: "✍️" },
-    { path: "/grammar", label: "Ngữ pháp", icon: "🔤" },
     { path: "/vocabulary-collections", label: "Từ vựng", icon: "📖" },
+    { path: "/grammar", label: "Ngữ pháp", icon: "🔤" },
+    { path: "/exams", label: "Luyện thi", icon: "✍️" },
+    { path: "/courses", label: "Khóa học", icon: "📚" },
     { path: "/about", label: "Về chúng tôi", icon: "👥" },
   ];
 

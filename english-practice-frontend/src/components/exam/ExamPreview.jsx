@@ -101,7 +101,7 @@ const ExamPreview = () => {
 
           <div className="text-center mt-4">
             <button
-              onClick={() => navigate(`/exams/taking/${id}`)}
+              onClick={() => navigate(`/exams/${id}/take`)}
               className="btn btn-success btn-lg me-3"
             >
               <i className="fas fa-play-circle me-2"></i>Bắt đầu làm bài

@@ -47,37 +47,10 @@ const FlashcardStudy = ({ isAuthenticated }) => {
 
       setCollection(collectionRes.data);
 
-      // Phân loại card theo trạng thái học
-      const progressMap = {};
-      progressRes.data.forEach((item) => {
-        progressMap[item.flashcard_id] = item;
-      });
-
-      const newCards = [];
-      const reviewCards = [];
-      const masteredCards = [];
-
-      collectionRes.data.flashcards.forEach((card) => {
-        const progress = progressMap[card.id];
-        if (!progress) {
-          newCards.push(card);
-        } else if (progress.status === "mastered") {
-          masteredCards.push(card);
-        } else {
-          // Kiểm tra xem có đến ngày ôn tập chưa
-          const nextReview = new Date(progress.next_review_date);
-          const today = new Date();
-          if (today >= nextReview) {
-            reviewCards.push(card);
-          } else {
-            masteredCards.push(card);
-          }
-        }
-      });
-
-      // Ưu tiên card cần ôn tập, sau đó đến card mới
-      const studySession = [...reviewCards, ...newCards];
+      // Always show all flashcards in the collection for study, ignoring progress.
+      const studySession = collectionRes.data.flashcards;
       setSessionCards(studySession);
+
       setFlashcards(collectionRes.data.flashcards);
       setLoading(false);
     } catch (error) {
@@ -204,7 +177,7 @@ const FlashcardStudy = ({ isAuthenticated }) => {
               className="btn btn-primary"
             >
               Quay lại bộ từ vựng
-            </Link>
+            </Link>    
           </div>
         </div>
       </div>
